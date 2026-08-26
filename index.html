@@ -185,7 +185,18 @@ body{
   box-shadow:0 4px 20px rgba(0,0,0,0.5);
   min-width:240px;
 }
-.leaflet-popup-content-wrapper .leaflet-popup-content{margin:12px 14px;font-family:"PingFang SC","Microsoft YaHei",sans-serif}
+.leaflet-popup-content-wrapper .leaflet-popup-content{margin:12px 14px;font-family:"PingFang SC","Microsoft YaHei",sans-serif;max-height:calc(100vh - 200px);overflow-y:auto}
+.edit-form label{display:block;font-size:11px;color:var(--text-secondary);margin:8px 0 3px}
+.edit-form .edit-row{display:flex;gap:8px;align-items:flex-end}
+.edit-form .edit-col{flex:1;min-width:0}
+.edit-form input,.edit-form select{width:100%;padding:5px 7px;font-size:12px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);outline:none}
+.edit-form input:focus,.edit-form select:focus{border-color:var(--accent-blue)}
+.edit-form input[type="color"]{padding:2px;height:28px}
+.edit-form input[type="checkbox"]{width:auto;margin-right:4px;vertical-align:middle}
+.edit-form .form-actions{display:flex;gap:8px;margin-top:10px}
+.edit-form .form-actions .btn{flex:1;padding:6px 8px;font-size:12px}
+.edit-form .hint{font-size:10px;color:var(--text-muted);margin-top:8px;line-height:1.4}
+.edit-form .section-title{font-size:11px;color:var(--accent-blue);margin:10px 0 4px;padding-top:8px;border-top:1px dashed var(--border-color)}
 .leaflet-popup-content h4{font-size:14px;font-weight:600;margin-bottom:8px}
 .leaflet-popup-content p{font-size:11px;color:var(--text-secondary);margin:3px 0}
 .leaflet-popup-tip{background:rgba(13,30,54,0.98)}
@@ -269,9 +280,31 @@ body{
 .dl-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
 .selmode{cursor:crosshair}
 .selmode .leaflet-grab,.selmode .leaflet-interactive{cursor:crosshair!important}
-/* 地图上永久显示的描述标签（白底黑字 + 立体浮起投影，与下载图标签风格统一） */
-.map-desc-label{background:#ffffff!important;border:1px solid rgba(0,0,0,0.1)!important;border-radius:7px!important;box-shadow:0 4px 12px rgba(0,0,0,0.18),0 1px 3px rgba(0,0,0,0.12)!important;padding:5px 11px!important;margin:0!important;white-space:nowrap!important;font-size:13px!important;line-height:1.4!important}
-.map-desc-label .map-desc-text{color:#222222!important;font-weight:500;font-family:"PingFang SC","Microsoft YaHei",sans-serif!important}
+/* 地图上永久显示的描述标签：基础容器（背景/边框/投影由 .desc-style-* 控制） */
+.map-desc-label{margin:0!important;white-space:nowrap!important;font-size:13px!important;line-height:1.4!important;border-radius:999px!important;padding:5px 14px!important;font-family:"PingFang SC","Microsoft YaHei",sans-serif!important}
+.map-desc-label .map-desc-text{font-weight:500}
+/* shadow：椭圆白底 + 右下灰边厚度 + 立体悬浮（默认参考图效果） */
+.desc-style-shadow{background:#ffffff!important;box-shadow:2px 2px 0 #cfcfcf,0 5px 14px rgba(0,0,0,0.20)!important}
+.desc-style-shadow .map-desc-text{color:#222222!important}
+/* white：白底黑字（普通投影，无灰边厚度） */
+.desc-style-white{background:#ffffff!important;box-shadow:0 4px 12px rgba(0,0,0,0.18)!important}
+.desc-style-white .map-desc-text{color:#222222!important}
+/* dark：黑底白字 */
+.desc-style-dark{background:#1a1a1a!important;box-shadow:0 4px 12px rgba(0,0,0,0.4)!important}
+.desc-style-dark .map-desc-text{color:#ffffff!important}
+/* border：白底 + 类型色边框（边框色由 JS 内联设置） */
+.desc-style-border{background:#ffffff!important;box-shadow:0 4px 12px rgba(0,0,0,0.18)!important;border:2px solid #3498db!important}
+.desc-style-border .map-desc-text{color:#222222!important}
+/* stroke：描边字（无背景），靠文字描边在任意底图上可读 */
+.desc-style-stroke{background:transparent!important;box-shadow:none!important;padding:5px 10px!important}
+.desc-style-stroke .map-desc-text{color:#222222!important;text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 2px #fff,1px 1px 3px rgba(0,0,0,0.5)}
+/* 可拖拽描述标签层（独立 DOM 覆盖在地图上，可拖动并带自动连线） */
+#descLineLayer{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:550;overflow:visible}
+#descLabelLayer{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:650;overflow:visible}
+.desc-label{position:absolute;left:0;top:0;pointer-events:auto;cursor:grab;user-select:none;touch-action:none;transform:translate(-50%,-50%)}
+.desc-label.dragging{cursor:grabbing;z-index:999}
+.desc-label-line{fill:none;stroke:#cfcfcf;stroke-width:1.6px;stroke-linejoin:round;stroke-linecap:round}
+.desc-label-dot{fill:#cfcfcf}
 </style>
 </head>
 <body class="">
@@ -434,7 +467,9 @@ var labelCfg={
   bold:true,           // 文字是否加粗
   style:'shadow',       // 标签样式（默认白底投影立体风格）
   pos:'bottom',        // 标签相对图钉位置：top/bottom/left/right
-  offX:0, offY:0       // 标签手动偏移(px)，用于错开重叠
+  offX:0, offY:0,      // 标签手动偏移(px)，用于错开重叠
+  lineType:'poly',     // 描述标签与图钉连线类型：none/solid/dashed/dotted/poly
+  lineColor:'#999999'  // 连线颜色
 };
 var _dlScale=1;        // 当前下载清晰度倍数，供标签辅助函数使用
 
@@ -572,7 +607,6 @@ function onMapClickForManual(e){
 map.on('click', onMapClickForManual);
 
 var markers=[];
-var mapDescLabels=[]; // 地图上永久显示的描述标签图层（L.tooltip permanent）
 var showMapDesc=false; // 是否在地图标记旁永久显示描述标签
 function toggleMapDescLabels(){
   showMapDesc=document.getElementById('showMapDesc').checked;
@@ -607,28 +641,177 @@ function bindMarkerEvents(marker,idx){
     }
   });
   marker.on('click',function(){openEditPopup(idx);});
-  marker.on('popupopen',function(){document.querySelectorAll('.shop-item').forEach(function(el){el.classList.remove('active')});var el=document.querySelector('.shop-item[data-idx="'+idx+'"]');if(el){el.classList.add('active');el.scrollIntoView({behavior:'smooth',block:'nearest'});}});
+  marker.on('popupopen',function(){
+    document.querySelectorAll('.shop-item').forEach(function(el){el.classList.remove('active')});
+    var el=document.querySelector('.shop-item[data-idx="'+idx+'"]');
+    if(el){el.classList.add('active');el.scrollIntoView({behavior:'smooth',block:'nearest'});}
+    ensurePopupVisible(marker.getPopup());
+  });
+}
+
+// 确保编辑 popup 完整显示在屏幕可视区域内（避开左侧边栏、顶部浏览器栏等）
+function ensurePopupVisible(popup){
+  if(!popup)return;
+  setTimeout(function(){
+    var el=popup.getElement&&popup.getElement();
+    if(!el)return;
+    var r=el.getBoundingClientRect();
+    var sidebarW=window.innerWidth>768?360:0; // 小屏可折叠时按 0 处理
+    var pad=16;
+    var minX=sidebarW+pad, maxX=window.innerWidth-pad;
+    var minY=pad, maxY=window.innerHeight-pad;
+    var dx=0, dy=0;
+    if(r.left<minX)dx=minX-r.left;
+    if(r.right>maxX)dx=maxX-r.right;
+    if(r.top<minY)dy=minY-r.top;
+    if(r.bottom>maxY)dy=maxY-r.bottom;
+    if(dx||dy)map.panBy([dx,dy],{animate:true,duration:0.25});
+  },120);
 }
 
 function refreshMarkers(){
   markers.forEach(function(m){map.removeLayer(m)});
-  mapDescLabels.forEach(function(l){map.removeLayer(l)});
-  mapDescLabels=[];
   markers=[];
   shops.forEach(function(s,idx){
-    var m=L.marker([s.lat,s.lng],{icon:makeIcon(s),draggable:true}).bindPopup('',{closeOnClick:false,autoClose:false}).bindTooltip(((s.name||'')+(s.desc?('｜'+s.desc):'')),{direction:'top',opacity:0.92});
-    // 地图永久描述标签：勾选「显示描述标签」且有 desc 内容时，在标记旁绑一个永久 tooltip
-    if(showMapDesc && s.desc && s.desc.trim()){
-      var lt=L.tooltip({permanent:true,direction:'bottom',offset:[0,8],className:'map-desc-label',opacity:1})
-        .setContent('<span class="map-desc-text">'+escapeHtml(s.desc)+'</span>');
-      m.bindTooltip(lt);
-      mapDescLabels.push(lt);
+    var m=L.marker([s.lat,s.lng],{icon:makeIcon(s),draggable:true}).bindPopup('',{closeOnClick:false,autoClose:false,autoPan:true,autoPanPadding:[20,20],autoPanPaddingTopLeft:[380,20],autoPanPaddingBottomRight:[20,20],keepInView:true,maxWidth:360});
+    if(!(showMapDesc && s.desc && s.desc.trim())){
+      // 未开启永久描述标签时：鼠标悬停提示名称 + 描述
+      m.bindTooltip(((s.name||'')+(s.desc?('｜'+s.desc):'')),{direction:'top',opacity:0.92});
     }
-    m.shopData=s;bindMarkerEvents(m,idx);m.addTo(map);markers.push(m);
+    // 开启永久描述标签时：不绑 Leaflet tooltip，由 renderDescLabels() 独立渲染可拖动标签 + 连线
+    m._idx=idx;m.shopData=s;bindMarkerEvents(m,idx);m.addTo(map);markers.push(m);
   });
   applyFilter();
+  renderDescLabels();
 }
 
+/* ===== 可拖拽描述标签 + 自动连线（直线 / 遮挡时折线） ===== */
+var descLabels=[];        // 当前显示的标签记录 {idx,el}
+var descLabelPos={};      // idx -> {dx,dy} 标签中心相对图钉锚点的像素偏移（用户拖拽后保存，跨缩放有效）
+function ensureDescLayers(){
+  var c=document.getElementById('mapContainer');
+  if(!document.getElementById('descLineLayer')){
+    var svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.id='descLineLayer'; svg.setAttribute('width','100%'); svg.setAttribute('height','100%');
+    c.appendChild(svg);
+  }
+  if(!document.getElementById('descLabelLayer')){
+    var d=document.createElement('div'); d.id='descLabelLayer'; c.appendChild(d);
+  }
+}
+function pinAnchorOf(m){ return map.latLngToContainerPoint(m.getLatLng()); }
+// 点到线段距离
+function segDist(px,py,ax,ay,bx,by){
+  var dx=bx-ax, dy=by-ay, l2=dx*dx+dy*dy;
+  if(l2===0) return Math.hypot(px-ax,py-ay);
+  var t=((px-ax)*dx+(py-ay)*dy)/l2; t=Math.max(0,Math.min(1,t));
+  return Math.hypot(px-(ax+t*dx), py-(ay+t*dy));
+}
+function buildLabelLine(lineLayer, idx, pinPt, labelPt, otherPts, size, lineType, lineColor){
+  lineType=lineType||'poly'; lineColor=lineColor||'#999999';
+  if(lineType==='none') return;
+  var needPoly=false;
+  if(lineType==='poly'){
+    var R=size/2+6;
+    for(var i=0;i<otherPts.length;i++){
+      var o=otherPts[i];
+      if(segDist(o.x,o.y,pinPt.x,pinPt.y,labelPt.x,labelPt.y)<R){ needPoly=true; break; }
+    }
+  }
+  var dStr;
+  if(needPoly){
+    var dx=labelPt.x-pinPt.x, dy=labelPt.y-pinPt.y;
+    var elbow = (Math.abs(dx)>=Math.abs(dy)) ? {x:labelPt.x, y:pinPt.y} : {x:pinPt.x, y:labelPt.y};
+    dStr='M'+pinPt.x+' '+pinPt.y+' L'+elbow.x+' '+elbow.y+' L'+labelPt.x+' '+labelPt.y;
+  } else {
+    dStr='M'+pinPt.x+' '+pinPt.y+' L'+labelPt.x+' '+labelPt.y;
+  }
+  var path=document.createElementNS('http://www.w3.org/2000/svg','path');
+  path.setAttribute('class','desc-label-line'); path.setAttribute('data-idx',idx); path.setAttribute('d',dStr);
+  // 用内联样式设置颜色/线型，优先级高于 CSS 样式表（setAttribute 表现属性会被 CSS 覆盖）
+  path.style.stroke=lineColor; path.style.fill='none'; path.style.strokeWidth='1.6px';
+  if(lineType==='dashed') path.style.strokeDasharray='6,4';
+  if(lineType==='dotted') path.style.strokeDasharray='2,3';
+  lineLayer.appendChild(path);
+  var dot=document.createElementNS('http://www.w3.org/2000/svg','circle');
+  dot.setAttribute('class','desc-label-dot'); dot.setAttribute('data-idx',idx);
+  dot.setAttribute('cx',pinPt.x); dot.setAttribute('cy',pinPt.y); dot.setAttribute('r',2.4);
+  dot.style.fill=lineColor;
+  lineLayer.appendChild(dot);
+}
+function renderDescLabels(){
+  ensureDescLayers();
+  var lineLayer=document.getElementById('descLineLayer');
+  var labelLayer=document.getElementById('descLabelLayer');
+  if(!showMapDesc){ lineLayer.innerHTML=''; labelLayer.innerHTML=''; descLabels=[]; return; }
+  lineLayer.innerHTML=''; labelLayer.innerHTML=''; descLabels=[];
+  var visible=[];
+  markers.forEach(function(m){
+    if(!map.hasLayer(m)) return;
+    var s=m.shopData; if(!s.desc||!s.desc.trim()) return;
+    var idx=(m._idx!==undefined)?m._idx:visible.length;
+    var pin=pinAnchorOf(m);
+    var size=s.pinSize||26;
+    if(!descLabelPos[idx]) descLabelPos[idx]={dx:0, dy:size*1.38+8};
+    visible.push({idx:idx, s:s, pin:pin, lp:{x:pin.x+descLabelPos[idx].dx, y:pin.y+descLabelPos[idx].dy}, size:size, marker:m});
+  });
+  visible.forEach(function(v){
+    var others=visible.filter(function(o){return o.idx!==v.idx;}).map(function(o){return o.pin;});
+    buildLabelLine(lineLayer, v.idx, v.pin, v.lp, others, v.size, v.s.lineType, v.s.lineColor);
+    var st=v.s.style||'shadow';
+    var el=document.createElement('div');
+    el.className='map-desc-label desc-label desc-style-'+st;
+    el.dataset.idx=v.idx;
+    el.innerHTML='<span class="map-desc-text">'+escapeHtml(v.s.desc)+'</span>';
+    if(st==='border'){ el.style.setProperty('borderColor', getColor(v.s), 'important'); }
+    el.style.left=v.lp.x+'px'; el.style.top=v.lp.y+'px';
+    labelLayer.appendChild(el);
+    descLabels.push({idx:v.idx, el:el});
+    setupDescLabelDrag(el, v.idx, v.marker);
+  });
+}
+function updateOneLabel(idx, marker, mx, my){
+  var pin=pinAnchorOf(marker);
+  descLabelPos[idx]={dx:mx-pin.x, dy:my-pin.y};
+  var el=document.querySelector('#descLabelLayer .desc-label[data-idx="'+idx+'"]');
+  if(el){ el.style.left=mx+'px'; el.style.top=my+'px'; }
+  var lineLayer=document.getElementById('descLineLayer');
+  var old=lineLayer.querySelector('path[data-idx="'+idx+'"]'); if(old) old.remove();
+  var oldDot=lineLayer.querySelector('circle[data-idx="'+idx+'"]'); if(oldDot) oldDot.remove();
+  var others=markers.filter(function(m){return map.hasLayer(m)&&(m._idx!==undefined?m._idx:null)!==idx;})
+                    .map(function(m){return pinAnchorOf(m);});
+  var s=marker.shopData;
+  buildLabelLine(lineLayer, idx, pin, {x:mx,y:my}, others, (s.pinSize||26), s.lineType, s.lineColor);
+}
+function setupDescLabelDrag(el, idx, marker){
+  el.addEventListener('mousedown', function(e){
+    if(e.button!==0) return;
+    e.preventDefault(); e.stopPropagation();
+    L.DomEvent.disableClickPropagation(el);
+    map.dragging.disable();
+    el.classList.add('dragging');
+    function move(ev){
+      var c=document.getElementById('mapContainer'); var rect=c.getBoundingClientRect();
+      updateOneLabel(idx, marker, ev.clientX-rect.left, ev.clientY-rect.top);
+    }
+    function up(){
+      el.classList.remove('dragging');
+      map.dragging.enable();
+      document.removeEventListener('mousemove',move);
+      document.removeEventListener('mouseup',up);
+      autosave();
+    }
+    document.addEventListener('mousemove',move);
+    document.addEventListener('mouseup',up);
+  });
+}
+// 地图平移/缩放时让标签跟随图钉（rAF 节流，避免频繁重建卡顿）
+var _rlraf=null;
+function scheduleRenderLabels(){
+  if(_rlraf) return;
+  _rlraf=requestAnimationFrame(function(){ _rlraf=null; renderDescLabels(); });
+}
+map.on('move zoom', scheduleRenderLabels);
 function applyFilter(){
   markers.forEach(function(m){
     var s=m.shopData,show=true;
@@ -638,32 +821,24 @@ function applyFilter(){
 }
 
 function openEditPopup(idx){
+  // 打开新编辑页面前，先关闭其它已打开的 popup，确保始终只显示一个
+  markers.forEach(function(m,i){if(i!==idx && m.isPopupOpen())m.closePopup();});
   currentEditIdx=idx;var s=shops[idx];var c=getColor(s);
   var typeOpts=categories.map(function(ct){return '<option value="'+ct.key+'" '+(s.type===ct.key?'selected':'')+'>'+escapeHtml(ct.label)+'</option>';}).join('');
   var streetOpts=streets.map(function(st){return '<option value="'+st+'">'+st+'</option>';}).join('');
   var html='<h4 style="color:'+c+'">编辑店铺</h4>'+
     '<div class="edit-form">'+
-    '<label>店名</label><input type="text" id="editName" value="'+escapeHtml(s.name)+'">'+
-    '<label>类型</label><select id="editType">'+typeOpts+'</select>'+
+    '<div class="edit-row"><div class="edit-col"><label>店名</label><input type="text" id="editName" value="'+escapeHtml(s.name)+'"></div><div class="edit-col" style="flex:0 0 110px"><label>类型</label><select id="editType">'+typeOpts+'</select></div></div>'+
     '<label>所属街道（可手填）</label><input type="text" id="editStreet" list="streetList" value="'+escapeHtml(s.street)+'"><datalist id="streetList">'+streetOpts+'</datalist>'+
     '<label>地址</label><input type="text" id="editAddr" value="'+escapeHtml(s.addr)+'">'+
-    '<label>经纬度（改动后自动按坐标识别街道）</label><div class="coord-row"><input type="text" id="editLat" value="'+s.lat+'" onchange="onCoordChange('+idx+')"><input type="text" id="editLng" value="'+s.lng+'" onchange="onCoordChange('+idx+')"></div>'+
+    '<label>经纬度（改动后自动按坐标识别街道）</label><div class="edit-row"><input type="text" id="editLat" style="flex:1" value="'+s.lat+'" onchange="onCoordChange('+idx+')"><input type="text" id="editLng" style="flex:1" value="'+s.lng+'" onchange="onCoordChange('+idx+')"></div>'+
     '<div class="form-actions"><button class="btn btn-primary" onclick="saveEdit()">保存</button><button class="btn" onclick="detectFromCoord('+idx+')">📍 按坐标识别</button><button class="btn btn-danger" onclick="deleteShop()">删除</button></div>'+
-    '<div style="margin-top:10px;border-top:1px dashed var(--border-color);padding-top:8px">'+
-      '<div style="font-size:11px;color:var(--accent-blue);margin-bottom:6px">标签与样式（下载图中显示）</div>'+
-      '<label>描述文字（留空则用店名；可超长自动换行）</label><input type="text" id="editDesc" value="'+escapeHtml(s.desc||'')+'">'+
-      '<div style="display:flex;gap:8px"><div style="flex:1"><label>图钉大小(px)</label><input type="number" id="editPin" value="'+(s.pinSize||26)+'" min="14" max="60"></div>'+
-      '<div style="flex:1"><label>文字大小(px)</label><input type="number" id="editFs" value="'+(s.fontSize||14)+'" min="8" max="40"></div></div>'+
-      '<div style="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap">'+
-        '<label style="margin:0">样式</label>'+
-        '<select id="editStyle"><option value="white"'+(s.style==='white'?' selected':'')+'>白底黑字</option><option value="dark"'+(s.style==='dark'?' selected':'')+'>黑底白字</option><option value="border"'+(s.style==='border'?' selected':'')+'>白底彩边</option><option value="stroke"'+(s.style==='stroke'?' selected':'')+'>描边字</option><option value="shadow"'+(s.style==='shadow'?' selected':'')+'>白底投影</option></select>'+
-        '<label style="margin:0 0 0 8px"><input type="checkbox" id="editBold" '+(s.bold===false?'':'checked')+'> 加粗</label>'+
-        '<label style="margin:0 0 0 8px">位置</label>'+
-        '<select id="editPos"><option value="bottom"'+(s.pos==='bottom'?' selected':'')+'>下方</option><option value="top"'+(s.pos==='top'?' selected':'')+'>上方</option><option value="left"'+(s.pos==='left'?' selected':'')+'>左侧</option><option value="right"'+(s.pos==='right'?' selected':'')+'>右侧</option></select>'+
-      '</div>'+
-      '<div style="display:flex;gap:8px;margin-top:6px"><div style="flex:1"><label>偏移X(px)</label><input type="number" id="editOffX" value="'+(s.offX||0)+'"></div>'+
-      '<div style="flex:1"><label>偏移Y(px)</label><input type="number" id="editOffY" value="'+(s.offY||0)+'"></div></div>'+
-    '</div>'+
+    '<div class="section-title">标签与样式（下载图中显示）</div>'+
+    '<label>描述文字（留空则用店名；可超长自动换行）</label><input type="text" id="editDesc" value="'+escapeHtml(s.desc||'')+'">'+
+    '<div class="edit-row"><div class="edit-col"><label>图钉大小(px)</label><input type="number" id="editPin" value="'+(s.pinSize||26)+'" min="14" max="60"></div><div class="edit-col"><label>文字大小(px)</label><input type="number" id="editFs" value="'+(s.fontSize||14)+'" min="8" max="40"></div></div>'+
+    '<div class="edit-row"><div class="edit-col"><label>样式</label><select id="editStyle"><option value="white"'+(s.style==='white'?' selected':'')+'>白底黑字</option><option value="dark"'+(s.style==='dark'?' selected':'')+'>黑底白字</option><option value="border"'+(s.style==='border'?' selected':'')+'>白底彩边</option><option value="stroke"'+(s.style==='stroke'?' selected':'')+'>描边字</option><option value="shadow"'+(s.style==='shadow'?' selected':'')+'>白底投影</option></select></div><div class="edit-col"><label>位置</label><select id="editPos"><option value="bottom"'+(s.pos==='bottom'?' selected':'')+'>下方</option><option value="top"'+(s.pos==='top'?' selected':'')+'>上方</option><option value="left"'+(s.pos==='left'?' selected':'')+'>左侧</option><option value="right"'+(s.pos==='right'?' selected':'')+'>右侧</option></select></div></div>'+
+    '<div class="edit-row"><div class="edit-col"><label>连线类型</label><select id="editLineType"><option value="none"'+(s.lineType==='none'?' selected':'')+'>不连线</option><option value="solid"'+(s.lineType==='solid'?' selected':'')+'>实线</option><option value="dashed"'+(s.lineType==='dashed'?' selected':'')+'>虚线</option><option value="dotted"'+(s.lineType==='dotted'?' selected':'')+'>点线</option><option value="poly"'+(s.lineType==='poly'?' selected':'')+'>自动折线</option></select></div><div class="edit-col" style="flex:0 0 60px"><label>连线颜色</label><input type="color" id="editLineColor" value="'+(s.lineColor||labelCfg.lineColor||'#999999')+'"></div><div class="edit-col" style="flex:0 0 60px;display:flex;align-items:center;justify-content:center;padding-top:14px"><label style="margin:0"><input type="checkbox" id="editBold" '+(s.bold===false?'':'checked')+'> 加粗</label></div></div>'+
+    '<div class="edit-row"><div class="edit-col"><label>偏移X(px)</label><input type="number" id="editOffX" value="'+(s.offX||0)+'"></div><div class="edit-col"><label>偏移Y(px)</label><input type="number" id="editOffY" value="'+(s.offY||0)+'"></div></div>'+
     '<div class="hint">提示：也可直接在地图上拖拽标记移动位置；类型可在「⚙ 类型」里自定义。标签重叠时可调「偏移」或用引线拉开</div>'+
     '</div>';
   markers[idx].setPopupContent(html).openPopup();
@@ -683,6 +858,8 @@ function saveEdit(){
   s.bold=document.getElementById('editBold').checked;
   s.style=document.getElementById('editStyle').value;
   s.pos=document.getElementById('editPos').value;
+  s.lineType=document.getElementById('editLineType').value;
+  s.lineColor=document.getElementById('editLineColor').value;
   s.offX=parseInt(document.getElementById('editOffX').value,10)||0;
   s.offY=parseInt(document.getElementById('editOffY').value,10)||0;
   markers[currentEditIdx].setLatLng([s.lat,s.lng]);
@@ -690,6 +867,7 @@ function saveEdit(){
   markers[currentEditIdx].closePopup();
   showToast('已保存：'+s.name);
   updateStats();renderList();autosave();
+  renderDescLabels(); // 立即按新样式/连线重画地图标签，无需 F5
 }
 
 function deleteShop(){
@@ -706,7 +884,7 @@ function addNewShop(){
     categories.push({key:'uncat',label:'未分类',color:'#3498db'});
     renderFilterBar();renderLegend();
   }
-  var ns={name:'新店铺',street:'',type:(categories[0]?categories[0].key:'uncat'),addr:'',lat:center.lat,lng:center.lng,desc:'',pinSize:labelCfg.pinSize,fontSize:labelCfg.fontSize,bold:labelCfg.bold,style:labelCfg.style,pos:labelCfg.pos,offX:labelCfg.offX,offY:labelCfg.offY};
+  var ns={name:'新店铺',street:'',type:(categories[0]?categories[0].key:'uncat'),addr:'',lat:center.lat,lng:center.lng,desc:'',pinSize:labelCfg.pinSize,fontSize:labelCfg.fontSize,bold:labelCfg.bold,style:labelCfg.style,pos:labelCfg.pos,offX:labelCfg.offX,offY:labelCfg.offY,lineType:labelCfg.lineType,lineColor:labelCfg.lineColor};
   shops.push(ns);var idx=shops.length-1;
   refreshMarkers();updateStats();renderList();
   setTimeout(function(){openEditPopup(idx);},100);
@@ -762,7 +940,7 @@ var AUTOSAVE_KEY='ditu_draft_v1';
 function autosave(){
   if(locked) return; // 已保存的文件以文件本身为准，不写草稿
   try{
-    var data={shops:shops,categories:categories,platformTitle:platformTitle,labelCfg:labelCfg,mapMode:mapMode,showMapDesc:showMapDesc};
+    var data={shops:shops,categories:categories,platformTitle:platformTitle,labelCfg:labelCfg,mapMode:mapMode,showMapDesc:showMapDesc,descLabelPos:descLabelPos};
     localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(data));
   }catch(e){ /* localStorage 不可用（如隐私模式/file:// 限制）则静默忽略 */ }
 }
@@ -780,6 +958,7 @@ function loadAutosave(){
       if(data.labelCfg) labelCfg=data.labelCfg;
       if(typeof data.mapMode==='string') mapMode=data.mapMode;
       if(typeof data.showMapDesc==='boolean'){ showMapDesc=data.showMapDesc; var cb=document.getElementById('showMapDesc'); if(cb)cb.checked=showMapDesc; }
+      if(data.descLabelPos) descLabelPos=data.descLabelPos;
       return true;
     }
   }catch(e){}
@@ -1228,37 +1407,26 @@ function roundRect(ctx,x,y,w,h,r){
   ctx.closePath();
 }
 // 经典地图水滴形图钉（上圆下尖，比例参考高德/Google Maps SVG 图标）
+// 与 makeIcon SVG 路径完全一致的 canvas 绘制，确保下载图和地图图钉一模一样
 function drawPin(ctx,x,y,size,color){
-  var r=size*0.46;          // 上半圆半径（略小于 size/2，给尖端留空间）
-  var cx=x;
-  // 整体高度 = 圆直径 + 尖端延伸 ≈ size * 1.35
-  var totalH=size*1.35;
-  var cy=y-totalH+r;        // 圆心 y（锚点 y 是底部针尖）
-  var tipY=y;               // 针尖底部
-  var shoulderY=cy+r*0.55;  // 圆肩位置（开始收窄处）
+  var s=size/26;                     // SVG viewBox 26×36 的缩放比例
+  var topY=y-36*s;                   // SVG 顶部 (13,0) 对应 canvas 坐标
   ctx.save();
   ctx.beginPath();
-  // 从针尖开始，顺时针绘制完整轮廓
-  ctx.moveTo(cx, tipY);
-  // 右侧：从尖端平滑过渡到圆的右肩
-  ctx.bezierCurveTo(
-    cx+r*0.35, tipY-(tipY-shoulderY)*0.5,    // 控制点1：轻微右偏
-    cx+r*0.95, shoulderY-(tipY-shoulderY)*0.15,// 控制点2：接近圆右侧
-    cx+r, cy+r*0.08                            // 圆的最右下侧
-  );
-  // 下半圆弧 → 上半圆弧（完整圆）
-  ctx.arc(cx, cy, r, Math.PI*0.13, Math.PI*2+Math.PI*0.87, false);
-  // 左侧：从圆左肩回到针尖
-  ctx.bezierCurveTo(
-    cx-r*0.95, shoulderY-(tipY-shoulderY)*0.15,
-    cx-r*0.35, tipY-(tipY-shoulderY)*0.5,
-    cx, tipY
-  );
+  ctx.moveTo(x, topY);               // M13 0
+  // 左上圆弧
+  ctx.bezierCurveTo(x-7.2*s, topY, x-13*s, topY+5.8*s, x-13*s, topY+13*s);
+  // 左侧到尖端
+  ctx.bezierCurveTo(x-13*s, topY+22.5*s, x, y, x, y);
+  // 右侧到肩部（对称贝塞尔）
+  ctx.bezierCurveTo(x, y, x+13*s, topY+22.5*s, x+13*s, topY+13*s);
+  // 右上圆弧回到顶部
+  ctx.bezierCurveTo(x+13*s, topY+5.8*s, x+7.2*s, topY, x, topY);
   ctx.closePath();
   ctx.fillStyle=color; ctx.fill();
-  ctx.lineWidth=Math.max(1, size*0.04); ctx.strokeStyle='rgba(255,255,255,0.85)'; ctx.stroke();
-  // 内白点
-  ctx.beginPath(); ctx.arc(cx, cy-r*0.05, r*0.38, 0, Math.PI*2); ctx.fillStyle='#ffffff'; ctx.fill();
+  ctx.lineWidth=Math.max(1, size*0.046); ctx.strokeStyle='rgba(255,255,255,0.85)'; ctx.stroke();
+  // 内白圆，与 SVG <circle cx="13" cy="13" r="5.5"/> 一致
+  ctx.beginPath(); ctx.arc(x, topY+13*s, 5.5*s, 0, Math.PI*2); ctx.fillStyle='#ffffff'; ctx.fill();
   ctx.restore();
 }
 // 自动换行（按像素宽度，最多3行，超出省略号）
@@ -1281,26 +1449,25 @@ function drawLabelBox(ctx,bx,by,bw,bh,lh,lines,fs,cfg,mode,color){
   if(cfg.style==='stroke'){
     // 描边字样式：不画背景框，仅靠文字描边
   } else {
-    if(cfg.style==='shadow'){
-      // 立体浮起效果：双层阴影（外层大范围柔光 + 内层近距实影）
-      ctx.shadowColor='rgba(0,0,0,0.18)'; ctx.shadowBlur=12*sc; ctx.shadowOffsetX=0; ctx.shadowOffsetY=4*sc;
-    }
-    roundRect(ctx,bx,by,bw,bh,7*sc);
+    // 椭圆/胶囊形背景（radius=min/2 → 两端半圆，与地图标签的 border-radius:999px 保持一致）
+    var rr=Math.min(bw,bh)/2;
+    var off=2*sc; // 右下灰边厚度偏移量（参考图：只有右侧+下方有灰边）
+
+    // 1) 右下灰边厚度层：把椭圆向右下偏移，形成立体厚度
+    roundRect(ctx,bx+off,by+off,bw,bh,rr);
+    ctx.fillStyle=(cfg.style==='dark')?'#333333':'#cfcfcf';
+    ctx.fill();
+
+    // 2) 主体 + 立体投影
+    ctx.shadowColor='rgba(0,0,0,0.20)';
+    ctx.shadowBlur=10*sc; ctx.shadowOffsetX=0; ctx.shadowOffsetY=4*sc;
+    roundRect(ctx,bx,by,bw,bh,rr);
     ctx.fillStyle=(cfg.style==='dark')?'#1a1a1a':'#ffffff';
     ctx.fill();
-    // 第二层阴影：更近、更实的投影，增强立体层次感
-    if(cfg.style==='shadow'){
-      ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetY=0;
-      // 底部边缘微渐变暗线，模拟厚度
-      var grad=ctx.createLinearGradient(bx,by+bh-2*sc,bx,by+bh);
-      grad.addColorStop(0,'rgba(0,0,0,0)');
-      grad.addColorStop(1,'rgba(0,0,0,0.06)');
-      ctx.fillStyle=grad; ctx.fill();
-    } else {
-      ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetY=0;
-    }
+    ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetY=0;
+
+    // 3) 额外描边：border 样式保留类型色边框
     if(cfg.style==='border'){ ctx.lineWidth=2*sc; ctx.strokeStyle=color; ctx.stroke(); }
-    else if(cfg.style!=='shadow'){ ctx.lineWidth=1*sc; ctx.strokeStyle=(cfg.style==='dark'?'#000':'rgba(0,0,0,0.12)'); ctx.stroke(); }
   }
   ctx.restore();
   ctx.font=(cfg.bold?'bold ':'')+fs+'px "PingFang SC","Microsoft YaHei",sans-serif';
@@ -1327,37 +1494,82 @@ function drawPOIs(ctx,st,z,mode,scale){
       bold:(s.bold!==undefined?s.bold:labelCfg.bold),
       style:(s.style||labelCfg.style),
       pos:(s.pos||labelCfg.pos),
-      offX:(s.offX||0), offY:(s.offY||0)
+      offX:(s.offX||0), offY:(s.offY||0),
+      lineType:(s.lineType||labelCfg.lineType),
+      lineColor:(s.lineColor||labelCfg.lineColor)
     };
   }
-  shops.forEach(function(s){
+  // 预计算所有可见图钉锚点（下载图 canvas 坐标），用于标签连线遮挡检测
+  var pinPts=[];
+  shops.forEach(function(s,idx){
     var cx=(lon2xCont(s.lng,z)-st.cxMin)*256*scale, cy=(lat2yCont(s.lat,z)-st.cyMin)*256*scale;
-    if(cx<-200||cy<-200||cx>st.wpx*scale+200||cy>st.hpx*scale+200)return; // 超出选区不绘制
+    if(cx<-200||cy<-200||cx>st.wpx*scale+200||cy>st.hpx*scale+200)return;
+    pinPts.push({idx:idx, x:cx, y:cy, size:(s.pinSize||labelCfg.pinSize)*scale});
+  });
+  // canvas 画连线（直线 / 遮挡时折线），支持 per-shop 线型/颜色
+  function drawDlLabelLine(ax,ay,bx,by,curSize,lineType,lineColor){
+    lineType=lineType||'poly'; lineColor=lineColor||'#999999';
+    if(lineType==='none') return;
+    var needPoly=false;
+    if(lineType==='poly'){
+      var R=curSize/2+6*scale;
+      for(var i=0;i<pinPts.length;i++){
+        var o=pinPts[i];
+        if(o.x===ax&&o.y===ay) continue;
+        if(segDist(o.x,o.y,ax,ay,bx,by)<R){ needPoly=true; break; }
+      }
+    }
+    ctx.save();
+    ctx.strokeStyle=lineColor;
+    ctx.lineWidth=1.6*scale; ctx.lineJoin='round'; ctx.lineCap='round';
+    if(lineType==='dashed') ctx.setLineDash([6*scale,4*scale]);
+    if(lineType==='dotted') ctx.setLineDash([2*scale,3*scale]);
+    ctx.beginPath();
+    if(needPoly){
+      var dx=bx-ax, dy=by-ay;
+      var elbow=Math.abs(dx)>=Math.abs(dy)?{x:bx,y:ay}:{x:ax,y:by};
+      ctx.moveTo(ax,ay); ctx.lineTo(elbow.x,elbow.y); ctx.lineTo(bx,by);
+    } else {
+      ctx.moveTo(ax,ay); ctx.lineTo(bx,by);
+    }
+    ctx.stroke();
+    ctx.fillStyle=lineColor;
+    ctx.beginPath(); ctx.arc(ax,ay,2.4*scale,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+  // 绘制每个图钉及其标签
+  pinPts.forEach(function(p){
+    var s=shops[p.idx], cx=p.x, cy=p.y;
     var c=getColor(s), cf=cfgOf(s);
     drawPin(ctx,cx,cy,cf.pinSize*scale,c);
     if(!labelCfg.showLabel)return;
-    var txt=(labelCfg.useDesc&&s.desc&&s.desc.trim())?s.desc:(s.name||'');
+    // 若地图端开启了「显示描述标签」且本点有描述，优先用可拖动描述标签系统（位置跟随 descLabelPos）
+    var useMapDesc=(showMapDesc && s.desc && s.desc.trim());
+    var txt=useMapDesc?s.desc:((labelCfg.useDesc&&s.desc&&s.desc.trim())?s.desc:(s.name||''));
     if(!txt)return;
     var fs=cf.fontSize*scale, lh=fs*1.3, maxW=260*scale;
     var lines=wrapText(ctx,txt,fs,cf.bold,maxW);
     var padX=7*scale, padY=5*scale;
     var boxW=Math.max.apply(null,lines.map(function(l){return l.w;}))+padX*2;
     var boxH=lines.length*lh+padY*2;
-    var lp=cf.pos, bx=cx, by=cy, pinH=cf.pinSize*scale;
-    if(lp==='bottom'){ bx=cx-boxW/2; by=cy+pinH*0.5+5*scale; }
-    else if(lp==='top'){ bx=cx-boxW/2; by=cy-pinH*0.5-boxH-5*scale; }
-    else if(lp==='left'){ bx=cx-pinH*0.5-boxW-5*scale; by=cy-boxH/2; }
-    else if(lp==='right'){ bx=cx+pinH*0.5+5*scale; by=cy-boxH/2; }
-    bx+=cf.offX*scale; by+=cf.offY*scale;
-    // 引线：标签偏离图钉较远时连线显示
-    var lcx=bx+boxW/2, lcy=by+boxH/2;
-    if(Math.abs(lcx-cx)>pinH || Math.abs(lcy-cy)>pinH){
-      ctx.save();
-      ctx.strokeStyle=(mode==='sat'?'rgba(255,255,255,0.7)':'rgba(0,0,0,0.45)');
-      ctx.lineWidth=1.2*scale; ctx.setLineDash([4*scale,3*scale]);
-      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(lcx,lcy); ctx.stroke();
-      ctx.restore();
+    var lcx,lcy,bx,by;
+    if(useMapDesc){
+      var dpos=descLabelPos[p.idx]||{dx:0, dy:(s.pinSize||labelCfg.pinSize)*1.38+8};
+      lcx=cx+dpos.dx*scale; lcy=cy+dpos.dy*scale;
+      bx=lcx-boxW/2; by=lcy-boxH/2;
+      // 统一用与地图标签一致的 shadow 立体白底灰边样式
+      cf.style='shadow';
+    } else {
+      var lp=cf.pos, pinH=cf.pinSize*scale;
+      bx=cx; by=cy;
+      if(lp==='bottom'){ bx=cx-boxW/2; by=cy+pinH*0.5+5*scale; }
+      else if(lp==='top'){ bx=cx-boxW/2; by=cy-pinH*0.5-boxH-5*scale; }
+      else if(lp==='left'){ bx=cx-pinH*0.5-boxW-5*scale; by=cy-boxH/2; }
+      else if(lp==='right'){ bx=cx+pinH*0.5+5*scale; by=cy-boxH/2; }
+      bx+=cf.offX*scale; by+=cf.offY*scale;
+      lcx=bx+boxW/2; lcy=by+boxH/2;
     }
+    drawDlLabelLine(cx,cy,lcx,lcy,cf.pinSize*scale,cf.lineType,cf.lineColor);
     drawLabelBox(ctx,bx,by,boxW,boxH,lh,lines,fs,cf,mode,c);
   });
 }
