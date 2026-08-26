@@ -187,7 +187,7 @@ body{
 }
 .leaflet-popup-content-wrapper .leaflet-popup-content{margin:12px 14px;font-family:"PingFang SC","Microsoft YaHei",sans-serif;max-height:calc(100vh - 200px);overflow-y:auto}
 .edit-form label{display:block;font-size:11px;color:var(--text-secondary);margin:8px 0 3px}
-.edit-form .edit-row{display:flex;gap:8px;align-items:flex-end}
+.edit-form .edit-row{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}
 .edit-form .edit-col{flex:1;min-width:0}
 .edit-form input,.edit-form select{width:100%;padding:5px 7px;font-size:12px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);outline:none}
 .edit-form input:focus,.edit-form select:focus{border-color:var(--accent-blue)}
@@ -231,6 +231,9 @@ body{
 .custom-marker svg{filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4));transition:transform 0.2s}
 .custom-marker:hover svg{transform:scale(1.15)}
 .custom-marker.dragging svg{transform:scale(1.25);filter:drop-shadow(0 0 8px currentColor)}
+.custom-marker img{display:block;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.35));transition:transform 0.2s}
+.custom-marker:hover img{transform:scale(1.15)}
+.custom-marker.dragging img{transform:scale(1.25);filter:drop-shadow(0 0 8px currentColor)}
 .edit-form label{display:block;font-size:11px;color:var(--text-secondary);margin:8px 0 3px}
 .edit-form input,.edit-form select{
   width:100%;padding:6px 8px;font-size:12px;
@@ -280,24 +283,31 @@ body{
 .dl-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
 .selmode{cursor:crosshair}
 .selmode .leaflet-grab,.selmode .leaflet-interactive{cursor:crosshair!important}
+/* 下载区域选择：可拖拽顶点 + 区域遮罩 */
+.area-handle{width:14px!important;height:14px!important;margin-left:-7px!important;margin-top:-7px!important;border-radius:50%;background:#3498db;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.3);cursor:move}
+.area-handle:hover{background:#2ecc71}
+#areaToolbar{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:1500;display:none;align-items:center;gap:8px;background:var(--bg-panel);border:1px solid var(--border-color);border-radius:10px;padding:8px 12px;backdrop-filter:blur(12px);box-shadow:0 4px 20px rgba(0,0,0,.35);font-size:12px;color:var(--text-secondary)}
+#areaToolbar .at-title{font-weight:600;color:var(--text-primary)}
+#areaToolbar .at-tip{color:var(--text-muted);font-size:11px}
+#areaToolbar .btn{padding:5px 10px;font-size:12px;flex:none}
 /* 地图上永久显示的描述标签：基础容器（背景/边框/投影由 .desc-style-* 控制） */
 .map-desc-label{margin:0!important;white-space:nowrap!important;font-size:13px!important;line-height:1.4!important;border-radius:999px!important;padding:5px 14px!important;font-family:"PingFang SC","Microsoft YaHei",sans-serif!important}
 .map-desc-label .map-desc-text{font-weight:500}
 /* shadow：椭圆白底 + 右下灰边厚度 + 立体悬浮（默认参考图效果） */
 .desc-style-shadow{background:#ffffff!important;box-shadow:2px 2px 0 #cfcfcf,0 5px 14px rgba(0,0,0,0.20)!important}
-.desc-style-shadow .map-desc-text{color:#222222!important}
+.desc-style-shadow .map-desc-text{color:#222222}
 /* white：白底黑字（普通投影，无灰边厚度） */
 .desc-style-white{background:#ffffff!important;box-shadow:0 4px 12px rgba(0,0,0,0.18)!important}
-.desc-style-white .map-desc-text{color:#222222!important}
+.desc-style-white .map-desc-text{color:#222222}
 /* dark：黑底白字 */
 .desc-style-dark{background:#1a1a1a!important;box-shadow:0 4px 12px rgba(0,0,0,0.4)!important}
-.desc-style-dark .map-desc-text{color:#ffffff!important}
+.desc-style-dark .map-desc-text{color:#ffffff}
 /* border：白底 + 类型色边框（边框色由 JS 内联设置） */
 .desc-style-border{background:#ffffff!important;box-shadow:0 4px 12px rgba(0,0,0,0.18)!important;border:2px solid #3498db!important}
-.desc-style-border .map-desc-text{color:#222222!important}
+.desc-style-border .map-desc-text{color:#222222}
 /* stroke：描边字（无背景），靠文字描边在任意底图上可读 */
 .desc-style-stroke{background:transparent!important;box-shadow:none!important;padding:5px 10px!important}
-.desc-style-stroke .map-desc-text{color:#222222!important;text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 2px #fff,1px 1px 3px rgba(0,0,0,0.5)}
+.desc-style-stroke .map-desc-text{color:#222222;text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 2px #fff,1px 1px 3px rgba(0,0,0,0.5)}
 /* 可拖拽描述标签层（独立 DOM 覆盖在地图上，可拖动并带自动连线） */
 #descLineLayer{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:550;overflow:visible}
 #descLabelLayer{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:650;overflow:visible}
@@ -339,7 +349,17 @@ body{
 <div id="mapModeCtrl" style="position:fixed;top:12px;right:12px;z-index:1500;display:flex;background:var(--bg-panel);border:1px solid var(--border-color);border-radius:8px;overflow:hidden;backdrop-filter:blur(12px);">
   <button class="map-mode-btn" data-mode="city" onclick="setMapMode('city')" style="padding:7px 12px;font-size:12px;border:none;background:transparent;color:var(--text-secondary);cursor:pointer">🗺 城市图</button>
   <button class="map-mode-btn active" data-mode="sat" onclick="setMapMode('sat')" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--text-secondary);cursor:pointer">🛰 卫星图</button>
-  <button class="map-dl-btn" onclick="startBoxSelect()" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--accent-blue);cursor:pointer;font-weight:600">📥 下载</button>
+  <button class="map-dl-btn" onclick="openDownload()" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--accent-blue);cursor:pointer;font-weight:600">📥 下载</button>
+  <button onclick="enterAreaMode()" title="预先在地图上选定下载区域（矩形/多边形），之后点下载无需再框选" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--accent-special);cursor:pointer;font-weight:600">✏ 选区域</button>
+</div>
+<div id="areaToolbar">
+  <span class="at-title">选定下载区域</span>
+  <span class="at-tip" id="areaTip">选择形状后在地图上点选</span>
+  <button class="btn" id="atRect" onclick="startAreaSelect('rect')">▭ 矩形</button>
+  <button class="btn" id="atCircle" onclick="startAreaSelect('circle')">◯ 圆形</button>
+  <button class="btn" id="atPoly" onclick="startAreaSelect('poly')">⬠ 多边形</button>
+  <button class="btn btn-primary" id="atFinish" onclick="finishAreaSelect()" style="display:none">完成</button>
+  <button class="btn" id="atClear" onclick="clearSelArea()">清除</button>
 </div>
 <button id="manualLocBtn" onclick="startManualLocate()" title="网络定位不准时，手动在地图上点选你的真实位置（再次点击取消）" style="position:fixed;bottom:76px;right:12px;z-index:1500;width:44px;height:44px;border-radius:50%;border:1px solid var(--border-color);background:var(--bg-panel);color:var(--accent-blue);font-size:19px;cursor:pointer;backdrop-filter:blur(12px);box-shadow:0 2px 12px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;">🖱</button>
 <button id="locateBtn" onclick="locateMe()" title="定位到我当前所在位置（需允许浏览器定位权限；localhost / HTTPS 可用，file:// 不可用）" style="position:fixed;bottom:24px;right:12px;z-index:1500;width:44px;height:44px;border-radius:50%;border:1px solid var(--border-color);background:var(--bg-panel);color:var(--accent-blue);font-size:19px;cursor:pointer;backdrop-filter:blur(12px);box-shadow:0 2px 12px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;">📍</button>
@@ -347,7 +367,7 @@ body{
 <div id="toast"></div>
 <div id="catModal" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.55);align-items:center;justify-content:center;">
   <div style="width:440px;max-width:92vw;max-height:86vh;overflow:auto;background:var(--bg-panel);border:1px solid var(--border-active);border-radius:12px;padding:18px;">
-    <h3 style="margin:0 0 12px;font-size:15px;color:var(--text-primary)">管理店铺类型</h3>
+    <h3 style="margin:0 0 12px;font-size:15px;color:var(--text-primary)">兴趣点类型管理</h3>
     <div id="catList"></div>
     <div style="display:flex;gap:8px;margin-top:12px;align-items:center;">
       <input id="newCatName" placeholder="新类型名称" style="flex:1;padding:7px 9px;font-size:12px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);outline:none">
@@ -391,6 +411,13 @@ body{
       </div>
     </div>
     <div class="dl-row">
+      <label>导出方式</label>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+        <label style="font-size:13px"><input type="checkbox" id="dlServerStitch" checked> 服务端高清导出（不受浏览器尺寸限制，推荐大图）</label>
+        <span style="font-size:11px;color:var(--text-muted)">勾选：由本地服务器拼大图，可出超大幅面（仅底图，不含点位）；取消勾选：浏览器导出（含点位图钉，但超大图会白屏）</span>
+      </div>
+    </div>
+    <div class="dl-row">
       <label>打印分辨率</label>
       <div class="dl-zoom">
         <select id="dlDpi">
@@ -410,7 +437,8 @@ body{
         <label style="font-size:13px"><input type="checkbox" id="dlUseDesc"> 用描述字段</label>
         <span style="font-size:12px;color:var(--text-secondary)">样式</span>
         <select id="dlStyle">
-          <option value="shadow" selected>白底投影</option>
+          <option value="original" selected>原始样式</option>
+          <option value="shadow">白底投影</option>
           <option value="white">白底黑字</option>
           <option value="dark">黑底白字</option>
           <option value="border">白底彩边</option>
@@ -465,11 +493,12 @@ var labelCfg={
   pinSize:26,          // 图钉直径(px)
   fontSize:14,         // 标签文字大小(px)
   bold:true,           // 文字是否加粗
-  style:'shadow',       // 标签样式（默认白底投影立体风格）
+  style:'original',     // 标签样式（默认「原始样式」=跟随每个点位自己设置的 s.style）
   pos:'bottom',        // 标签相对图钉位置：top/bottom/left/right
   offX:0, offY:0,      // 标签手动偏移(px)，用于错开重叠
   lineType:'poly',     // 描述标签与图钉连线类型：none/solid/dashed/dotted/poly
-  lineColor:'#999999'  // 连线颜色
+  lineColor:'#999999', // 连线颜色
+  descColor:'#222222'  // 描述文字颜色
 };
 var _dlScale=1;        // 当前下载清晰度倍数，供标签辅助函数使用
 
@@ -621,10 +650,75 @@ function catMap(){var m={};categories.forEach(function(c){m[c.key]=c});return m;
 function getColor(s){var m=catMap();return (m[s.type]&&m[s.type].color)||'#3498db';}
 function getLabel(s){var m=catMap();return (m[s.type]&&m[s.type].label)||s.type;}
 
+// 内置图钉形状（多种类型：几何 + 常见 POI 图标）
+var PIN_SHAPES=[
+  {id:'teardrop', label:'水滴(默认)'},
+  {id:'circle',   label:'圆形'},
+  {id:'square',   label:'圆角方形'},
+  {id:'star',     label:'星形'},
+  {id:'triangle', label:'三角形'},
+  {id:'diamond',  label:'菱形'},
+  {id:'hospital', label:'医院'},
+  {id:'school',   label:'学校'},
+  {id:'park',     label:'公园/景区'},
+  {id:'food',     label:'餐饮'},
+  {id:'hotel',    label:'酒店'},
+  {id:'bank',     label:'银行'},
+  {id:'gas',      label:'加油站'},
+  {id:'parking',  label:'停车场'},
+  {id:'shopping', label:'购物'},
+  {id:'toilet',   label:'公厕'},
+  {id:'transport',label:'交通/车站'},
+  {id:'building', label:'写字楼'},
+  {id:'house',    label:'住宅'},
+  {id:'gym',      label:'体育'}
+];
+function pinSvg(shape,color,size){
+  var stroke='stroke="rgba(255,255,255,0.5)" stroke-width="1.2"';
+  var inner='<circle cx="13" cy="13" r="4.5" fill="white"/>';
+  if(shape==='teardrop'){
+    return {w:size,h:size*1.38,vb:'0 0 26 36',
+      body:'<path d="M13 0C5.8 0 0 5.8 0 13c0 9.5 13 23 13 23s13-13.5 13-23C26 5.8 20.2 0 13 0z" fill="'+color+'" '+stroke+'/>'+inner,
+      anchor:[size/2,size*1.38]};
+  }
+  var body;
+  if(shape==='circle')      body='<circle cx="13" cy="13" r="12" fill="'+color+'" '+stroke+'/>'+inner;
+  else if(shape==='square') body='<rect x="2" y="2" width="22" height="22" rx="6" fill="'+color+'" '+stroke+'/>'+inner;
+  else if(shape==='diamond')body='<path d="M13 1 L25 13 L13 25 L1 13 Z" fill="'+color+'" '+stroke+'/>'+inner;
+  else if(shape==='triangle')body='<path d="M13 24 L3 3 L23 3 Z" fill="'+color+'" '+stroke+'/>';
+  else if(shape==='star')   body='<path d="M13 1 L15.94 8.95 L24.41 9.29 L17.76 14.55 L20.05 22.71 L13 18 L5.95 22.71 L8.24 14.55 L1.59 9.29 L10.06 8.95 Z" fill="'+color+'" '+stroke+'/>';
+  // POI 图标：统一使用彩色圆底 + 白色描边/填充图标
+  else if(shape==='hospital') body='<circle cx="13" cy="13" r="12" fill="'+color+'" '+stroke+'/><path d="M9 5h4v6h6v4h-6v6H9v-6H3V11h6V5z" fill="white"/>';
+  else if(shape==='school')   body='<circle cx="13" cy="13" r="12" fill="'+color+'" '+stroke+'/><path d="M13 3 L23 9 L13 15 L3 9 Z M6 11 L6 16 L13 20 L20 16 L20 11" stroke="white" stroke-width="1.6" fill="none"/>';
+  else if(shape==='park')     body='<circle cx="13" cy="13" r="12" fill="'+color+'" '+stroke+'/><path d="M13 5 L16 11 L20 11 L17 15 L19 20 L13 17 L7 20 L9 15 L6 11 L10 11 Z" stroke="white" stroke-width="1.4" fill="none"/>';
+  else if(shape==='food')     body='<circle cx="13" cy="13" r="12" fill="'+color+'" '+stroke+'/><path d="M7 4 V15 M5 4 V10 Q5 12 7 12 M9 4 V10 Q9 12 7 12 M19 5 A3 3 0 1 0 19 11 A3 3 0 1 0 19 5 M19 11 V17" stroke="white" stroke-width="1.6" fill="none"/>';
+  else if(shape==='hotel')    body='<circle cx="13" cy="13" r="12" fill="'+color+'" '+stroke+'/><path d="M4 12 H22 V20 H4 Z M6 14 V20 M10 14 V20 M16 14 V20 M20 14 V20" stroke="white" stroke-width="1.6" fill="none"/>';
+  else if(shape==='bank')     body='<circle cx="13" cy="13" r="12" fill="'+color+'" '+stroke+'/><text x="13" y="19" text-anchor="middle" font-size="14" font-weight="bold" fill="white">¥</text>';
+  else if(shape==='gas')      body='<circle cx="13" cy="13" r="12" fill="'+color+'" '+stroke+'/><path d="M8 6 H15 V17 H8 Z M10 9 H13 V12 H10 Z M18 9 H20 V17 H18 V13 H16" stroke="white" stroke-width="1.5" fill="none"/>';
+  else if(shape==='parking')  body='<circle cx="13" cy="13" r="12" fill="'+color+'" '+stroke+'/><text x="13" y="20" text-anchor="middle" font-size="15" font-weight="bold" fill="white">P</text>';
+  else if(shape==='shopping') body='<circle cx="13" cy="13" r="12" fill="'+color+'" '+stroke+'/><path d="M6 7 H20 L22 19 H4 Z M9 7 V5 A4 4 0 0 1 17 5 V7" stroke="white" stroke-width="1.6" fill="none"/>';
+  else if(shape==='toilet')   body='<circle cx="13" cy="13" r="12" fill="'+color+'" '+stroke+'/><path d="M13 6 A3 3 0 1 1 13 12 A3 3 0 1 1 13 6 M9 13 H17 L13 22 Z" stroke="white" stroke-width="1.5" fill="none"/>';
+  else if(shape==='transport')body='<circle cx="13" cy="13" r="12" fill="'+color+'" '+stroke+'/><path d="M4 9 H22 V17 H4 Z M6 11 H20 V13 H6 Z M7 18 A2 2 0 1 1 11 18 A2 2 0 1 1 7 18 M15 18 A2 2 0 1 1 19 18 A2 2 0 1 1 15 18" stroke="white" stroke-width="1.4" fill="none"/>';
+  else if(shape==='building') body='<circle cx="13" cy="13" r="12" fill="'+color+'" '+stroke+'/><path d="M6 4 H20 V21 H6 Z M8 7 H10 V9 H8 Z M16 7 H18 V9 H16 Z M8 11 H10 V13 H8 Z M16 11 H18 V13 H16 Z M8 15 H10 V17 H8 Z M16 15 H18 V17 H16 Z" stroke="white" stroke-width="1.3" fill="none"/>';
+  else if(shape==='house')    body='<circle cx="13" cy="13" r="12" fill="'+color+'" '+stroke+'/><path d="M13 3 L23 13 H20 V21 H6 V13 H3 Z" stroke="white" stroke-width="1.6" fill="none"/>';
+  else if(shape==='gym')      body='<circle cx="13" cy="13" r="12" fill="'+color+'" '+stroke+'/><path d="M8 6 A2 2 0 1 1 8 10 A2 2 0 1 1 8 6 M10 10 L14 9 L16 14 L20 17 M13 11 L10 17 L7 20" stroke="white" stroke-width="1.6" fill="none"/>';
+  else body='<circle cx="13" cy="13" r="12" fill="'+color+'" '+stroke+'/>'+inner;
+  return {w:size,h:size,vb:'0 0 26 26',body:body,anchor:[size/2,size]};
+}
+// 解析某点位最终使用的形状与自定义图标（shop 覆盖 category，category 缺省为水滴）
+function resolvePin(s){
+  var cat=catMap()[s.type]||{};
+  return {shape:(s.shape||cat.shape||'teardrop'), icon:(s.icon||cat.icon||null)};
+}
 function makeIcon(s){
-  var size=(s.pinSize||26),c=getColor(s);
-  var html='<svg width="'+size+'" height="'+(size*1.38)+'" viewBox="0 0 26 36"><path d="M13 0C5.8 0 0 5.8 0 13c0 9.5 13 23 13 23s13-13.5 13-23C26 5.8 20.2 0 13 0z" fill="'+c+'" stroke="rgba(255,255,255,0.5)" stroke-width="1.2"/><circle cx="13" cy="13" r="5.5" fill="white"/></svg>';
-  return L.divIcon({className:'custom-marker',html:html,iconSize:[size,size*1.38],iconAnchor:[size/2,size*1.38],popupAnchor:[0,-size*1.38]});
+  var size=(s.pinSize||26), p=resolvePin(s), c=getColor(s);
+  if(p.icon){
+    var html='<img src="'+p.icon+'" style="width:'+size+'px;height:'+size+'px;display:block;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.35));pointer-events:none">';
+    return L.divIcon({className:'custom-marker',html:html,iconSize:[size,size],iconAnchor:[size/2,size],popupAnchor:[0,-size]});
+  }
+  var g=pinSvg(p.shape,c,size);
+  var svg='<svg width="'+g.w+'" height="'+g.h+'" viewBox="'+g.vb+'">'+g.body+'</svg>';
+  return L.divIcon({className:'custom-marker',html:svg,iconSize:[g.w,g.h],iconAnchor:g.anchor,popupAnchor:[0,-g.h]});
 }
 
 function bindMarkerEvents(marker,idx){
@@ -763,6 +857,8 @@ function renderDescLabels(){
     el.className='map-desc-label desc-label desc-style-'+st;
     el.dataset.idx=v.idx;
     el.innerHTML='<span class="map-desc-text">'+escapeHtml(v.s.desc)+'</span>';
+    var textEl=el.querySelector('.map-desc-text');
+    if(textEl && v.s.descColor){ textEl.style.setProperty('color', v.s.descColor, 'important'); }
     if(st==='border'){ el.style.setProperty('borderColor', getColor(v.s), 'important'); }
     el.style.left=v.lp.x+'px'; el.style.top=v.lp.y+'px';
     labelLayer.appendChild(el);
@@ -835,13 +931,24 @@ function openEditPopup(idx){
     '<div class="form-actions"><button class="btn btn-primary" onclick="saveEdit()">保存</button><button class="btn" onclick="detectFromCoord('+idx+')">📍 按坐标识别</button><button class="btn btn-danger" onclick="deleteShop()">删除</button></div>'+
     '<div class="section-title">标签与样式（下载图中显示）</div>'+
     '<label>描述文字（留空则用店名；可超长自动换行）</label><input type="text" id="editDesc" value="'+escapeHtml(s.desc||'')+'">'+
-    '<div class="edit-row"><div class="edit-col"><label>图钉大小(px)</label><input type="number" id="editPin" value="'+(s.pinSize||26)+'" min="14" max="60"></div><div class="edit-col"><label>文字大小(px)</label><input type="number" id="editFs" value="'+(s.fontSize||14)+'" min="8" max="40"></div></div>'+
-    '<div class="edit-row"><div class="edit-col"><label>样式</label><select id="editStyle"><option value="white"'+(s.style==='white'?' selected':'')+'>白底黑字</option><option value="dark"'+(s.style==='dark'?' selected':'')+'>黑底白字</option><option value="border"'+(s.style==='border'?' selected':'')+'>白底彩边</option><option value="stroke"'+(s.style==='stroke'?' selected':'')+'>描边字</option><option value="shadow"'+(s.style==='shadow'?' selected':'')+'>白底投影</option></select></div><div class="edit-col"><label>位置</label><select id="editPos"><option value="bottom"'+(s.pos==='bottom'?' selected':'')+'>下方</option><option value="top"'+(s.pos==='top'?' selected':'')+'>上方</option><option value="left"'+(s.pos==='left'?' selected':'')+'>左侧</option><option value="right"'+(s.pos==='right'?' selected':'')+'>右侧</option></select></div></div>'+
-    '<div class="edit-row"><div class="edit-col"><label>连线类型</label><select id="editLineType"><option value="none"'+(s.lineType==='none'?' selected':'')+'>不连线</option><option value="solid"'+(s.lineType==='solid'?' selected':'')+'>实线</option><option value="dashed"'+(s.lineType==='dashed'?' selected':'')+'>虚线</option><option value="dotted"'+(s.lineType==='dotted'?' selected':'')+'>点线</option><option value="poly"'+(s.lineType==='poly'?' selected':'')+'>自动折线</option></select></div><div class="edit-col" style="flex:0 0 60px"><label>连线颜色</label><input type="color" id="editLineColor" value="'+(s.lineColor||labelCfg.lineColor||'#999999')+'"></div><div class="edit-col" style="flex:0 0 60px;display:flex;align-items:center;justify-content:center;padding-top:14px"><label style="margin:0"><input type="checkbox" id="editBold" '+(s.bold===false?'':'checked')+'> 加粗</label></div></div>'+
+    '<div class="edit-row"><div class="edit-col" style="flex:0 0 80px"><label>图钉大小</label><input type="number" id="editPin" value="'+(s.pinSize||26)+'" min="14" max="60"></div><div class="edit-col"><label>图钉形状</label><select id="editShape"><option value="">跟随类型</option>'+PIN_SHAPES.map(function(o){return '<option value="'+o.id+'"'+(s.shape===o.id?' selected':'')+'>'+o.label+'</option>';}).join('')+'</select></div><div class="edit-col" style="flex:1;min-width:90px"><label>自定义图标</label><input type="hidden" id="editIconVal" value="'+(s.icon||'')+'"><span id="editIconWrap">'+(s.icon?'<img src="'+s.icon+'" style="height:22px;width:22px;object-fit:contain;border:1px solid var(--border-color);border-radius:4px;vertical-align:middle"><button type="button" class="btn" style="padding:2px 6px;font-size:12px;margin-left:4px" onclick="editIconClear()">清除</button>':'<label class="btn" style="display:inline-block;padding:4px 8px;font-size:12px;cursor:pointer">选择图片<input type="file" id="editIconFile" accept="image/png,image/svg+xml,image/jpeg,image/webp" style="display:none" onchange="editIconPick(this)"></label>')+'</span></div></div>'+
+    '<div class="edit-row"><div class="edit-col" style="flex:0 0 70px"><label>文字大小</label><input type="number" id="editFs" value="'+(s.fontSize||14)+'" min="8" max="40"></div><div class="edit-col" style="flex:0 0 50px"><label>颜色</label><input type="color" id="editDescColor" value="'+(s.descColor||'#222222')+'"></div><div class="edit-col" style="flex:0 0 60px;display:flex;align-items:center;justify-content:center;padding-top:14px"><label style="margin:0;white-space:nowrap"><input type="checkbox" id="editBold" '+(s.bold===false?'':'checked')+'> 加粗</label></div><div class="edit-col"><label>样式</label><select id="editStyle"><option value="white"'+(s.style==='white'?' selected':'')+'>白底黑字</option><option value="dark"'+(s.style==='dark'?' selected':'')+'>黑底白字</option><option value="border"'+(s.style==='border'?' selected':'')+'>白底彩边</option><option value="stroke"'+(s.style==='stroke'?' selected':'')+'>描边字</option><option value="shadow"'+(s.style==='shadow'?' selected':'')+'>白底投影</option></select></div><div class="edit-col"><label>位置</label><select id="editPos"><option value="bottom"'+(s.pos==='bottom'?' selected':'')+'>下方</option><option value="top"'+(s.pos==='top'?' selected':'')+'>上方</option><option value="left"'+(s.pos==='left'?' selected':'')+'>左侧</option><option value="right"'+(s.pos==='right'?' selected':'')+'>右侧</option></select></div></div>'+
+    '<div class="edit-row"><div class="edit-col"><label>连线类型</label><select id="editLineType"><option value="none"'+(s.lineType==='none'?' selected':'')+'>不连线</option><option value="solid"'+(s.lineType==='solid'?' selected':'')+'>实线</option><option value="dashed"'+(s.lineType==='dashed'?' selected':'')+'>虚线</option><option value="dotted"'+(s.lineType==='dotted'?' selected':'')+'>点线</option><option value="poly"'+(s.lineType==='poly'?' selected':'')+'>自动折线</option></select></div><div class="edit-col" style="flex:0 0 70px"><label>连线颜色</label><input type="color" id="editLineColor" value="'+(s.lineColor||labelCfg.lineColor||'#999999')+'"></div></div>'+
     '<div class="edit-row"><div class="edit-col"><label>偏移X(px)</label><input type="number" id="editOffX" value="'+(s.offX||0)+'"></div><div class="edit-col"><label>偏移Y(px)</label><input type="number" id="editOffY" value="'+(s.offY||0)+'"></div></div>'+
     '<div class="hint">提示：也可直接在地图上拖拽标记移动位置；类型可在「⚙ 类型」里自定义。标签重叠时可调「偏移」或用引线拉开</div>'+
     '</div>';
   markers[idx].setPopupContent(html).openPopup();
+}
+// 编辑面板内：选择自定义图标（转为 dataURL 存入隐藏域，并即时预览）
+function editIconPick(input){
+  readImageFile(input.files[0], function(durl){
+    document.getElementById('editIconVal').value=durl;
+    document.getElementById('editIconWrap').innerHTML='<img src="'+durl+'" style="height:22px;width:22px;object-fit:contain;border:1px solid var(--border-color);border-radius:4px;vertical-align:middle"><button type="button" class="btn" style="padding:2px 6px;font-size:12px;margin-left:4px" onclick="editIconClear()">清除</button>';
+  });
+}
+function editIconClear(){
+  document.getElementById('editIconVal').value='';
+  document.getElementById('editIconWrap').innerHTML='<label class="btn" style="display:inline-block;padding:4px 8px;font-size:12px;cursor:pointer">选择图片<input type="file" id="editIconFile" accept="image/png,image/svg+xml,image/jpeg,image/webp" style="display:none" onchange="editIconPick(this)"></label>';
 }
 
 function saveEdit(){
@@ -858,10 +965,15 @@ function saveEdit(){
   s.bold=document.getElementById('editBold').checked;
   s.style=document.getElementById('editStyle').value;
   s.pos=document.getElementById('editPos').value;
+  s.descColor=document.getElementById('editDescColor').value||'#222222';
   s.lineType=document.getElementById('editLineType').value;
   s.lineColor=document.getElementById('editLineColor').value;
   s.offX=parseInt(document.getElementById('editOffX').value,10)||0;
   s.offY=parseInt(document.getElementById('editOffY').value,10)||0;
+  var shp=document.getElementById('editShape').value;
+  s.shape=shp?shp:'';                 // 空 = 跟随类型默认
+  var iv=document.getElementById('editIconVal').value;
+  s.icon=iv?iv:null;                  // 空 = 不自定义（用形状/颜色）
   markers[currentEditIdx].setLatLng([s.lat,s.lng]);
   markers[currentEditIdx].setIcon(makeIcon(s));
   markers[currentEditIdx].closePopup();
@@ -884,7 +996,7 @@ function addNewShop(){
     categories.push({key:'uncat',label:'未分类',color:'#3498db'});
     renderFilterBar();renderLegend();
   }
-  var ns={name:'新店铺',street:'',type:(categories[0]?categories[0].key:'uncat'),addr:'',lat:center.lat,lng:center.lng,desc:'',pinSize:labelCfg.pinSize,fontSize:labelCfg.fontSize,bold:labelCfg.bold,style:labelCfg.style,pos:labelCfg.pos,offX:labelCfg.offX,offY:labelCfg.offY,lineType:labelCfg.lineType,lineColor:labelCfg.lineColor};
+  var ns={name:'新店铺',street:'',type:(categories[0]?categories[0].key:'uncat'),addr:'',lat:center.lat,lng:center.lng,desc:'',pinSize:labelCfg.pinSize,fontSize:labelCfg.fontSize,bold:labelCfg.bold,style:'shadow',pos:labelCfg.pos,offX:labelCfg.offX,offY:labelCfg.offY,lineType:labelCfg.lineType,lineColor:labelCfg.lineColor,descColor:labelCfg.descColor};
   shops.push(ns);var idx=shops.length-1;
   refreshMarkers();updateStats();renderList();
   setTimeout(function(){openEditPopup(idx);},100);
@@ -941,6 +1053,7 @@ function autosave(){
   if(locked) return; // 已保存的文件以文件本身为准，不写草稿
   try{
     var data={shops:shops,categories:categories,platformTitle:platformTitle,labelCfg:labelCfg,mapMode:mapMode,showMapDesc:showMapDesc,descLabelPos:descLabelPos};
+    if(selArea&&selArea.pts&&selArea.pts.length){ data.selArea={type:selArea.type, pts:selArea.pts}; }
     localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(data));
   }catch(e){ /* localStorage 不可用（如隐私模式/file:// 限制）则静默忽略 */ }
 }
@@ -959,6 +1072,10 @@ function loadAutosave(){
       if(typeof data.mapMode==='string') mapMode=data.mapMode;
       if(typeof data.showMapDesc==='boolean'){ showMapDesc=data.showMapDesc; var cb=document.getElementById('showMapDesc'); if(cb)cb.checked=showMapDesc; }
       if(data.descLabelPos) descLabelPos=data.descLabelPos;
+      if(data.selArea&&data.selArea.pts&&data.selArea.pts.length){
+        selArea={type:data.selArea.type, pts:data.selArea.pts, layer:null, handles:[]};
+        buildAreaLayer();
+      }
       return true;
     }
   }catch(e){}
@@ -978,17 +1095,37 @@ function openCatManager(){
   renderCatList();document.getElementById('catModal').style.display='flex';
 }
 function closeCatManager(){document.getElementById('catModal').style.display='none';}
+// 图钉形状下拉选项（含「跟随默认」）
+function pinShapeOptions(sel){
+  return '<option value="">跟随默认</option>'+PIN_SHAPES.map(function(o){return '<option value="'+o.id+'"'+(o.id===sel?' selected':'')+'>'+o.label+'</option>';}).join('');
+}
+// 读取本地图片文件为 dataURL（autosave 会把它存进草稿，限制 2MB 避免 localStorage 超限）
+function readImageFile(file,cb){
+  if(!file)return;
+  if(file.size>2*1024*1024){ showToast('图片过大（>2MB），请压缩后再上传'); return; }
+  var r=new FileReader();
+  r.onload=function(){ cb(r.result); };
+  r.onerror=function(){ showToast('读取文件失败'); };
+  r.readAsDataURL(file);
+}
 function renderCatList(){
   var box=document.getElementById('catList');
   box.innerHTML=categories.map(function(c,i){
-    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border-color)">'+
-      '<input type="color" value="'+c.color+'" data-i="'+i+'" class="catColor" style="width:34px;height:30px;border:none;background:none;cursor:pointer">'+
-      '<input type="text" value="'+escapeHtml(c.label)+'" data-i="'+i+'" class="catLabel" style="flex:1;padding:6px 8px;font-size:13px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);outline:none">'+
-      '<button class="btn btn-danger catDel" data-i="'+i+'" style="flex:none">删除</button>'+
-      '</div>';
+    var iconHtml=c.icon?'<img src="'+c.icon+'" title="自定义图标" style="height:22px;width:22px;object-fit:contain;vertical-align:middle;border:1px solid var(--border-color);border-radius:4px">':'';
+    return '<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--border-color);flex-wrap:wrap">'+
+      '<input type="color" value="'+c.color+'" data-i="'+i+'" class="catColor" title="颜色" style="width:28px;height:28px;border:none;background:none;cursor:pointer;padding:0">'+
+      '<input type="text" value="'+escapeHtml(c.label)+'" data-i="'+i+'" class="catLabel" placeholder="类型名称" style="flex:1;min-width:60px;padding:5px 8px;font-size:13px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);outline:none">'+
+      '<select class="catShape" data-i="'+i+'" title="图钉形状" style="padding:4px 6px;border-radius:6px;border:1px solid var(--border-color);background:var(--bg-card);color:var(--text-primary);font-size:12px;max-width:90px">'+pinShapeOptions(c.shape)+'</select>'+
+      '<label class="btn" title="上传自定义图标" style="padding:4px 8px;font-size:12px;cursor:pointer;white-space:nowrap">上传<input type="file" class="catIcon" data-i="'+i+'" accept="image/png,image/svg+xml,image/jpeg,image/webp" style="display:none"></label>'+
+      (c.icon?'<button class="btn catIconClear" data-i="'+i+'" style="padding:4px 8px;font-size:12px;white-space:nowrap">清除</button>'+iconHtml:'')+
+      '<button class="btn btn-danger catDel" data-i="'+i+'" style="flex:none;padding:4px 8px;font-size:12px">删除</button>'+
+    '</div>';
   }).join('');
   box.querySelectorAll('.catColor').forEach(function(inp){inp.addEventListener('input',function(){categories[+this.dataset.i].color=this.value;refreshDerived();});});
   box.querySelectorAll('.catLabel').forEach(function(inp){inp.addEventListener('input',function(){categories[+this.dataset.i].label=this.value;renderFilterBar();renderLegend();updateStats();renderList();autosave();});});
+  box.querySelectorAll('.catShape').forEach(function(sel){sel.addEventListener('change',function(){categories[+this.dataset.i].shape=this.value;refreshMarkers();autosave();});});
+  box.querySelectorAll('.catIcon').forEach(function(inp){inp.addEventListener('change',function(){var i=+this.dataset.i;readImageFile(this.files[0],function(durl){categories[i].icon=durl;renderCatList();refreshMarkers();autosave();});});});
+  box.querySelectorAll('.catIconClear').forEach(function(btn){btn.addEventListener('click',function(){categories[+this.dataset.i].icon=null;renderCatList();refreshMarkers();autosave();});});
   box.querySelectorAll('.catDel').forEach(function(btn){btn.addEventListener('click',function(){delCategory(+this.dataset.i);});});
 }
 function addCategory(){
@@ -996,7 +1133,7 @@ function addCategory(){
   var color=document.getElementById('newCatColor').value;
   if(!name){showToast('请填写类型名称');return;}
   if(categories.some(function(c){return c.label===name;})){showToast('类型已存在');return;}
-  categories.push({key:'c'+Math.random().toString(36).slice(2,8),label:name,color:color});
+  categories.push({key:'c'+Math.random().toString(36).slice(2,8),label:name,color:color,shape:'',icon:null});
   document.getElementById('newCatName').value='';
   renderCatList();refreshDerived();showToast('已添加类型：'+name);
 }
@@ -1210,6 +1347,7 @@ var dlBounds=null, dlRunning=false, dlSelecting=false, selRect=null, selStart=nu
 var tileSource='amap'; // 'proxy'=本地 server.py 同源代理；'browser'=浏览器直接 fetch 高德 blob URL；'amap'=Image.crossOrigin 直连高德
 function startBoxSelect(){
   if(dlSelecting)return;
+  dlFromSelArea=false;
   dlSelecting=true;
   map.dragging.disable(); // 框选期间禁用地图拖拽，避免与拖拽冲突
   document.getElementById('mapContainer').classList.add('selmode');
@@ -1237,6 +1375,167 @@ function onBoxUp(){
     openDlModal(b);
   }
 }
+// ===== 预先选定下载区域（矩形 / 多边形），选定后点「下载」无需再框选 =====
+var selArea=null;        // {type:'rect'|'circle'|'poly', pts:[{lat,lng}], layer, handles:[]}
+var dlFromSelArea=false;  // 当前下载弹窗是否源于「预选区域」
+var areaState=null;      // null | 'rect-pick' | 'poly-pick'
+var areaPreview=null;    // 选择过程中的预览图层
+function areaToolbar(on){ document.getElementById('areaToolbar').style.display = on?'flex':'none'; }
+function setAreaTip(t){ document.getElementById('areaTip').textContent=t; }
+function selAreaBounds(){
+  if(!selArea||!selArea.pts||!selArea.pts.length) return null;
+  if(selArea.type==='rect'){
+    return L.latLngBounds([L.latLng(selArea.pts[0].lat,selArea.pts[0].lng), L.latLng(selArea.pts[1].lat,selArea.pts[1].lng)]);
+  }
+  if(selArea.type==='circle' && selArea.pts.length>=2){
+    var c=L.latLng(selArea.pts[0].lat,selArea.pts[0].lng), e=L.latLng(selArea.pts[1].lat,selArea.pts[1].lng);
+    var r=c.distanceTo(e);
+    return c.toBounds(r*1.5); // 用稍大的边界框保证圆完整落入下载画布
+  }
+  return L.latLngBounds(selArea.pts.map(function(p){return L.latLng(p.lat,p.lng);}));
+}
+function enterAreaMode(){
+  areaToolbar(true);
+  setAreaTip('先选择「矩形」或「多边形」，再在地图上点选；可放大后微调');
+}
+function startAreaSelect(type){
+  clearSelArea();
+  areaState=type+'-pick';
+  selArea={type:type, pts:[], layer:null, handles:[]};
+  areaToolbar(true);
+  document.getElementById('atFinish').style.display=(type==='poly')?'inline-block':'none';
+  document.getElementById('mapContainer').classList.add('selmode');
+  if(type==='poly'){ map.doubleClickZoom.disable(); map.on('dblclick', finishAreaSelect); }
+  map.on('click', onAreaMapClick);
+  var tip={rect:'点击地图选两个对角，确定矩形范围',circle:'先点击圆心，再点击圆周上一点确定半径',poly:'依次点击地图添加顶点，完成后点「完成」（或双击地图）'};
+  setAreaTip(tip[type]||tip.rect);
+}
+function onAreaMapClick(e){
+  if(!areaState) return;
+  if(areaState==='rect-pick'){
+    selArea.pts.push({lat:e.latlng.lat, lng:e.latlng.lng});
+    if(selArea.pts.length===1){
+      areaPreview=L.rectangle([e.latlng,e.latlng],{color:'#2ecc71',weight:2,dashArray:'5,5',fillColor:'#2ecc71',fillOpacity:0.08}).addTo(map);
+      setAreaTip('已选起点，点击对角确定矩形');
+    } else if(selArea.pts.length===2){
+      map.off('click', onAreaMapClick);
+      document.getElementById('mapContainer').classList.remove('selmode');
+      areaState=null;
+      finalizeArea();
+    }
+  } else if(areaState==='circle-pick'){
+    selArea.pts.push({lat:e.latlng.lat, lng:e.latlng.lng});
+    if(selArea.pts.length===1){
+      areaPreview=L.circleMarker([e.latlng.lat,e.latlng.lng],{radius:4,color:'#2ecc71'}).addTo(map);
+      setAreaTip('已选圆心，点击圆周上一点确定半径');
+    } else if(selArea.pts.length===2){
+      var c=L.latLng(selArea.pts[0].lat,selArea.pts[0].lng), p=L.latLng(selArea.pts[1].lat,selArea.pts[1].lng);
+      if(areaPreview){ map.removeLayer(areaPreview); areaPreview=null; }
+      areaPreview=L.circle([c.lat,c.lng],{radius:c.distanceTo(p),color:'#2ecc71',weight:2,dashArray:'5,5',fillColor:'#2ecc71',fillOpacity:0.08}).addTo(map);
+      map.off('click', onAreaMapClick);
+      document.getElementById('mapContainer').classList.remove('selmode');
+      areaState=null;
+      finalizeArea();
+    }
+  } else if(areaState==='poly-pick'){
+    selArea.pts.push({lat:e.latlng.lat, lng:e.latlng.lng});
+    redrawAreaPreview();
+    setAreaTip('已添加 '+selArea.pts.length+' 个顶点，可继续点击或点「完成」');
+  }
+}
+function redrawAreaPreview(){
+  if(areaPreview){ map.removeLayer(areaPreview); areaPreview=null; }
+  if(areaState!=='poly-pick') return;
+  if(selArea.pts.length>=2){
+    areaPreview=L.polyline(selArea.pts.map(function(p){return [p.lat,p.lng];}),{color:'#2ecc71',weight:2,dashArray:'5,5'}).addTo(map);
+  } else if(selArea.pts.length===1){
+    areaPreview=L.circleMarker([selArea.pts[0].lat,selArea.pts[0].lng],{radius:4,color:'#2ecc71'}).addTo(map);
+  }
+}
+function finishAreaSelect(){
+  if(areaState!=='poly-pick') return;
+  if(selArea.pts.length<3){ showToast('多边形至少需要 3 个顶点'); return; }
+  map.off('click', onAreaMapClick);
+  map.off('dblclick', finishAreaSelect);
+  map.doubleClickZoom.enable();
+  document.getElementById('mapContainer').classList.remove('selmode');
+  areaState=null;
+  document.getElementById('atFinish').style.display='none';
+  finalizeArea();
+}
+function finalizeArea(){
+  if(selArea.type==='rect' && selArea.pts.length<2){ clearSelArea(); return; }
+  if(selArea.type==='circle' && selArea.pts.length<2){ clearSelArea(); return; }
+  if(selArea.type==='poly' && selArea.pts.length<3){ clearSelArea(); return; }
+  if(areaPreview){ map.removeLayer(areaPreview); areaPreview=null; }
+  buildAreaLayer();
+  var nameMap={rect:'矩形',circle:'圆形',poly:'多边形'};
+  showToast('已选定'+(nameMap[selArea.type]||'区域')+'：可拖动蓝点微调，或直接点「📥 下载」');
+  autosave();
+}
+function buildAreaLayer(){
+  if(selArea.layer){ map.removeLayer(selArea.layer); }
+  selArea.handles.forEach(function(m){ map.removeLayer(m); });
+  selArea.handles=[];
+  if(selArea.type==='rect'){
+    selArea.layer=L.rectangle([selArea.pts[0],selArea.pts[1]],{color:'#3498db',weight:2,fillColor:'#3498db',fillOpacity:0.08}).addTo(map);
+  } else if(selArea.type==='circle' && selArea.pts.length>=2){
+    var c=L.latLng(selArea.pts[0].lat,selArea.pts[0].lng), e=L.latLng(selArea.pts[1].lat,selArea.pts[1].lng);
+    selArea.layer=L.circle([c.lat,c.lng],{radius:c.distanceTo(e),color:'#3498db',weight:2,fillColor:'#3498db',fillOpacity:0.08}).addTo(map);
+  } else {
+    selArea.layer=L.polygon(selArea.pts.map(function(p){return [p.lat,p.lng];}),{color:'#3498db',weight:2,fillColor:'#3498db',fillOpacity:0.08}).addTo(map);
+  }
+  selArea.pts.forEach(function(p,i){ addAreaHandle(p,i); });
+}
+function addAreaHandle(p,i){
+  var m=L.marker([p.lat,p.lng],{draggable:true, icon:L.divIcon({className:'area-handle', iconSize:[14,14]})});
+  m.on('dragstart', function(){ selArea._dragStart={i:i, pts:selArea.pts.map(function(q){return{lat:q.lat,lng:q.lng};})}; });
+  m.on('drag', function(){
+    var ll=m.getLatLng();
+    if(selArea.type==='rect'){
+      selArea.pts[i]={lat:ll.lat, lng:ll.lng};
+      selArea.layer.setBounds(L.latLngBounds([selArea.pts[0],selArea.pts[1]]));
+    } else if(selArea.type==='circle'){
+      if(i===0){
+        var dLat=ll.lat-selArea._dragStart.pts[0].lat, dLng=ll.lng-selArea._dragStart.pts[0].lng;
+        selArea.pts[0]={lat:ll.lat, lng:ll.lng};
+        selArea.pts[1]={lat:selArea._dragStart.pts[1].lat+dLat, lng:selArea._dragStart.pts[1].lng+dLng};
+        selArea.handles[1].setLatLng([selArea.pts[1].lat,selArea.pts[1].lng]);
+        selArea.layer.setLatLng([ll.lat,ll.lng]);
+      } else {
+        selArea.pts[i]={lat:ll.lat, lng:ll.lng};
+        selArea.layer.setRadius(L.latLng(selArea.pts[0].lat,selArea.pts[0].lng).distanceTo(ll));
+      }
+    } else {
+      selArea.pts[i]={lat:ll.lat, lng:ll.lng};
+      selArea.layer.setLatLngs(selArea.pts.map(function(q){return [q.lat,q.lng];}));
+    }
+  });
+  m.on('dragend', function(){ selArea._dragStart=null; autosave(); });
+  m.addTo(map);
+  selArea.handles.push(m);
+}
+function clearSelArea(){
+  if(selArea){
+    if(selArea.layer) map.removeLayer(selArea.layer);
+    selArea.handles.forEach(function(m){ map.removeLayer(m); });
+  }
+  if(areaPreview){ map.removeLayer(areaPreview); areaPreview=null; }
+  if(areaState){
+    map.off('click', onAreaMapClick);
+    map.off('dblclick', finishAreaSelect);
+    map.doubleClickZoom.enable();
+    document.getElementById('mapContainer').classList.remove('selmode');
+  }
+  areaState=null; selArea=null;
+  areaToolbar(false);
+  autosave();
+}
+function openDownload(){
+  var b=selAreaBounds();
+  if(b){ dlFromSelArea=true; openDlModal(b); }
+  else { dlFromSelArea=false; startBoxSelect(); }
+}
 function openDlModal(bounds){
   var fw=document.getElementById('dlFileWarn');
   if(fw){
@@ -1260,6 +1559,8 @@ function openDlModal(bounds){
   for(var z=18;z>=12;z--){var o=document.createElement('option');o.value=z;o.textContent='级别 '+z+(z===cur?'（当前）':'');if(z===cur)o.selected=true;sel.appendChild(o);}
   var m=document.querySelector('input[name=dlMode][value="'+mapMode+'"]'); if(m)m.checked=true;
   document.getElementById('dlModal').style.display='flex';
+  var h3=document.querySelector('#dlModal .dl-box h3');
+  if(h3){ var nm={rect:'矩形',circle:'圆形',poly:'多边形'}; h3.textContent = (dlFromSelArea&&selArea) ? ('下载区域地图（'+(nm[selArea.type]||'自定义')+'范围）') : '下载区域地图（框选范围拼接大图）'; }
   updateDlInfo();
 }
 function updateDlInfo(){
@@ -1406,28 +1707,109 @@ function roundRect(ctx,x,y,w,h,r){
   ctx.arcTo(x,y,x+w,y,r);
   ctx.closePath();
 }
-// 经典地图水滴形图钉（上圆下尖，比例参考高德/Google Maps SVG 图标）
-// 与 makeIcon SVG 路径完全一致的 canvas 绘制，确保下载图和地图图钉一模一样
-function drawPin(ctx,x,y,size,color){
-  var s=size/26;                     // SVG viewBox 26×36 的缩放比例
-  var topY=y-36*s;                   // SVG 顶部 (13,0) 对应 canvas 坐标
+// 图钉绘制（canvas，供下载大图使用）：支持多种内置形状 + 自定义上传图片
+// 形状路径与 makeIcon/pinSvg 的 SVG 完全一致，保证地图与下载图图钉一模一样
+var pinIconImgCache={}; // dataURL -> 预加载的 Image 对象
+function drawPin(ctx,x,y,size,color,shape,icon){
+  shape=shape||'teardrop';
+  // 自定义图片优先
+  if(icon){
+    var img=pinIconImgCache[icon];
+    if(img && img.complete && img.naturalWidth){
+      ctx.drawImage(img, x-size/2, y-size, size, size);
+      return;
+    }
+    // 未就绪兜底：临时色块（下载前会 ensurePinIcons 预加载，正常不会走到）
+    ctx.save();
+    ctx.beginPath(); ctx.arc(x, y-size/2, size/2, 0, Math.PI*2);
+    ctx.fillStyle=color||'#3498db'; ctx.fill();
+    ctx.lineWidth=Math.max(1,size*0.06); ctx.strokeStyle='rgba(255,255,255,0.85)'; ctx.stroke();
+    ctx.restore();
+    return;
+  }
+  color=color||'#3498db';
+  if(shape==='teardrop'){
+    var s=size/26, topY=y-36*s;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(x, topY);
+    ctx.bezierCurveTo(x-7.2*s, topY, x-13*s, topY+5.8*s, x-13*s, topY+13*s);
+    ctx.bezierCurveTo(x-13*s, topY+22.5*s, x, y, x, y);
+    ctx.bezierCurveTo(x, y, x+13*s, topY+22.5*s, x+13*s, topY+13*s);
+    ctx.bezierCurveTo(x+13*s, topY+5.8*s, x+7.2*s, topY, x, topY);
+    ctx.closePath();
+    ctx.fillStyle=color; ctx.fill();
+    ctx.lineWidth=Math.max(1, size*0.046); ctx.strokeStyle='rgba(255,255,255,0.85)'; ctx.stroke();
+    ctx.beginPath(); ctx.arc(x, topY+13*s, 5.5*s, 0, Math.PI*2); ctx.fillStyle='#ffffff'; ctx.fill();
+    ctx.restore();
+    return;
+  }
+  // 26×26 形状：把 SVG viewBox 映射到以 (x, y) 为底边的 size×size 方块
+  var sc=size/26, ox=x-13*sc, oy=y-size-13*sc;
   ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(x, topY);               // M13 0
-  // 左上圆弧
-  ctx.bezierCurveTo(x-7.2*s, topY, x-13*s, topY+5.8*s, x-13*s, topY+13*s);
-  // 左侧到尖端
-  ctx.bezierCurveTo(x-13*s, topY+22.5*s, x, y, x, y);
-  // 右侧到肩部（对称贝塞尔）
-  ctx.bezierCurveTo(x, y, x+13*s, topY+22.5*s, x+13*s, topY+13*s);
-  // 右上圆弧回到顶部
-  ctx.bezierCurveTo(x+13*s, topY+5.8*s, x+7.2*s, topY, x, topY);
-  ctx.closePath();
-  ctx.fillStyle=color; ctx.fill();
-  ctx.lineWidth=Math.max(1, size*0.046); ctx.strokeStyle='rgba(255,255,255,0.85)'; ctx.stroke();
-  // 内白圆，与 SVG <circle cx="13" cy="13" r="5.5"/> 一致
-  ctx.beginPath(); ctx.arc(x, topY+13*s, 5.5*s, 0, Math.PI*2); ctx.fillStyle='#ffffff'; ctx.fill();
+  ctx.translate(ox,oy); ctx.scale(sc,sc);
+  function ring(){ ctx.lineWidth=1.2/sc; ctx.strokeStyle='rgba(255,255,255,0.5)'; ctx.stroke(); }
+  function innerDot(){ ctx.beginPath(); ctx.arc(13,13,4.5,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill(); }
+  function baseCircle(){ ctx.beginPath(); ctx.arc(13,13,12,0,Math.PI*2); ctx.fillStyle=color; ctx.fill(); ring(); }
+  ctx.fillStyle=color;
+  if(shape==='circle'){ baseCircle(); innerDot(); }
+  else if(shape==='square'){ roundRect(ctx,2,2,22,22,6); ctx.fill(); ring(); innerDot(); }
+  else if(shape==='diamond'){ ctx.beginPath(); ctx.moveTo(13,1); ctx.lineTo(25,13); ctx.lineTo(13,25); ctx.lineTo(1,13); ctx.closePath(); ctx.fill(); ring(); innerDot(); }
+  else if(shape==='triangle'){ ctx.beginPath(); ctx.moveTo(13,24); ctx.lineTo(3,3); ctx.lineTo(23,3); ctx.closePath(); ctx.fill(); ring(); }
+  else if(shape==='star'){ ctx.beginPath(); ctx.moveTo(13,1); ctx.lineTo(15.94,8.95); ctx.lineTo(24.41,9.29); ctx.lineTo(17.76,14.55); ctx.lineTo(20.05,22.71); ctx.lineTo(13,18); ctx.lineTo(5.95,22.71); ctx.lineTo(8.24,14.55); ctx.lineTo(1.59,9.29); ctx.lineTo(10.06,8.95); ctx.closePath(); ctx.fill(); ring(); }
+  else {
+    // POI 图标：统一彩色圆底 + 白色描边/文字（与 pinSvg 风格一致）
+    baseCircle(); ctx.strokeStyle='#fff'; ctx.fillStyle='#fff'; ctx.lineWidth=1.5/sc; ctx.lineJoin='round'; ctx.lineCap='round';
+    if(shape==='hospital'){
+      var p=new Path2D('M9 5h4v6h6v4h-6v6H9v-6H3V11h6V5z'); ctx.fill(p);
+    } else if(shape==='school'){
+      var p=new Path2D('M13 3 L23 9 L13 15 L3 9 Z M6 11 L6 16 L13 20 L20 16 L20 11'); ctx.stroke(p);
+    } else if(shape==='park'){
+      var p=new Path2D('M13 5 L16 11 L20 11 L17 15 L19 20 L13 17 L7 20 L9 15 L6 11 L10 11 Z'); ctx.stroke(p);
+    } else if(shape==='food'){
+      ctx.beginPath(); ctx.moveTo(7,4); ctx.lineTo(7,15); ctx.moveTo(5,4); ctx.lineTo(5,10); ctx.quadraticCurveTo(5,12,7,12); ctx.moveTo(9,4); ctx.lineTo(9,10); ctx.quadraticCurveTo(9,12,7,12); ctx.stroke();
+      ctx.beginPath(); ctx.arc(19,8,3,0,Math.PI*2); ctx.stroke(); ctx.beginPath(); ctx.moveTo(19,11); ctx.lineTo(19,17); ctx.stroke();
+    } else if(shape==='hotel'){
+      var p=new Path2D('M4 12 H22 V20 H4 Z M6 14 V20 M10 14 V20 M16 14 V20 M20 14 V20'); ctx.stroke(p);
+    } else if(shape==='bank'){
+      ctx.font='bold 14px "PingFang SC","Microsoft YaHei",sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('¥',13,17);
+    } else if(shape==='gas'){
+      var p=new Path2D('M8 6 H15 V17 H8 Z M10 9 H13 V12 H10 Z M18 9 H20 V17 H18 V13 H16'); ctx.stroke(p);
+    } else if(shape==='parking'){
+      ctx.font='bold 15px "PingFang SC","Microsoft YaHei",sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('P',13,18);
+    } else if(shape==='shopping'){
+      var p=new Path2D('M6 7 H20 L22 19 H4 Z M9 7 V5 Q9 3 13 3 Q17 3 17 5 V7'); ctx.stroke(p);
+    } else if(shape==='toilet'){
+      var p=new Path2D('M13 6 A3 3 0 1 1 13 12 A3 3 0 1 1 13 6 M9 13 H17 L13 22 Z'); ctx.stroke(p);
+    } else if(shape==='transport'){
+      var p=new Path2D('M4 9 H22 V17 H4 Z M6 11 H20 V13 H6 Z M7 18 A2 2 0 1 1 11 18 A2 2 0 1 1 7 18 M15 18 A2 2 0 1 1 19 18 A2 2 0 1 1 15 18'); ctx.stroke(p);
+    } else if(shape==='building'){
+      var p=new Path2D('M6 4 H20 V21 H6 Z M8 7 H10 V9 H8 Z M16 7 H18 V9 H16 Z M8 11 H10 V13 H8 Z M16 11 H18 V13 H16 Z M8 15 H10 V17 H8 Z M16 15 H18 V17 H16 Z'); ctx.stroke(p);
+    } else if(shape==='house'){
+      var p=new Path2D('M13 3 L23 13 H20 V21 H6 V13 H3 Z'); ctx.stroke(p);
+    } else if(shape==='gym'){
+      ctx.beginPath(); ctx.arc(8,8,2,0,Math.PI*2); ctx.stroke();
+      var p=new Path2D('M10 10 L14 9 L16 14 L20 17 M13 11 L10 17 L7 20'); ctx.stroke(p);
+    } else { ctx.beginPath(); ctx.arc(13,13,12,0,Math.PI*2); ctx.fill(); ring(); innerDot(); }
+  }
   ctx.restore();
+}
+// 下载前预加载所有自定义图钉图片（dataURL -> Image），加载完再回调，避免大图里图钉缺失
+function ensurePinIcons(cb){
+  var urls=[];
+  categories.forEach(function(c){ if(c.icon) urls.push(c.icon); });
+  shops.forEach(function(s){ if(s.icon) urls.push(s.icon); });
+  var uniq=[], seen={};
+  urls.forEach(function(u){ if(!seen[u]){ seen[u]=1; uniq.push(u); } });
+  var pending=uniq.length, done=0;
+  if(pending===0){ cb(); return; }
+  function step(){ done++; if(done>=pending) cb(); }
+  uniq.forEach(function(u){
+    if(pinIconImgCache[u] && pinIconImgCache[u].complete && pinIconImgCache[u].naturalWidth){ step(); return; }
+    var img=new Image();
+    img.onload=step; img.onerror=step;
+    img.src=u; pinIconImgCache[u]=img;
+  });
 }
 // 自动换行（按像素宽度，最多3行，超出省略号）
 function wrapText(ctx,text,fs,bold,maxW){
@@ -1472,14 +1854,14 @@ function drawLabelBox(ctx,bx,by,bw,bh,lh,lines,fs,cfg,mode,color){
   ctx.restore();
   ctx.font=(cfg.bold?'bold ':'')+fs+'px "PingFang SC","Microsoft YaHei",sans-serif';
   ctx.textAlign='center'; ctx.textBaseline='middle';
-  var txtColor=(cfg.style==='dark')?'#ffffff':'#222222';
+  var txtColor=cfg.descColor||((cfg.style==='dark')?'#ffffff':'#222222');
   var y0=by+bh/2-((lines.length-1)*lh)/2;
   for(var i=0;i<lines.length;i++){
     var ty=y0+i*lh;
     if(cfg.style==='stroke'){
       ctx.lineWidth=3*sc; ctx.strokeStyle=(mode==='sat'?'rgba(0,0,0,0.9)':'rgba(255,255,255,0.95)');
       ctx.strokeText(lines[i].t,bx+bw/2,ty);
-      ctx.fillStyle=(mode==='sat'?'#ffffff':'#222222'); ctx.fillText(lines[i].t,bx+bw/2,ty);
+      ctx.fillStyle=txtColor; ctx.fillText(lines[i].t,bx+bw/2,ty);
     } else {
       ctx.fillStyle=txtColor; ctx.fillText(lines[i].t,bx+bw/2,ty);
     }
@@ -1488,15 +1870,18 @@ function drawLabelBox(ctx,bx,by,bw,bh,lh,lines,fs,cfg,mode,color){
 function drawPOIs(ctx,st,z,mode,scale){
   scale=scale||1; _dlScale=scale;
   function cfgOf(s){
+    // 样式：选择「原始样式（跟随点位）」时，使用每个点位自己保存的 s.style；缺省时回退为 shadow。
+    var resolvedStyle=(labelCfg.style==='original')?(s.style||'shadow'):labelCfg.style;
     return {
       pinSize:(s.pinSize||labelCfg.pinSize),
       fontSize:(s.fontSize||labelCfg.fontSize),
       bold:(s.bold!==undefined?s.bold:labelCfg.bold),
-      style:(s.style||labelCfg.style),
+      style:resolvedStyle,
       pos:(s.pos||labelCfg.pos),
       offX:(s.offX||0), offY:(s.offY||0),
       lineType:(s.lineType||labelCfg.lineType),
-      lineColor:(s.lineColor||labelCfg.lineColor)
+      lineColor:(s.lineColor||labelCfg.lineColor),
+      descColor:(s.descColor||labelCfg.descColor||'#222222')
     };
   }
   // 预计算所有可见图钉锚点（下载图 canvas 坐标），用于标签连线遮挡检测
@@ -1540,8 +1925,8 @@ function drawPOIs(ctx,st,z,mode,scale){
   // 绘制每个图钉及其标签
   pinPts.forEach(function(p){
     var s=shops[p.idx], cx=p.x, cy=p.y;
-    var c=getColor(s), cf=cfgOf(s);
-    drawPin(ctx,cx,cy,cf.pinSize*scale,c);
+    var c=getColor(s), cf=cfgOf(s), rp=resolvePin(s);
+    drawPin(ctx,cx,cy,cf.pinSize*scale,c,rp.shape,rp.icon);
     if(!labelCfg.showLabel)return;
     // 若地图端开启了「显示描述标签」且本点有描述，优先用可拖动描述标签系统（位置跟随 descLabelPos）
     var useMapDesc=(showMapDesc && s.desc && s.desc.trim());
@@ -1587,6 +1972,11 @@ function runDownload(){
   labelCfg.fontSize=parseInt(document.getElementById('dlFs').value,10)||14;
   labelCfg.bold=document.getElementById('dlBold').checked;
   autosave();
+  // 服务端高清导出：由本地服务器用 Pillow 拼大图，彻底绕开浏览器 canvas 上限（可出超大幅面）
+  if(document.getElementById('dlServerStitch').checked){
+    startServerStitch(dlBounds, mode, z, scale, dpi);
+    return;
+  }
   var st=computeTileStats(dlBounds,z,mode);
   if(st.tiles>4000){ if(!confirm('瓦片数达 '+st.tiles+' 张，生成图片较大且耗时，确定继续？'))return; }
   // 探测瓦片来源阶段：先不设置 dlRunning，允许用户取消弹窗
@@ -1606,12 +1996,72 @@ function runDownload(){
   });
   return;
 }
+// 服务端高清导出：浏览器只传范围，本地服务器下载瓦片并用 Pillow 拼成 PNG 返回，不受浏览器尺寸限制
+function startServerStitch(bounds, mode, z, scale, dpi){
+  dlRunning=true;
+  var sb=document.getElementById('dlStart'); if(sb)sb.disabled=true;
+  var minlng=bounds.getWest(), minlat=bounds.getSouth(), maxlng=bounds.getEast(), maxlat=bounds.getNorth();
+  var label=(mode==='sat')?1:0;
+  var url='/stitch?minlng='+encodeURIComponent(minlng)+'&minlat='+encodeURIComponent(minlat)+'&maxlng='+encodeURIComponent(maxlng)+'&maxlat='+encodeURIComponent(maxlat)+'&z='+z+'&scale='+scale+'&mode='+mode+'&label='+label;
+  showToast('服务端拼接中（浏览器不会白屏），瓦片较多请耐心等待…');
+  showDlProgress(0,1);
+  var name='地图服务端导出_'+z+'级_'+scale+'x_'+Date.now()+'.png';
+  fetch(url).then(function(r){
+    if(!r.ok){ return r.text().then(function(t){ throw new Error(t||('HTTP '+r.status)); }); }
+    return r.blob();
+  }).then(function(blob){
+    return blob.arrayBuffer().then(function(ab){
+      var out; try{ out=setPngDpi(ab,dpi); }catch(e){ out=ab; }
+      downloadBlob(new Blob([out],{type:'image/png'}), name);
+      hideDlProgress(); dlRunning=false; if(sb)sb.disabled=false;
+      closeDlModal();
+      showToast('已服务端导出：'+name+'（'+dpi+'DPI）');
+    });
+  }).catch(function(err){
+    hideDlProgress(); dlRunning=false; if(sb)sb.disabled=false;
+    showToast('服务端导出失败：'+((err&&err.message)?err.message:err)+'。可取消「服务端高清导出」改用浏览器方式');
+  });
+}
 function _runDownloadCore(mode,z,scale,dpi,st){
   var tasks=[];
   for(var i=st.xMin;i<st.xMin+st.cols;i++) for(var j=st.yMin;j<st.yMin+st.rows;j++) tasks.push({x:i,y:j});
+  // === 尺寸保护：避免超大 canvas 导致浏览器白屏/崩溃，以及导出空白图 ===
+  var W=st.wpx*scale, H=st.hpx*scale;
+  var MAX_DIM=16384, SOFT_DIM=11000;
+  if(W>MAX_DIM||H>MAX_DIM){
+    hideDlProgress(); dlRunning=false; var sb=document.getElementById('dlStart'); if(sb)sb.disabled=false;
+    showToast('图片尺寸 '+W+'×'+H+'px 超出浏览器上限，已取消导出。请降低级别/倍数或缩小范围'); return;
+  }
+  if(W>SOFT_DIM||H>SOFT_DIM){
+    var safe=Math.max(1,Math.floor(SOFT_DIM/Math.max(st.wpx,st.hpx)));
+    if(safe<scale){ var oldScale=scale; scale=safe; showToast('为保证浏览器稳定生成，已将倍数从 '+oldScale+'x 自动降至 '+scale+'x'); }
+  }
   var canvas=document.createElement('canvas'); canvas.width=st.wpx*scale; canvas.height=st.hpx*scale;
   var ctx=canvas.getContext('2d');
-  ctx.fillStyle=mode==='sat'?'#0a1628':'#f5f5f5'; ctx.fillRect(0,0,st.wpx*scale,st.hpx*scale); // 背景填色，缺块处不显空洞
+  var hasClip=selArea && ((selArea.type==='poly' && selArea.pts.length>=3) || (selArea.type==='circle' && selArea.pts.length>=2));
+  // 非自定义形状下载：先铺背景色，缺块处不显空洞；自定义形状（多边形/圆形）范围外保持透明
+  if(!hasClip){
+    ctx.fillStyle=mode==='sat'?'#0a1628':'#f5f5f5'; ctx.fillRect(0,0,st.wpx*scale,st.hpx*scale);
+  }
+  // 自定义形状区域：把绘制裁剪到形状内部，范围外保持透明
+  var clipPath=null;
+  if(selArea && selArea.type==='poly' && selArea.pts.length>=3){
+    clipPath=new Path2D();
+    selArea.pts.forEach(function(p,i){
+      var x=(lon2xCont(p.lng,z)-st.cxMin)*256*scale, y=(lat2yCont(p.lat,z)-st.cyMin)*256*scale;
+      if(i===0) clipPath.moveTo(x,y); else clipPath.lineTo(x,y);
+    });
+    clipPath.closePath();
+    ctx.save(); ctx.clip(clipPath);
+  } else if(selArea && selArea.type==='circle' && selArea.pts.length>=2){
+    clipPath=new Path2D();
+    var cp=selArea.pts[0], ep=selArea.pts[1];
+    var cx=(lon2xCont(cp.lng,z)-st.cxMin)*256*scale, cy=(lat2yCont(cp.lat,z)-st.cyMin)*256*scale;
+    var ex=(lon2xCont(ep.lng,z)-st.cxMin)*256*scale, ey=(lat2yCont(ep.lat,z)-st.cyMin)*256*scale;
+    var r=Math.sqrt((ex-cx)*(ex-cx)+(ey-cy)*(ey-cy));
+    clipPath.arc(cx,cy,r,0,Math.PI*2);
+    ctx.save(); ctx.clip(clipPath);
+  }
   var total=tasks.length, done=0, idx=0;
   showDlProgress(0,total);
   function dlNext(){
@@ -1622,7 +2072,9 @@ function _runDownloadCore(mode,z,scale,dpi,st){
       ctx.globalAlpha=1;
       if(mode==='sat'){ ctx.drawImage(imgs.sat,dx,dy,ts,ts); ctx.globalAlpha=0.9; if(imgs.label)ctx.drawImage(imgs.label,dx,dy,ts,ts); }
       else { ctx.drawImage(imgs.road,dx,dy,ts,ts); }
-      ctx.globalAlpha=1; after();
+      ctx.globalAlpha=1;
+      imgs.sat=null; imgs.label=null; imgs.road=null; // 释放瓦片 Image，降低内存峰值避免白屏
+      after();
     }, function(){ dlFailCount++; after(); }); // 单块失败则跳过（留背景色）
   }
   function after(){
@@ -1630,7 +2082,15 @@ function _runDownloadCore(mode,z,scale,dpi,st){
     if(done>=total){ finishDl(); } else { dlNext(); }
   }
   function finishDl(){
-    drawPOIs(ctx,st,z,mode,scale); // 把当前点位（图钉+标签）烧录进大图（按 scale 放大）
+    // 失败率保护：瓦片大量失败时不应导出空白/背景图，以免误导
+    if(dlFailCount>total*0.3){
+      hideDlProgress(); dlRunning=false; var sb=document.getElementById('dlStart'); if(sb)sb.disabled=false;
+      showToast('瓦片加载失败率过高（'+Math.round(dlFailCount/total*100)+'%），已取消导出以免得到空白图。请检查网络或用「启动地图服务器.bat」本地代理');
+      return;
+    }
+    ensurePinIcons(function(){
+      drawPOIs(ctx,st,z,mode,scale); // 把当前点位（图钉+标签）烧录进大图（按 scale 放大）
+      if(clipPath) ctx.restore(); // 解除多边形裁剪，使后面的失败提示可全图显示
     if(dlFailCount>tasks.length*0.5){
       ctx.save();
       ctx.fillStyle='rgba(231,76,60,0.92)'; ctx.font='bold '+(16*scale)+'px sans-serif';
@@ -1669,8 +2129,9 @@ function _runDownloadCore(mode,z,scale,dpi,st){
         showToast('导出失败（画布被污染，请用「启动地图服务器.bat」或部署后打开）');
       }
     }
+    });
   }
-  var CONC=6; // 并发拉取，避免高德限流
+  var CONC=4; // 并发拉取，降低内存峰值避免浏览器白屏
   for(var k=0;k<Math.min(CONC,tasks.length);k++) dlNext();
 }
 
