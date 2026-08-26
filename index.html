@@ -192,6 +192,24 @@ body{
 .leaflet-popup-close-button{color:var(--text-muted)!important;font-size:16px!important;padding:5px 6px 0 0!important}
 .leaflet-control-zoom a{background:rgba(13,30,54,0.9)!important;color:var(--text-secondary)!important;border:1px solid var(--border-color)!important}
 .leaflet-control-zoom a:hover{background:var(--bg-hover)!important;color:var(--text-primary)!important}
+/* 缩放级别显示：紧贴在 +/- 按钮正下方，与按钮同宽 */
+.leaflet-top .leaflet-control-zoom-level{
+  margin-top:0;
+  width:26px;
+  background:rgba(13,30,54,0.9);
+  border:1px solid var(--border-color);
+  border-top:none;
+  border-radius:0 0 4px 4px;
+  color:var(--text-secondary);
+  font:11px/1 "PingFang SC","Microsoft YaHei",sans-serif;
+  padding:5px 0;
+  text-align:center;
+  white-space:nowrap;
+  cursor:default;
+  user-select:none;
+  -webkit-user-select:none;
+}
+.leaflet-touch .leaflet-control-zoom-level{width:30px;padding:6px 0}
 .map-mode-btn{transition:all .15s}
 .map-mode-btn.active{background:var(--accent-blue);color:#fff!important}
 .map-dl-btn{transition:all .15s}
@@ -251,6 +269,9 @@ body{
 .dl-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
 .selmode{cursor:crosshair}
 .selmode .leaflet-grab,.selmode .leaflet-interactive{cursor:crosshair!important}
+/* 地图上永久显示的描述标签（白底黑字 + 立体浮起投影，与下载图标签风格统一） */
+.map-desc-label{background:#ffffff!important;border:1px solid rgba(0,0,0,0.1)!important;border-radius:7px!important;box-shadow:0 4px 12px rgba(0,0,0,0.18),0 1px 3px rgba(0,0,0,0.12)!important;padding:5px 11px!important;margin:0!important;white-space:nowrap!important;font-size:13px!important;line-height:1.4!important}
+.map-desc-label .map-desc-text{color:#222222!important;font-weight:500;font-family:"PingFang SC","Microsoft YaHei",sans-serif!important}
 </style>
 </head>
 <body class="">
@@ -270,6 +291,12 @@ body{
   <div class="search-box">
     <input type="text" id="searchInput" placeholder="搜索店铺名称或地址...">
   </div>
+  <div style="padding:6px 16px 8px;border-bottom:1px solid var(--border-color);display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+    <label style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:5px;cursor:pointer">
+      <input type="checkbox" id="showMapDesc" onchange="toggleMapDescLabels()"> 显示描述标签
+    </label>
+    <span style="font-size:11px;color:var(--text-muted)">勾选后地图标记旁显示「描述」字段内容</span>
+  </div>
   <div class="shop-list" id="shopList"></div>
   <div class="sidebar-footer">
     <button class="btn btn-danger" id="btnClearDraft" onclick="clearDraftAndReload()" title="清除本地临时保存的草稿并恢复空白模板" style="width:100%;margin-bottom:10px">🗑 清空调试草稿</button>
@@ -281,6 +308,7 @@ body{
   <button class="map-mode-btn active" data-mode="sat" onclick="setMapMode('sat')" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--text-secondary);cursor:pointer">🛰 卫星图</button>
   <button class="map-dl-btn" onclick="startBoxSelect()" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--accent-blue);cursor:pointer;font-weight:600">📥 下载</button>
 </div>
+<button id="manualLocBtn" onclick="startManualLocate()" title="网络定位不准时，手动在地图上点选你的真实位置（再次点击取消）" style="position:fixed;bottom:76px;right:12px;z-index:1500;width:44px;height:44px;border-radius:50%;border:1px solid var(--border-color);background:var(--bg-panel);color:var(--accent-blue);font-size:19px;cursor:pointer;backdrop-filter:blur(12px);box-shadow:0 2px 12px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;">🖱</button>
 <button id="locateBtn" onclick="locateMe()" title="定位到我当前所在位置（需允许浏览器定位权限；localhost / HTTPS 可用，file:// 不可用）" style="position:fixed;bottom:24px;right:12px;z-index:1500;width:44px;height:44px;border-radius:50%;border:1px solid var(--border-color);background:var(--bg-panel);color:var(--accent-blue);font-size:19px;cursor:pointer;backdrop-filter:blur(12px);box-shadow:0 2px 12px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;">📍</button>
 <div id="mapContainer"></div>
 <div id="toast"></div>
@@ -349,11 +377,11 @@ body{
         <label style="font-size:13px"><input type="checkbox" id="dlUseDesc"> 用描述字段</label>
         <span style="font-size:12px;color:var(--text-secondary)">样式</span>
         <select id="dlStyle">
-          <option value="white" selected>白底黑字</option>
+          <option value="shadow" selected>白底投影</option>
+          <option value="white">白底黑字</option>
           <option value="dark">黑底白字</option>
           <option value="border">白底彩边</option>
           <option value="stroke">描边字</option>
-          <option value="shadow">白底投影</option>
         </select>
         <span style="font-size:12px;color:var(--text-secondary)">位置</span>
         <select id="dlPos">
@@ -404,7 +432,7 @@ var labelCfg={
   pinSize:26,          // 图钉直径(px)
   fontSize:14,         // 标签文字大小(px)
   bold:true,           // 文字是否加粗
-  style:'white',       // 标签样式
+  style:'shadow',       // 标签样式（默认白底投影立体风格）
   pos:'bottom',        // 标签相对图钉位置：top/bottom/left/right
   offX:0, offY:0       // 标签手动偏移(px)，用于错开重叠
 };
@@ -413,6 +441,24 @@ var _dlScale=1;        // 当前下载清晰度倍数，供标签辅助函数使
 var shops=[]; // 空白模板：点「+ 新增店铺」添加点位，名称/类型/街道/地址/坐标均可自定义
 
 var map=L.map('mapContainer',{zoomControl:true,attributionControl:false}).setView([35.42,116.65],12);
+// 缩放级别显示：紧贴 +/- 按钮下方，随滚轮/按钮/双击/飞行缩放实时更新
+var zoomLevelCtrl=L.control({position:'topleft'});
+zoomLevelCtrl.onAdd=function(m){
+  var div=L.DomUtil.create('div','leaflet-control-zoom-level');
+  div.id='zoomLevelVal';
+  div.title='当前缩放级别（数字越大越精细，高德底图约 3~18 级）';
+  div.textContent=Math.round(m.getZoom());
+  L.DomEvent.disableClickPropagation(div);
+  return div;
+};
+zoomLevelCtrl.addTo(map);
+function updateZoomLevelDisplay(){
+  var el=document.getElementById('zoomLevelVal');
+  if(!el)return;
+  var z=map.getZoom();
+  el.textContent=(Math.abs(z-Math.round(z))<0.05)?String(Math.round(z)):z.toFixed(1);
+}
+map.on('zoom zoomend',updateZoomLevelDisplay);
 // 两种底图：城市路网图 / 卫星影像图（均来自高德，合规白名单）
 // 城市图：webrd+style=8 标准路网图（白底，含道路名称）
 // 卫星图：webst+style=6 卫星影像 + webst+style=8 透明注记层（仅路名/路网，背景透明，不可替换为白底地图）
@@ -480,8 +526,15 @@ function locateMe(){
     map.flyTo([lat,lng], Math.max(map.getZoom(),15));
     if(myLocMarker) map.removeLayer(myLocMarker);
     myLocMarker=L.circleMarker([lat,lng],{radius:8,color:'#3498db',fillColor:'#3498db',fillOpacity:1,weight:3}).addTo(map);
-    myLocMarker.bindPopup('📍 我的位置').openPopup();
-    showToast('已定位到当前位置');
+    var acc=pos.coords.accuracy;
+    var accTxt='';
+    if(acc){
+      accTxt = acc>=1000 ? ('精度约 '+(acc/1000).toFixed(1)+' 公里') : ('精度约 '+Math.round(acc)+' 米');
+    }
+    var tip = accTxt ? (acc>=1000 ? '<br><span style="font-size:11px;color:#e67e22">'+accTxt+'（宽带/IP 定位偏差大，建议用 🖱 手动点选真实位置）</span>' : '<br><span style="font-size:11px;color:#888">'+accTxt+'</span>') : '';
+    myLocMarker.bindPopup('📍 我的位置'+tip).openPopup();
+    var locTip = accTxt ? ('（'+accTxt+'）') : '';
+    showToast('已定位到当前位置'+locTip);
   }, function(err){
     if(btn){btn.disabled=false;}
     var msg='定位失败';
@@ -494,7 +547,37 @@ function locateMe(){
   }, {enableHighAccuracy:true, timeout:10000, maximumAge:0});
 }
 
+// 手动点选"我的位置"：桌面宽带 IP 定位偏差大时，由用户自己在地图上点真实位置
+var manualLocating=false;
+function startManualLocate(){
+  if(manualLocating){ // 再次点击取消点选模式
+    manualLocating=false;
+    showToast('已取消手动设点');
+    return;
+  }
+  manualLocating=true;
+  showToast('请在地图上点击你的真实位置（再次点此按钮可取消）');
+}
+function onMapClickForManual(e){
+  if(!manualLocating) return;
+  manualLocating=false;
+  // 地图底图本身已是 GCJ-02，点击得到的 latlng 可直接使用，无需再转
+  var ll=e.latlng;
+  map.flyTo([ll.lat, ll.lng], Math.max(map.getZoom(),15));
+  if(myLocMarker) map.removeLayer(myLocMarker);
+  myLocMarker=L.circleMarker([ll.lat, ll.lng],{radius:8,color:'#3498db',fillColor:'#3498db',fillOpacity:1,weight:3}).addTo(map);
+  myLocMarker.bindPopup('📍 我的位置（手动设置）').openPopup();
+  showToast('已设为你的位置');
+}
+map.on('click', onMapClickForManual);
+
 var markers=[];
+var mapDescLabels=[]; // 地图上永久显示的描述标签图层（L.tooltip permanent）
+var showMapDesc=false; // 是否在地图标记旁永久显示描述标签
+function toggleMapDescLabels(){
+  showMapDesc=document.getElementById('showMapDesc').checked;
+  refreshMarkers(); // 重建标记（含/不含标签）
+}
 var currentFilter='all';
 var currentSearch='';
 var currentEditIdx=null;
@@ -529,10 +612,19 @@ function bindMarkerEvents(marker,idx){
 
 function refreshMarkers(){
   markers.forEach(function(m){map.removeLayer(m)});
+  mapDescLabels.forEach(function(l){map.removeLayer(l)});
+  mapDescLabels=[];
   markers=[];
   shops.forEach(function(s,idx){
-    var marker=L.marker([s.lat,s.lng],{icon:makeIcon(s),draggable:true}).bindPopup('',{closeOnClick:false,autoClose:false}).bindTooltip(((s.name||'')+(s.desc?('｜'+s.desc):'')),{direction:'top',opacity:0.92});
-    marker.shopData=s;bindMarkerEvents(marker,idx);marker.addTo(map);markers.push(marker);
+    var m=L.marker([s.lat,s.lng],{icon:makeIcon(s),draggable:true}).bindPopup('',{closeOnClick:false,autoClose:false}).bindTooltip(((s.name||'')+(s.desc?('｜'+s.desc):'')),{direction:'top',opacity:0.92});
+    // 地图永久描述标签：勾选「显示描述标签」且有 desc 内容时，在标记旁绑一个永久 tooltip
+    if(showMapDesc && s.desc && s.desc.trim()){
+      var lt=L.tooltip({permanent:true,direction:'bottom',offset:[0,8],className:'map-desc-label',opacity:1})
+        .setContent('<span class="map-desc-text">'+escapeHtml(s.desc)+'</span>');
+      m.bindTooltip(lt);
+      mapDescLabels.push(lt);
+    }
+    m.shopData=s;bindMarkerEvents(m,idx);m.addTo(map);markers.push(m);
   });
   applyFilter();
 }
@@ -670,7 +762,7 @@ var AUTOSAVE_KEY='ditu_draft_v1';
 function autosave(){
   if(locked) return; // 已保存的文件以文件本身为准，不写草稿
   try{
-    var data={shops:shops,categories:categories,platformTitle:platformTitle,labelCfg:labelCfg,mapMode:mapMode};
+    var data={shops:shops,categories:categories,platformTitle:platformTitle,labelCfg:labelCfg,mapMode:mapMode,showMapDesc:showMapDesc};
     localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(data));
   }catch(e){ /* localStorage 不可用（如隐私模式/file:// 限制）则静默忽略 */ }
 }
@@ -687,6 +779,7 @@ function loadAutosave(){
       if(typeof data.platformTitle==='string') platformTitle=data.platformTitle;
       if(data.labelCfg) labelCfg=data.labelCfg;
       if(typeof data.mapMode==='string') mapMode=data.mapMode;
+      if(typeof data.showMapDesc==='boolean'){ showMapDesc=data.showMapDesc; var cb=document.getElementById('showMapDesc'); if(cb)cb.checked=showMapDesc; }
       return true;
     }
   }catch(e){}
@@ -817,7 +910,12 @@ document.getElementById('searchInput').addEventListener('input',function(){curre
 function buildSaveHtml(){
   var shopsStr='var shops=[\n'+shops.map(function(s){return '  '+JSON.stringify({name:s.name,street:s.street,type:s.type,addr:s.addr,lng:s.lng,lat:s.lat,desc:(s.desc||''),pinSize:(s.pinSize||26),fontSize:(s.fontSize||14),bold:(s.bold!==false),style:(s.style||'white'),pos:(s.pos||'bottom'),offX:(s.offX||0),offY:(s.offY||0)});}).join(',\n')+'\n];';
   var catsStr='var categories='+JSON.stringify(categories)+';';
-  var html=document.documentElement.outerHTML;
+  // 用克隆节点序列化，并清空地图容器：Leaflet 运行时生成的瓦片/控件/弹窗 DOM 不能写进保存文件，
+  // 否则保存版重新打开时会与脚本重建的地图叠加，出现重复的缩放按钮、残影瓦片等
+  var clone=document.documentElement.cloneNode(true);
+  var mc=clone.querySelector('#mapContainer');
+  if(mc){while(mc.firstChild){mc.removeChild(mc.firstChild);}}
+  var html=clone.outerHTML;
   html=html.replace(/var shops=\[[\s\S]*?\];/,shopsStr);
   html=html.replace(/var categories=\[[\s\S]*?\];/,catsStr);
   html=html.replace(/var locked=\w+;/,'var locked=true;'); // 保存后的文件锁定表头与类型定义
@@ -1129,18 +1227,38 @@ function roundRect(ctx,x,y,w,h,r){
   ctx.arcTo(x,y,x+w,y,r);
   ctx.closePath();
 }
-// 水滴形图钉
+// 经典地图水滴形图钉（上圆下尖，比例参考高德/Google Maps SVG 图标）
 function drawPin(ctx,x,y,size,color){
-  var r=size*0.5, tipY=y+size*0.5, cy=y-r;
+  var r=size*0.46;          // 上半圆半径（略小于 size/2，给尖端留空间）
+  var cx=x;
+  // 整体高度 = 圆直径 + 尖端延伸 ≈ size * 1.35
+  var totalH=size*1.35;
+  var cy=y-totalH+r;        // 圆心 y（锚点 y 是底部针尖）
+  var tipY=y;               // 针尖底部
+  var shoulderY=cy+r*0.55;  // 圆肩位置（开始收窄处）
   ctx.save();
   ctx.beginPath();
-  ctx.moveTo(x,tipY);
-  ctx.lineTo(x+r,cy);
-  ctx.arc(x,cy,r,0,Math.PI*2);
+  // 从针尖开始，顺时针绘制完整轮廓
+  ctx.moveTo(cx, tipY);
+  // 右侧：从尖端平滑过渡到圆的右肩
+  ctx.bezierCurveTo(
+    cx+r*0.35, tipY-(tipY-shoulderY)*0.5,    // 控制点1：轻微右偏
+    cx+r*0.95, shoulderY-(tipY-shoulderY)*0.15,// 控制点2：接近圆右侧
+    cx+r, cy+r*0.08                            // 圆的最右下侧
+  );
+  // 下半圆弧 → 上半圆弧（完整圆）
+  ctx.arc(cx, cy, r, Math.PI*0.13, Math.PI*2+Math.PI*0.87, false);
+  // 左侧：从圆左肩回到针尖
+  ctx.bezierCurveTo(
+    cx-r*0.95, shoulderY-(tipY-shoulderY)*0.15,
+    cx-r*0.35, tipY-(tipY-shoulderY)*0.5,
+    cx, tipY
+  );
   ctx.closePath();
   ctx.fillStyle=color; ctx.fill();
-  ctx.lineWidth=Math.max(1,size*0.08); ctx.strokeStyle='rgba(255,255,255,0.85)'; ctx.stroke();
-  ctx.beginPath(); ctx.arc(x,cy,r*0.42,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
+  ctx.lineWidth=Math.max(1, size*0.04); ctx.strokeStyle='rgba(255,255,255,0.85)'; ctx.stroke();
+  // 内白点
+  ctx.beginPath(); ctx.arc(cx, cy-r*0.05, r*0.38, 0, Math.PI*2); ctx.fillStyle='#ffffff'; ctx.fill();
   ctx.restore();
 }
 // 自动换行（按像素宽度，最多3行，超出省略号）
@@ -1156,20 +1274,33 @@ function wrapText(ctx,text,fs,bold,maxW){
   if(lines.length>3){ lines=lines.slice(0,3); var last=lines[2]; last.t=last.t.replace(/.$/,'…'); last.w=ctx.measureText(last.t).width; }
   return lines;
 }
-// 绘制标签圆角框 + 文字
+// 绘制标签圆角框 + 文字（支持立体浮起风格）
 function drawLabelBox(ctx,bx,by,bw,bh,lh,lines,fs,cfg,mode,color){
   var sc=_dlScale;
   ctx.save();
   if(cfg.style==='stroke'){
     // 描边字样式：不画背景框，仅靠文字描边
   } else {
-    if(cfg.style==='shadow'){ ctx.shadowColor='rgba(0,0,0,0.35)'; ctx.shadowBlur=6*sc; ctx.shadowOffsetY=2*sc; }
-    roundRect(ctx,bx,by,bw,bh,5*sc);
+    if(cfg.style==='shadow'){
+      // 立体浮起效果：双层阴影（外层大范围柔光 + 内层近距实影）
+      ctx.shadowColor='rgba(0,0,0,0.18)'; ctx.shadowBlur=12*sc; ctx.shadowOffsetX=0; ctx.shadowOffsetY=4*sc;
+    }
+    roundRect(ctx,bx,by,bw,bh,7*sc);
     ctx.fillStyle=(cfg.style==='dark')?'#1a1a1a':'#ffffff';
     ctx.fill();
-    ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetY=0;
+    // 第二层阴影：更近、更实的投影，增强立体层次感
+    if(cfg.style==='shadow'){
+      ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetY=0;
+      // 底部边缘微渐变暗线，模拟厚度
+      var grad=ctx.createLinearGradient(bx,by+bh-2*sc,bx,by+bh);
+      grad.addColorStop(0,'rgba(0,0,0,0)');
+      grad.addColorStop(1,'rgba(0,0,0,0.06)');
+      ctx.fillStyle=grad; ctx.fill();
+    } else {
+      ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetY=0;
+    }
     if(cfg.style==='border'){ ctx.lineWidth=2*sc; ctx.strokeStyle=color; ctx.stroke(); }
-    else if(cfg.style!=='shadow'){ ctx.lineWidth=1*sc; ctx.strokeStyle=(cfg.style==='dark'?'#000':'#cccccc'); ctx.stroke(); }
+    else if(cfg.style!=='shadow'){ ctx.lineWidth=1*sc; ctx.strokeStyle=(cfg.style==='dark'?'#000':'rgba(0,0,0,0.12)'); ctx.stroke(); }
   }
   ctx.restore();
   ctx.font=(cfg.bold?'bold ':'')+fs+'px "PingFang SC","Microsoft YaHei",sans-serif';
