@@ -260,6 +260,7 @@ body{
   <div class="header-actions">
     <button class="btn btn-primary" onclick="addNewShop()">+ 新增店铺</button>
     <button class="btn btn-primary" onclick="saveFile()">💾 保存文件</button>
+    <button class="btn" onclick="clearDraftAndReload()" title="清除本地临时保存的草稿并恢复空白模板">🗑 清空调试草稿</button>
     <button class="btn" id="btnTypes" onclick="openCatManager()">⚙ 类型</button>
   </div>
   <div class="stats-grid" id="statsGrid"></div>
@@ -297,6 +298,7 @@ body{
   <div class="dl-box">
     <h3>下载区域地图（框选范围拼接大图）</h3>
     <div id="dlFileWarn" style="display:none;background:rgba(243,156,18,0.15);border:1px solid rgba(243,156,18,0.5);color:#f39c12;font-size:12px;padding:8px 10px;border-radius:6px;margin-bottom:10px">⚠ 检测到你是用 <b>file://</b> 直接打开本文件，浏览器安全策略会禁止把高德底图导出（结果会是纯黑图）。请改用「本地服务器」或部署后打开本页面再下载。已为你准备好了启动方式（见下一条消息）。</div>
+    <div id="dlSourceHint" style="display:none;background:rgba(52,152,219,0.12);border:1px solid rgba(52,152,219,0.3);color:#3498db;font-size:12px;padding:6px 10px;border-radius:6px;margin-bottom:10px">加载中…</div>
     <div class="dl-row">
       <label>底图类型</label>
       <div class="dl-radio">
@@ -445,8 +447,18 @@ function makeIcon(s){
 }
 
 function bindMarkerEvents(marker,idx){
-  marker.on('dragend',function(e){var ll=e.target.getLatLng();shops[idx].lat=ll.lat;shops[idx].lng=ll.lng;showToast('已更新位置：'+shops[idx].name);renderList();
-    reverseGeocode(ll.lng,ll.lat,function(res){applyRegeo(idx,res);});});
+  marker.on('dragend',function(e){
+    var ll=e.target.getLatLng(), s=shops[idx], newLat=ll.lat, newLng=ll.lng;
+    if(confirm('确认将「'+s.name+'」移动到新位置？\n新坐标：'+newLat.toFixed(6)+', '+newLng.toFixed(6))){
+      shops[idx].lat=newLat; shops[idx].lng=newLng;
+      showToast('已更新位置：'+s.name); renderList();
+      reverseGeocode(newLng,newLat,function(res){applyRegeo(idx,res);});
+      autosave();
+    } else {
+      e.target.setLatLng([s.lat,s.lng]); // 取消则还原到原位置
+      showToast('已取消移动，位置不变');
+    }
+  });
   marker.on('click',function(){openEditPopup(idx);});
   marker.on('popupopen',function(){document.querySelectorAll('.shop-item').forEach(function(el){el.classList.remove('active')});var el=document.querySelector('.shop-item[data-idx="'+idx+'"]');if(el){el.classList.add('active');el.scrollIntoView({behavior:'smooth',block:'nearest'});}});
 }
@@ -455,7 +467,7 @@ function refreshMarkers(){
   markers.forEach(function(m){map.removeLayer(m)});
   markers=[];
   shops.forEach(function(s,idx){
-    var marker=L.marker([s.lat,s.lng],{icon:makeIcon(s),draggable:true}).bindPopup('').bindTooltip(((s.name||'')+(s.desc?('｜'+s.desc):'')),{direction:'top',opacity:0.92});
+    var marker=L.marker([s.lat,s.lng],{icon:makeIcon(s),draggable:true}).bindPopup('',{closeOnClick:false,autoClose:false}).bindTooltip(((s.name||'')+(s.desc?('｜'+s.desc):'')),{direction:'top',opacity:0.92});
     marker.shopData=s;bindMarkerEvents(marker,idx);marker.addTo(map);markers.push(marker);
   });
   applyFilter();
@@ -521,14 +533,14 @@ function saveEdit(){
   markers[currentEditIdx].setIcon(makeIcon(s));
   markers[currentEditIdx].closePopup();
   showToast('已保存：'+s.name);
-  updateStats();renderList();
+  updateStats();renderList();autosave();
 }
 
 function deleteShop(){
   if(currentEditIdx===null)return;
   if(!confirm('确定要删除「'+shops[currentEditIdx].name+'」吗？'))return;
   shops.splice(currentEditIdx,1);currentEditIdx=null;
-  refreshMarkers();updateStats();renderList();showToast('已删除');
+  refreshMarkers();updateStats();renderList();showToast('已删除');autosave();
 }
 
 function addNewShop(){
@@ -545,6 +557,7 @@ function addNewShop(){
   // 有 Key 则按落点经纬度自动识别街道/地址（结果仍可手动改）
   reverseGeocode(center.lng,center.lat,function(res){applyRegeo(idx,res);});
   showToast(amapKey?'已新增，正在按坐标识别街道…':'已新增店铺，请填写信息（未配置高德Key）');
+  autosave();
 }
 
 function updateStats(){
@@ -588,7 +601,40 @@ function renderLegend(){
   el.innerHTML=categories.map(function(c){return '<div class="legend-item"><span class="dot" style="background:'+c.color+'"></span>'+escapeHtml(c.label)+'</div>';}).join('');
 }
 
-function refreshDerived(){renderFilterBar();renderLegend();updateStats();renderList();refreshMarkers();}
+// ===== 临时自动保存（localStorage 草稿，防止关页面/刷新丢失未保存的点位） =====
+var AUTOSAVE_KEY='ditu_draft_v1';
+function autosave(){
+  if(locked) return; // 已保存的文件以文件本身为准，不写草稿
+  try{
+    var data={shops:shops,categories:categories,platformTitle:platformTitle,labelCfg:labelCfg,mapMode:mapMode};
+    localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(data));
+  }catch(e){ /* localStorage 不可用（如隐私模式/file:// 限制）则静默忽略 */ }
+}
+function loadAutosave(){
+  if(locked) return false;       // 保存版文件以内联数据为准
+  if(shops.length>0) return false; // 已有内联数据则不覆盖
+  try{
+    var raw=localStorage.getItem(AUTOSAVE_KEY);
+    if(!raw) return false;
+    var data=JSON.parse(raw);
+    if(data && Array.isArray(data.shops)){
+      shops=data.shops||[];
+      if(Array.isArray(data.categories)) categories=data.categories;
+      if(typeof data.platformTitle==='string') platformTitle=data.platformTitle;
+      if(data.labelCfg) labelCfg=data.labelCfg;
+      if(typeof data.mapMode==='string') mapMode=data.mapMode;
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+function clearDraft(){ try{ localStorage.removeItem(AUTOSAVE_KEY); }catch(e){} }
+function clearDraftAndReload(){
+  if(!confirm('确定清除本地临时草稿？\n（当前页面已添加的点位也会被清空，此操作不可恢复）'))return;
+  clearDraft(); location.reload();
+}
+
+function refreshDerived(){renderFilterBar();renderLegend();updateStats();renderList();refreshMarkers();autosave();}
 
 // ===== 类型管理 =====
 function openCatManager(){
@@ -606,7 +652,7 @@ function renderCatList(){
       '</div>';
   }).join('');
   box.querySelectorAll('.catColor').forEach(function(inp){inp.addEventListener('input',function(){categories[+this.dataset.i].color=this.value;refreshDerived();});});
-  box.querySelectorAll('.catLabel').forEach(function(inp){inp.addEventListener('input',function(){categories[+this.dataset.i].label=this.value;renderFilterBar();renderLegend();updateStats();renderList();});});
+  box.querySelectorAll('.catLabel').forEach(function(inp){inp.addEventListener('input',function(){categories[+this.dataset.i].label=this.value;renderFilterBar();renderLegend();updateStats();renderList();autosave();});});
   box.querySelectorAll('.catDel').forEach(function(btn){btn.addEventListener('click',function(){delCategory(+this.dataset.i);});});
 }
 function addCategory(){
@@ -661,7 +707,7 @@ function applyRegeo(idx,res){
     if(es)es.value=s.street;
     if(ea)ea.value=s.addr;
   }
-  updateStats();renderList();
+  updateStats();renderList();autosave();
 }
 // 弹窗内「📍 按坐标识别」：用户主动触发，覆盖填写
 function detectFromCoord(idx){
@@ -693,7 +739,7 @@ function editTitle(){
   if(!nv){showToast('名称不能为空');return;}
   platformTitle=nv;
   renderTitle();
-  showToast('平台名称已更新');
+  showToast('平台名称已更新');autosave();
 }
 function renderTitle(){
   var h1=document.getElementById('platformTitle');
@@ -740,6 +786,50 @@ function tileUrl(layer,x,y,z,sub){
   if(layer==='satlabel') return 'https://webst'+sub+'.is.autonavi.com/appmaptile?style=8&lang=zh_cn&x='+x+'&y='+y+'&z='+z;
   return 'https://webrd'+sub+'.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x='+x+'&y='+y+'&z='+z;
 }
+// 下载时实际请求的瓦片地址：若启用本地代理（同源）则走 /amap，否则直连高德
+function tileFetchUrl(layer,x,y,z,sub){
+  if(tileSource==='proxy'){
+    return '/amap?layer='+layer+'&sub='+sub+'&x='+x+'&y='+y+'&z='+z;
+  }
+  return tileUrl(layer,x,y,z,sub);
+}
+// 探测瓦片来源：优先用本地代理 server.py 的 /amap（同源、不受高德 CORS 限制）；
+// file:// 直接打开或非本代理环境则回退直连高德（依赖高德返回 CORS 头）。
+function detectTileSource(cb){
+  if(location.protocol==='file:'){ cb({src:'amap',status:'file'}); return; }
+  // 用一张一定存在的高德路网瓦片做探测（z=2 x=1 y=1）
+  fetch('/amap?layer=road&sub=1&x=1&y=1&z=2',{cache:'no-store'})
+    .then(function(r){
+      var ct=r.headers.get('content-type')||'';
+      if(r.ok && ct.indexOf('image')>=0){
+        cb({src:'proxy',status:'ok'});
+      } else if(r.status===404){
+        cb({src:'amap',status:'no-proxy-404'});
+      } else {
+        cb({src:'amap',status:'proxy-not-image'});
+      }
+    })
+    .catch(function(){ cb({src:'amap',status:'proxy-error'}); });
+}
+// 在下载弹窗里显示当前将使用的瓦片来源
+function setDlSourceHint(status, src){
+  var el=document.getElementById('dlSourceHint');
+  if(!el) return;
+  el.style.display='block';
+  if(status==='ok' && src==='proxy'){
+    el.style.background='rgba(46,204,113,0.12)'; el.style.borderColor='rgba(46,204,113,0.3)'; el.style.color='#1e9e5a';
+    el.innerHTML='✅ 已启用本地瓦片代理（同源），不受高德 CORS 限制。';
+  } else if(status==='file'){
+    el.style.background='rgba(243,156,18,0.12)'; el.style.borderColor='rgba(243,156,18,0.3)'; el.style.color='#d68910';
+    el.innerHTML='⚠ 当前为 file:// 打开，将直连高德（依赖其 CORS），建议改用本地服务器。';
+  } else if(status==='no-proxy-404'){
+    el.style.background='rgba(231,76,60,0.12)'; el.style.borderColor='rgba(231,76,60,0.3)'; el.style.color='#c0392b';
+    el.innerHTML='❌ 本地服务器未启用瓦片代理（/amap 404）。<b>请先关闭旧版服务器窗口，再双击「启动地图服务器.bat」</b>。';
+  } else {
+    el.style.background='rgba(243,156,18,0.12)'; el.style.borderColor='rgba(243,156,18,0.3)'; el.style.color='#d68910';
+    el.innerHTML='⚠ 本地代理不可用，将直连高德（依赖其 CORS）。若下载失败，请关闭旧服务器窗口并重新运行「启动地图服务器.bat」。';
+  }
+}
 function computeTileStats(bounds,z,mode){
   var nw=bounds.getNorthWest(), se=bounds.getSouthEast();
   var cxMin=lon2xCont(nw.lng,z), cxMax=lon2xCont(se.lng,z);
@@ -752,6 +842,7 @@ function computeTileStats(bounds,z,mode){
   return {cols:cols,rows:rows,xMin:xMin,yMin:yMin,cxMin:cxMin,cyMin:cyMin,wpx:wpx,hpx:hpx,tiles:tiles,warn:tiles>1500};
 }
 var dlBounds=null, dlRunning=false, dlSelecting=false, selRect=null, selStart=null, dlFailCount=0;
+var tileSource='amap'; // 'proxy'=走本地 server.py 同源代理（不受高德 CORS 限制）；'amap'=直连高德（依赖其返回 CORS 头）
 function startBoxSelect(){
   if(dlSelecting)return;
   dlSelecting=true;
@@ -787,15 +878,17 @@ function openDlModal(bounds){
     if(location.protocol==='file:'){
       fw.style.display='block';
       fw.style.background='rgba(243,156,18,0.15)'; fw.style.borderColor='rgba(243,156,18,0.5)'; fw.style.color='#f39c12';
-      fw.innerHTML='⚠ 检测到你是用 <b>file://</b> 直接打开本文件，浏览器会拦截合并图下载（结果可能纯黑或保存失败）。请改用「启动地图服务器.bat」或部署到 GitHub Pages 后打开再下载。';
+      fw.innerHTML='⚠ 检测到你是用 <b>file://</b> 直接双击打开本文件。此方式浏览器会拦截跨域底图、且高德 CORS 不可控，<b>下载极易失败/黑图</b>。请双击「启动地图服务器.bat」，再访问 <b>http://localhost:8000/index.html</b> 下载（本地代理已规避 CORS）。';
     } else if(location.hostname.indexOf('github.io')>=0 || location.hostname.indexOf('githubusercontent')>=0){
       fw.style.display='block';
       fw.style.background='rgba(46,204,113,0.15)'; fw.style.borderColor='rgba(46,204,113,0.5)'; fw.style.color='#1e9e5a';
-      fw.innerHTML='✅ 检测到已通过 HTTPS（'+location.hostname+'）打开，CORS 正常，可直接下载合并大图。';
+      fw.innerHTML='✅ 检测到已通过 HTTPS（'+location.hostname+'）打开，直连高德（依赖其 CORS 头），通常可直接下载合并大图。';
     } else {
       fw.style.display='none';
     }
   }
+  // 打开弹窗时即探测一次瓦片来源，给用户明确提示
+  detectTileSource(function(res){ setDlSourceHint(res.status, res.src); });
   dlBounds=bounds;
   var sel=document.getElementById('dlZoom'); sel.innerHTML='';
   var cur=Math.max(12,Math.min(18,Math.round(map.getZoom())));
@@ -885,16 +978,30 @@ function setPngDpi(arrayBuffer,dpi){
 }
 function loadTile(x,y,z,mode,onok,onerr){
   var sub=['1','2','3','4'][(x+y)%4];
+  var useProxy=(tileSource==='proxy'); // 同源代理无需 crossOrigin；直连高德才需要
   if(mode==='sat'){
-    var sat=new Image(), lab=new Image(), failed=false, got=0, satOk=false, labOk=false;
-    function chk(){ if(failed)return; got++; if(got>=2){ (satOk&&labOk)?onok({sat:sat,label:lab}):onerr(); } }
-    sat.crossOrigin='anonymous'; sat.onload=function(){satOk=true;chk();}; sat.onerror=function(){failed=true;onerr();};
-    lab.crossOrigin='anonymous'; lab.onload=function(){labOk=true;chk();}; lab.onerror=function(){failed=true;onerr();};
-    sat.src=tileUrl('sat',x,y,z,sub); lab.src=tileUrl('satlabel',x,y,z,sub);
+    // 卫星底图(sat)为主，路名注记层(label)为可选：只要卫星图成功即算成功，
+    // 注记层失败不再把整块判为失败（修复原逻辑"任一失败就整块失败/重复计数"的问题）
+    var sat=new Image(), lab=new Image();
+    var satLoaded=false, satFailed=false, labLoaded=false, labFailed=false, settled=false;
+    function settle(){
+      if(settled)return; settled=true;
+      if(satFailed) onerr();
+      else onok({sat:sat, label: labLoaded?lab:null});
+    }
+    if(!useProxy){ sat.crossOrigin='anonymous'; lab.crossOrigin='anonymous'; }
+    sat.onload=function(){ satLoaded=true; if(labLoaded||labFailed) settle(); };
+    sat.onerror=function(){ satFailed=true; if(labLoaded||labFailed) settle(); };
+    lab.onload=function(){ labLoaded=true; if(satLoaded||satFailed) settle(); };
+    lab.onerror=function(){ labFailed=true; if(satLoaded||satFailed) settle(); };
+    sat.src=tileFetchUrl('sat',x,y,z,sub);
+    lab.src=tileFetchUrl('satlabel',x,y,z,sub);
   } else {
-    var road=new Image(); road.crossOrigin='anonymous';
-    road.onload=function(){onok({road:road});}; road.onerror=function(){onerr();};
-    road.src=tileUrl('road',x,y,z,sub);
+    var road=new Image();
+    if(!useProxy) road.crossOrigin='anonymous';
+    road.onload=function(){ onok({road:road}); };
+    road.onerror=function(){ onerr(); };
+    road.src=tileFetchUrl('road',x,y,z,sub);
   }
 }
 function roundRect(ctx,x,y,w,h,r){
@@ -1020,10 +1127,23 @@ function runDownload(){
   labelCfg.pos=document.getElementById('dlPos').value;
   labelCfg.fontSize=parseInt(document.getElementById('dlFs').value,10)||14;
   labelCfg.bold=document.getElementById('dlBold').checked;
+  autosave();
   var st=computeTileStats(dlBounds,z,mode);
   if(st.tiles>4000){ if(!confirm('瓦片数达 '+st.tiles+' 张，生成图片较大且耗时，确定继续？'))return; }
   dlRunning=true;
   document.getElementById('dlStart').disabled=true;
+  // 探测瓦片来源：优先本地代理（同源、不受高德 CORS 限制），否则回退直连高德
+  showToast('正在准备下载…');
+  detectTileSource(function(res){
+    tileSource=res.src;
+    setDlSourceHint(res.status, res.src);
+    if(res.src==='proxy') showToast('使用本地代理下载（不受 CORS 限制）');
+    else showToast('直连高德下载（依赖其 CORS 头，若失败请关闭旧服务器窗口并重新运行「启动地图服务器.bat」）');
+    _runDownloadCore(mode,z,scale,dpi,st);
+  });
+  return;
+}
+function _runDownloadCore(mode,z,scale,dpi,st){
   var tasks=[];
   for(var i=st.xMin;i<st.xMin+st.cols;i++) for(var j=st.yMin;j<st.yMin+st.rows;j++) tasks.push({x:i,y:j});
   var canvas=document.createElement('canvas'); canvas.width=st.wpx*scale; canvas.height=st.hpx*scale;
@@ -1051,7 +1171,7 @@ function runDownload(){
     if(dlFailCount>tasks.length*0.5){
       ctx.save();
       ctx.fillStyle='rgba(231,76,60,0.92)'; ctx.font='bold '+(16*scale)+'px sans-serif';
-      ctx.fillText('⚠ 大部分底图瓦片加载失败（可能本地双击打开/网络/CORS 限制），请改用本地服务器或部署后打开',20*scale,32*scale);
+      ctx.fillText('⚠ 大部分底图瓦片加载失败（可能是网络/CORS 限制）。请改用「启动地图服务器.bat」本地代理后重试',20*scale,32*scale);
       ctx.restore();
     }
     var name='地图导出_'+z+'级_'+scale+'x_'+dpi+'dpi_'+Date.now()+'.png';
@@ -1083,7 +1203,7 @@ function runDownload(){
         finalize(new Blob([arr],{type:'image/png'}));
       }catch(e2){
         hideDlProgress(); dlRunning=false; document.getElementById('dlStart').disabled=false;
-        showToast('导出失败（画布被污染，请用「本地服务器」或部署后打开）');
+        showToast('导出失败（画布被污染，请用「启动地图服务器.bat」或部署后打开）');
       }
     }
   }
@@ -1101,7 +1221,8 @@ document.getElementById('dlZoom').addEventListener('change',updateDlInfo);
 document.getElementById('dlScale').addEventListener('change',updateDlInfo);
 document.getElementById('dlDpi').addEventListener('change',updateDlInfo);
 document.querySelectorAll('input[name=dlMode]').forEach(function(r){r.addEventListener('change',updateDlInfo);});
-setMapMode(mapMode); // 应用当前底图模式（含从保存文件读回的卫星/城市）
+if(loadAutosave()){ showToast('已恢复上次未保存的临时点位（'+shops.length+' 个），如需丢弃请看「🗑 清空调试草稿」'); }
+setMapMode(mapMode); // 应用当前底图模式（含从保存草稿/保存文件读回的卫星/城市）
 renderFilterBar();renderLegend();updateStats();renderList();refreshMarkers();
 </script>
 </body>
