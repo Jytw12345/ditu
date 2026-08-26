@@ -1996,31 +1996,75 @@ function runDownload(){
   });
   return;
 }
-// 服务端高清导出：浏览器只传范围，本地服务器下载瓦片并用 Pillow 拼成 PNG 返回，不受浏览器尺寸限制
+// 服务端高清导出：浏览器把范围 + 兴趣点数据 POST 给本地服务器，服务端用 Pillow 拼底图并绘制
+// 图钉/描述标签/连线，彻底绕开浏览器 canvas 尺寸/内存上限，可出超大幅面高清图。
+// 采用任务+轮询进度：POST /stitch 创建任务 → 轮询 /stitch/progress → GET /stitch/result 取 PNG。
 function startServerStitch(bounds, mode, z, scale, dpi){
   dlRunning=true;
   var sb=document.getElementById('dlStart'); if(sb)sb.disabled=true;
   var minlng=bounds.getWest(), minlat=bounds.getSouth(), maxlng=bounds.getEast(), maxlat=bounds.getNorth();
-  var label=(mode==='sat')?1:0;
-  var url='/stitch?minlng='+encodeURIComponent(minlng)+'&minlat='+encodeURIComponent(minlat)+'&maxlng='+encodeURIComponent(maxlng)+'&maxlat='+encodeURIComponent(maxlat)+'&z='+z+'&scale='+scale+'&mode='+mode+'&label='+label;
+  var payload={
+    minlng:minlng, minlat:minlat, maxlng:maxlng, maxlat:maxlat,
+    z:z, scale:scale, mode:mode, label:(mode==='sat')?1:0,
+    labelCfg:labelCfg,
+    shops:shops,
+    categories:categories,
+    descLabelPos:descLabelPos,
+    showMapDesc:showMapDesc,
+    selArea:selArea?{type:selArea.type, pts:selArea.pts}:null
+  };
   showToast('服务端拼接中（浏览器不会白屏），瓦片较多请耐心等待…');
-  showDlProgress(0,1);
   var name='地图服务端导出_'+z+'级_'+scale+'x_'+Date.now()+'.png';
-  fetch(url).then(function(r){
-    if(!r.ok){ return r.text().then(function(t){ throw new Error(t||('HTTP '+r.status)); }); }
-    return r.blob();
-  }).then(function(blob){
-    return blob.arrayBuffer().then(function(ab){
+  var pollTimer=null, jobId=null, aborted=false;
+  function cleanup(){ if(pollTimer){ clearInterval(pollTimer); pollTimer=null; } }
+  function finishErr(msg){
+    cleanup(); hideDlProgress(); dlRunning=false; if(sb)sb.disabled=false;
+    showToast('服务端导出失败：'+msg+'。可取消「服务端高清导出」改用浏览器方式');
+  }
+  function finishOk(blob){
+    blob.arrayBuffer().then(function(ab){
       var out; try{ out=setPngDpi(ab,dpi); }catch(e){ out=ab; }
       downloadBlob(new Blob([out],{type:'image/png'}), name);
       hideDlProgress(); dlRunning=false; if(sb)sb.disabled=false;
       closeDlModal();
       showToast('已服务端导出：'+name+'（'+dpi+'DPI）');
-    });
+    }).catch(function(){ downloadBlob(blob,name); hideDlProgress(); dlRunning=false; if(sb)sb.disabled=false; closeDlModal(); });
+  }
+  fetch('/stitch',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(payload)
+  }).then(function(r){
+    if(!r.ok){ return r.text().then(function(t){ throw new Error(t||('HTTP '+r.status)); }); }
+    return r.json();
+  }).then(function(j){
+    if(!j||!j.job){ throw new Error('服务端未返回任务ID'); }
+    jobId=j.job;
+    showDlProgress(0, j.total||1);
+    pollTimer=setInterval(function(){
+      if(aborted){ cleanup(); return; }
+      fetch('/stitch/progress?job='+encodeURIComponent(jobId)).then(function(r){ return r.json(); }).then(function(p){
+        if(!p||p.status==='notfound'){ finishErr('任务不存在或已过期'); return; }
+        if(p.status==='error'){ finishErr(p.error||'服务端拼接出错'); return; }
+        showDlProgress(p.done||0, p.total||1);
+        if(p.status==='done'){
+          cleanup();
+          fetch('/stitch/result?job='+encodeURIComponent(jobId)).then(function(r){
+            if(!r.ok){ return r.text().then(function(t){ throw new Error(t||('HTTP '+r.status)); }); }
+            return r.blob();
+          }).then(finishOk).catch(function(e){ finishErr(e&&e.message?e.message:String(e)); });
+        }
+      }).catch(function(e){ /* 轮询偶尔失败忽略，继续 */ });
+    }, 500);
   }).catch(function(err){
-    hideDlProgress(); dlRunning=false; if(sb)sb.disabled=false;
-    showToast('服务端导出失败：'+((err&&err.message)?err.message:err)+'。可取消「服务端高清导出」改用浏览器方式');
+    var msg=(err&&err.message)?err.message:String(err);
+    if(msg.indexOf('fetch')>=0 || msg.indexOf('Failed to fetch')>=0 || msg.indexOf('NetworkError')>=0){
+      msg='未检测到本地服务器。请先双击「启动地图服务器.bat」并访问 http://localhost:8000/index.html 后再试';
+    }
+    finishErr(msg);
   });
+  // 如果弹窗被关闭，停止轮询（任务仍在服务端跑，不阻塞下载）
+  window._lastStitchCleanup=cleanup;
 }
 function _runDownloadCore(mode,z,scale,dpi,st){
   var tasks=[];
