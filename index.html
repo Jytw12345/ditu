@@ -260,7 +260,6 @@ body{
   <div class="header-actions">
     <button class="btn btn-primary" onclick="addNewShop()">+ 新增店铺</button>
     <button class="btn btn-primary" onclick="saveFile()">💾 保存文件</button>
-    <button class="btn" onclick="clearDraftAndReload()" title="清除本地临时保存的草稿并恢复空白模板">🗑 清空调试草稿</button>
     <button class="btn" id="btnTypes" onclick="openCatManager()">⚙ 类型</button>
   </div>
   <div class="stats-grid" id="statsGrid"></div>
@@ -270,6 +269,7 @@ body{
   </div>
   <div class="shop-list" id="shopList"></div>
   <div class="sidebar-footer">
+    <button class="btn btn-danger" id="btnClearDraft" onclick="clearDraftAndReload()" title="清除本地临时保存的草稿并恢复空白模板" style="width:100%;margin-bottom:10px">🗑 清空调试草稿</button>
     <div class="legend-items" id="legendItems"></div>
   </div>
 </div>
@@ -278,6 +278,7 @@ body{
   <button class="map-mode-btn active" data-mode="sat" onclick="setMapMode('sat')" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--text-secondary);cursor:pointer">🛰 卫星图</button>
   <button class="map-dl-btn" onclick="startBoxSelect()" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--accent-blue);cursor:pointer;font-weight:600">📥 下载</button>
 </div>
+<button id="locateBtn" onclick="locateMe()" title="定位到我当前所在位置（需允许浏览器定位权限；localhost / HTTPS 可用，file:// 不可用）" style="position:fixed;bottom:24px;right:12px;z-index:1500;width:44px;height:44px;border-radius:50%;border:1px solid var(--border-color);background:var(--bg-panel);color:var(--accent-blue);font-size:19px;cursor:pointer;backdrop-filter:blur(12px);box-shadow:0 2px 12px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;">📍</button>
 <div id="mapContainer"></div>
 <div id="toast"></div>
 <div id="catModal" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.55);align-items:center;justify-content:center;">
@@ -782,9 +783,10 @@ function lat2yCont(lat,z){
   return (1 - Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*n;
 }
 function tileUrl(layer,x,y,z,sub){
-  if(layer==='sat') return 'https://webst'+sub+'.is.autonavi.com/appmaptile?style=6&x='+x+'&y='+y+'&z='+z;
-  if(layer==='satlabel') return 'https://webst'+sub+'.is.autonavi.com/appmaptile?style=8&lang=zh_cn&x='+x+'&y='+y+'&z='+z;
-  return 'https://webrd'+sub+'.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x='+x+'&y='+y+'&z='+z;
+  // 注意：高德瓦片子域必须带前导 0（webrd01/02/03/04），webrd1 等形式会被 DNS 判为 Non-existent domain
+  if(layer==='sat') return 'https://webst0'+sub+'.is.autonavi.com/appmaptile?style=6&x='+x+'&y='+y+'&z='+z;
+  if(layer==='satlabel') return 'https://webst0'+sub+'.is.autonavi.com/appmaptile?style=8&lang=zh_cn&x='+x+'&y='+y+'&z='+z;
+  return 'https://webrd0'+sub+'.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x='+x+'&y='+y+'&z='+z;
 }
 // 下载时实际请求的瓦片地址：若启用本地代理（同源）则走 /amap，否则直连高德
 function tileFetchUrl(layer,x,y,z,sub){
@@ -793,23 +795,34 @@ function tileFetchUrl(layer,x,y,z,sub){
   }
   return tileUrl(layer,x,y,z,sub);
 }
-// 探测瓦片来源：优先用本地代理 server.py 的 /amap（同源、不受高德 CORS 限制）；
-// file:// 直接打开或非本代理环境则回退直连高德（依赖高德返回 CORS 头）。
+// 探测瓦片来源：
+// 1) 优先本地代理 /amap（同源、不受高德 CORS 限制）；
+// 2) 代理失败则尝试浏览器直接 fetch 高德瓦片（绕过本机 Python DNS 问题，浏览器自己能解析）；
+// 3) 都失败则回退 Image.crossOrigin 直连高德。
 function detectTileSource(cb){
-  if(location.protocol==='file:'){ cb({src:'amap',status:'file'}); return; }
-  // 用一张一定存在的高德路网瓦片做探测（z=2 x=1 y=1）
-  fetch('/amap?layer=road&sub=1&x=1&y=1&z=2',{cache:'no-store'})
-    .then(function(r){
-      var ct=r.headers.get('content-type')||'';
-      if(r.ok && ct.indexOf('image')>=0){
-        cb({src:'proxy',status:'ok'});
-      } else if(r.status===404){
-        cb({src:'amap',status:'no-proxy-404'});
-      } else {
-        cb({src:'amap',status:'proxy-not-image'});
-      }
-    })
-    .catch(function(){ cb({src:'amap',status:'proxy-error'}); });
+  var called=false;
+  function once(res){ if(!called){called=true; cb(res);} }
+  var t=setTimeout(function(){ once({src:'amap',status:'detect-timeout'}); }, 5000);
+  if(location.protocol==='file:'){ clearTimeout(t); once({src:'amap',status:'file'}); return; }
+  var proxyUrl='/amap?layer=road&sub=1&x=1&y=1&z=2';
+  var directUrl=tileUrl('road',1,1,2,'1');
+  // 本地代理探测
+  fetch(proxyUrl,{cache:'no-store'}).then(function(r){
+    var ct=r.headers.get('content-type')||'';
+    if(r.ok && ct.indexOf('image')>=0){ clearTimeout(t); once({src:'proxy',status:'ok'}); return true; }
+    return false;
+  }).then(function(used){
+    if(used) return;
+    tryBrowserFetch();
+  }).catch(function(e){ tryBrowserFetch(); });
+  function tryBrowserFetch(){
+    fetch(directUrl,{cache:'no-store',mode:'cors'}).then(function(r){
+      if(r.ok){ clearTimeout(t); once({src:'browser',status:'browser-ok'}); }
+      else { clearTimeout(t); once({src:'amap',status:'direct-http-err',statusText:r.status}); }
+    }).catch(function(e){
+      clearTimeout(t); once({src:'amap',status:'direct-cors-fail',err:e});
+    });
+  }
 }
 // 在下载弹窗里显示当前将使用的瓦片来源
 function setDlSourceHint(status, src){
@@ -819,12 +832,24 @@ function setDlSourceHint(status, src){
   if(status==='ok' && src==='proxy'){
     el.style.background='rgba(46,204,113,0.12)'; el.style.borderColor='rgba(46,204,113,0.3)'; el.style.color='#1e9e5a';
     el.innerHTML='✅ 已启用本地瓦片代理（同源），不受高德 CORS 限制。';
+  } else if(status==='browser-ok'){
+    el.style.background='rgba(46,204,113,0.12)'; el.style.borderColor='rgba(46,204,113,0.3)'; el.style.color='#1e9e5a';
+    el.innerHTML='✅ 本地代理不可用，已启用<b>浏览器直取瓦片</b>（浏览器可解析高德域名，无需 Python 代理）。';
   } else if(status==='file'){
     el.style.background='rgba(243,156,18,0.12)'; el.style.borderColor='rgba(243,156,18,0.3)'; el.style.color='#d68910';
     el.innerHTML='⚠ 当前为 file:// 打开，将直连高德（依赖其 CORS），建议改用本地服务器。';
   } else if(status==='no-proxy-404'){
     el.style.background='rgba(231,76,60,0.12)'; el.style.borderColor='rgba(231,76,60,0.3)'; el.style.color='#c0392b';
     el.innerHTML='❌ 本地服务器未启用瓦片代理（/amap 404）。<b>请先关闭旧版服务器窗口，再双击「启动地图服务器.bat」</b>。';
+  } else if(status==='proxy-upstream-fail'){
+    el.style.background='rgba(231,76,60,0.12)'; el.style.borderColor='rgba(231,76,60,0.3)'; el.style.color='#c0392b';
+    el.innerHTML='❌ 本地瓦片代理已启动，但<b>Python 进程无法连接高德服务器</b>。浏览器直取也已尝试，若仍失败则只能导出带兴趣点的空白底图。';
+  } else if(status==='proxy-timeout'||status==='detect-timeout'){
+    el.style.background='rgba(243,156,18,0.12)'; el.style.borderColor='rgba(243,156,18,0.3)'; el.style.color='#d68910';
+    el.innerHTML='⚠ 本地瓦片代理<b>响应过慢</b>，已自动切换为直连高德/浏览器直取。若下载仍失败，请检查服务器黑窗口里的 [diag] 日志。';
+  } else if(status==='direct-cors-fail'){
+    el.style.background='rgba(231,76,60,0.12)'; el.style.borderColor='rgba(231,76,60,0.3)'; el.style.color='#c0392b';
+    el.innerHTML='❌ 浏览器直取瓦片失败（高德未返回 CORS 头）。将回退 Image.crossOrigin 再试一次。';
   } else {
     el.style.background='rgba(243,156,18,0.12)'; el.style.borderColor='rgba(243,156,18,0.3)'; el.style.color='#d68910';
     el.innerHTML='⚠ 本地代理不可用，将直连高德（依赖其 CORS）。若下载失败，请关闭旧服务器窗口并重新运行「启动地图服务器.bat」。';
@@ -842,7 +867,7 @@ function computeTileStats(bounds,z,mode){
   return {cols:cols,rows:rows,xMin:xMin,yMin:yMin,cxMin:cxMin,cyMin:cyMin,wpx:wpx,hpx:hpx,tiles:tiles,warn:tiles>1500};
 }
 var dlBounds=null, dlRunning=false, dlSelecting=false, selRect=null, selStart=null, dlFailCount=0;
-var tileSource='amap'; // 'proxy'=走本地 server.py 同源代理（不受高德 CORS 限制）；'amap'=直连高德（依赖其返回 CORS 头）
+var tileSource='amap'; // 'proxy'=本地 server.py 同源代理；'browser'=浏览器直接 fetch 高德 blob URL；'amap'=Image.crossOrigin 直连高德
 function startBoxSelect(){
   if(dlSelecting)return;
   dlSelecting=true;
@@ -976,32 +1001,60 @@ function setPngDpi(arrayBuffer,dpi){
   out.set(data.subarray(ihdrEnd),ihdrEnd+chunk.length);
   return out;
 }
+// 加载单张瓦片：优先用浏览器 fetch 拿 blob 转同源 URL 绘制。
+// 这样可绕开本机 Python DNS/CORS 问题（浏览器自己能解析高德并发起跨域请求）。
+// fetch 失败则 fallback 到 Image.crossOrigin 传统方式。
+function loadSingleTile(url,timeout,allowCorsFallback,cb){
+  var done=false;
+  function finish(ok,img){ if(done)return; done=true; cb(ok,img); }
+  var t=setTimeout(function(){ finish(false); },timeout);
+  fetch(url,{cache:'force-cache',mode:'cors'}).then(function(r){
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.blob();
+  }).then(function(blob){
+    clearTimeout(t); if(done) return;
+    var u=URL.createObjectURL(blob);
+    var img=new Image();
+    img.onload=function(){ if(done) return; done=true; URL.revokeObjectURL(u); cb(true,img); };
+    img.onerror=function(){ if(done) return; URL.revokeObjectURL(u); finish(false); };
+    img.src=u;
+  }).catch(function(e){
+    clearTimeout(t); if(done) return;
+    if(!allowCorsFallback){ finish(false); return; }
+    // fallback：Image.crossOrigin 再试一次
+    var img=new Image();
+    var t2=setTimeout(function(){ if(!done){done=true; cb(false);} },timeout);
+    img.crossOrigin='anonymous';
+    img.onload=function(){ if(done) return; done=true; clearTimeout(t2); cb(true,img); };
+    img.onerror=function(){ if(done) return; done=true; clearTimeout(t2); cb(false); };
+    img.src=url;
+  });
+}
 function loadTile(x,y,z,mode,onok,onerr){
   var sub=['1','2','3','4'][(x+y)%4];
-  var useProxy=(tileSource==='proxy'); // 同源代理无需 crossOrigin；直连高德才需要
+  var TILE_TIMEOUT=8000; // 单张瓦片 8 秒超时
+  // proxy 模式下 /amap 是同源，fetch 失败就是真失败；其他模式允许 fallback 到 Image.crossOrigin
+  var allowCorsFallback=(tileSource!=='proxy');
   if(mode==='sat'){
-    // 卫星底图(sat)为主，路名注记层(label)为可选：只要卫星图成功即算成功，
-    // 注记层失败不再把整块判为失败（修复原逻辑"任一失败就整块失败/重复计数"的问题）
-    var sat=new Image(), lab=new Image();
-    var satLoaded=false, satFailed=false, labLoaded=false, labFailed=false, settled=false;
+    // 卫星底图为主，路名注记层为可选：底图成功即算成功
+    var satImg=null, labImg=null, gotSat=false, gotLab=false, settled=false;
     function settle(){
       if(settled)return; settled=true;
-      if(satFailed) onerr();
-      else onok({sat:sat, label: labLoaded?lab:null});
+      if(satImg) onok({sat:satImg, label:labImg});
+      else onerr();
     }
-    if(!useProxy){ sat.crossOrigin='anonymous'; lab.crossOrigin='anonymous'; }
-    sat.onload=function(){ satLoaded=true; if(labLoaded||labFailed) settle(); };
-    sat.onerror=function(){ satFailed=true; if(labLoaded||labFailed) settle(); };
-    lab.onload=function(){ labLoaded=true; if(satLoaded||satFailed) settle(); };
-    lab.onerror=function(){ labFailed=true; if(satLoaded||satFailed) settle(); };
-    sat.src=tileFetchUrl('sat',x,y,z,sub);
-    lab.src=tileFetchUrl('satlabel',x,y,z,sub);
+    loadSingleTile(tileFetchUrl('sat',x,y,z,sub),TILE_TIMEOUT,allowCorsFallback,function(ok,img){
+      gotSat=true; if(ok) satImg=img;
+      if(gotLab) settle();
+    });
+    loadSingleTile(tileFetchUrl('satlabel',x,y,z,sub),TILE_TIMEOUT,allowCorsFallback,function(ok,img){
+      gotLab=true; if(ok) labImg=img;
+      if(gotSat) settle();
+    });
   } else {
-    var road=new Image();
-    if(!useProxy) road.crossOrigin='anonymous';
-    road.onload=function(){ onok({road:road}); };
-    road.onerror=function(){ onerr(); };
-    road.src=tileFetchUrl('road',x,y,z,sub);
+    loadSingleTile(tileFetchUrl('road',x,y,z,sub),TILE_TIMEOUT,allowCorsFallback,function(ok,img){
+      if(ok) onok({road:img}); else onerr();
+    });
   }
 }
 function roundRect(ctx,x,y,w,h,r){
@@ -1130,15 +1183,19 @@ function runDownload(){
   autosave();
   var st=computeTileStats(dlBounds,z,mode);
   if(st.tiles>4000){ if(!confirm('瓦片数达 '+st.tiles+' 张，生成图片较大且耗时，确定继续？'))return; }
-  dlRunning=true;
-  document.getElementById('dlStart').disabled=true;
-  // 探测瓦片来源：优先本地代理（同源、不受高德 CORS 限制），否则回退直连高德
-  showToast('正在准备下载…');
+  // 探测瓦片来源阶段：先不设置 dlRunning，允许用户取消弹窗
+  showToast('正在探测瓦片代理…');
+  showDlProgress(0, st.tiles);
   detectTileSource(function(res){
+    if(document.getElementById('dlModal').style.display==='none') return; // 用户已取消
     tileSource=res.src;
     setDlSourceHint(res.status, res.src);
+    // 探测完成，才真正锁定界面
+    dlRunning=true;
+    document.getElementById('dlStart').disabled=true;
     if(res.src==='proxy') showToast('使用本地代理下载（不受 CORS 限制）');
-    else showToast('直连高德下载（依赖其 CORS 头，若失败请关闭旧服务器窗口并重新运行「启动地图服务器.bat」）');
+    else if(res.src==='browser') showToast('使用浏览器直取瓦片下载（绕过 Python 代理 DNS 问题）');
+    else showToast('直连高德下载（依赖其 CORS 头）');
     _runDownloadCore(mode,z,scale,dpi,st);
   });
   return;
