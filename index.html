@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <title>济宁市点位分布平台 - 空白模板（类型可自定义）</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -29,12 +29,17 @@ body{
   overflow:hidden;
   width:100vw;
   height:100vh;
+  height:100dvh;
   display:flex;
+  touch-action:manipulation;
+  overscroll-behavior:none;
+  -webkit-text-size-adjust:100%;
 }
 #sidebar{
   width:360px;
   min-width:360px;
   height:100vh;
+  height:100dvh;
   background:var(--bg-panel);
   backdrop-filter:blur(12px);
   border-right:1px solid var(--border-color);
@@ -42,7 +47,18 @@ body{
   flex-direction:column;
   z-index:1000;
   box-shadow:2px 0 20px rgba(0,0,0,0.3);
+  overflow-y:auto;
 }
+#sidebarMask{
+  display:none;
+  position:fixed;inset:0;z-index:999;
+  background:rgba(0,0,0,.45);
+  -webkit-backdrop-filter:blur(1px);backdrop-filter:blur(1px);
+}
+#sidebarMask.show{display:block}
+.sb-close{display:none;align-items:center;justify-content:center;width:30px;height:30px;border-radius:6px;cursor:pointer;color:var(--text-secondary);font-size:18px;line-height:1;flex:none}
+.sb-close:hover{background:var(--bg-hover);color:var(--text-primary)}
+.leaflet-container{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 .sidebar-header{
   padding:16px 18px 12px;
   border-bottom:1px solid var(--border-color);
@@ -222,30 +238,67 @@ body{
 .edit-form .form-actions .btn{flex:1;padding:6px 8px;font-size:12px}
 .edit-form .hint{font-size:10px;color:var(--text-muted);margin-top:8px;line-height:1.4}
 .edit-form .section-title{font-size:11px;color:var(--accent-blue);margin:10px 0 4px;padding-top:8px;border-top:1px dashed var(--border-color)}
+/* 自定义街道 combobox：深色主题，与其它下拉框视觉一致，仍可手填，选项面板独立加宽可完整显示 */
+.combobox{position:relative;width:auto;max-width:100%}
+.combobox-input{width:7em;min-width:7em;max-width:10em;padding-right:24px!important}
+.combobox-arrow{position:absolute;right:7px;top:50%;transform:translateY(-50%);color:var(--text-secondary);font-size:10px;cursor:pointer;user-select:none}
+.combobox.open .combobox-arrow{color:var(--accent-blue)}
+.combobox-panel{display:none;position:absolute;top:calc(100% + 4px);left:0;width:100%;min-width:0;max-width:none;max-height:210px;overflow-y:auto;background:var(--bg-panel);border:1px solid var(--accent-blue);border-radius:6px;box-shadow:0 6px 18px rgba(0,0,0,.5);z-index:30;padding:4px 0}
+.combobox.open .combobox-panel{display:block}
+.combobox-panel .cb-opt{padding:5px 8px;font-size:12px;color:var(--text-primary);cursor:pointer;white-space:normal;word-break:break-word;line-height:1.35}
+.combobox-panel .cb-opt:hover{background:var(--bg-hover)}
+.combobox-panel .cb-opt.active{background:rgba(52,152,219,.18);color:var(--accent-blue)}
 .leaflet-popup-content h4{font-size:14px;font-weight:600;margin-bottom:8px}
+.leaflet-popup-content .edit-popup-header{
+  cursor:grab;display:flex;align-items:center;gap:6px;
+  padding:2px 0;margin:-2px 0 8px -2px; /* 让标题区稍大，方便拖动 */
+}
+.leaflet-popup-content .edit-popup-header:active{cursor:grabbing}
+.leaflet-popup-content .edit-popup-drag{
+  color:var(--text-muted);font-size:13px;letter-spacing:-1px;line-height:1;
+  cursor:grab;user-select:none;-webkit-user-select:none;
+  padding:2px 3px;border-radius:4px;
+}
+.leaflet-popup-content .edit-popup-drag:hover{background:var(--bg-hover);color:var(--text-primary)}
 .leaflet-popup-content p{font-size:11px;color:var(--text-secondary);margin:3px 0}
 .leaflet-popup-tip{background:rgba(13,30,54,0.98)}
 .leaflet-popup-close-button{color:var(--text-muted)!important;font-size:16px!important;padding:5px 6px 0 0!important}
-.leaflet-control-zoom a{background:rgba(13,30,54,0.9)!important;color:var(--text-secondary)!important;border:1px solid var(--border-color)!important}
-.leaflet-control-zoom a:hover{background:var(--bg-hover)!important;color:var(--text-primary)!important}
-/* 缩放级别显示：紧贴在 +/- 按钮正下方，与按钮同宽 */
-.leaflet-top .leaflet-control-zoom-level{
-  margin-top:0;
-  width:26px;
-  background:rgba(13,30,54,0.9);
+/* 自定义缩放控件：放大 / 级别 / 缩小 三段式，右上角 */
+.custom-zoom-control{
+  display:flex;flex-direction:column;
+  width:30px;
+  background:rgba(13,30,54,0.92);
   border:1px solid var(--border-color);
-  border-top:none;
-  border-radius:0 0 4px 4px;
-  color:var(--text-secondary);
-  font:11px/1 "PingFang SC","Microsoft YaHei",sans-serif;
-  padding:5px 0;
-  text-align:center;
-  white-space:nowrap;
-  cursor:default;
-  user-select:none;
-  -webkit-user-select:none;
+  border-radius:8px;
+  overflow:hidden;
+  box-shadow:0 2px 10px rgba(0,0,0,0.35);
+  backdrop-filter:blur(8px);
 }
-.leaflet-touch .leaflet-control-zoom-level{width:30px;padding:6px 0}
+.custom-zoom-control a,
+.custom-zoom-control .custom-zoom-level{
+  display:flex;align-items:center;justify-content:center;
+  width:30px;height:30px;
+  color:var(--text-secondary);
+  text-decoration:none;
+  font-size:18px;line-height:1;
+  border-bottom:1px solid var(--border-color);
+  transition:background .15s,color .15s;
+  user-select:none;-webkit-user-select:none;
+}
+.custom-zoom-control a:last-child{border-bottom:none;}
+.custom-zoom-control a:hover{
+  background:var(--bg-hover);color:var(--text-primary);
+}
+.custom-zoom-control .custom-zoom-level{
+  font-size:12px;font-weight:700;color:var(--accent-blue);
+  border-bottom:1px solid var(--border-color);
+  cursor:help;
+}
+.custom-zoom-control .custom-zoom-in{font-weight:300;font-size:22px;padding-bottom:2px;}
+.custom-zoom-control .custom-zoom-out{font-weight:300;font-size:22px;}
+.leaflet-touch .custom-zoom-control{width:34px;}
+.leaflet-touch .custom-zoom-control a,
+.leaflet-touch .custom-zoom-control .custom-zoom-level{width:34px;height:34px;}
 .map-mode-btn{transition:all .15s}
 .map-mode-btn.active{background:var(--accent-blue);color:#fff!important}
 #btnRoadNet.active,#btnTextLabels.active{background:var(--accent-blue);color:#fff!important}
@@ -259,9 +312,21 @@ body{
 .dark-mode .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(0.92) contrast(1.08)}
 .map-dl-btn{transition:all .15s}
 .map-dl-btn:hover{background:var(--bg-hover)}
-#locateBtn{transition:all .15s}
-#locateBtn:hover{background:var(--bg-hover)}
-#locateBtn:disabled{opacity:.5;cursor:default}
+#locateBtn{
+  position:fixed;bottom:24px;right:12px;z-index:1500;
+  width:46px;height:46px;border-radius:50%;
+  border:none;background:var(--accent-blue);color:#fff;
+  cursor:pointer;backdrop-filter:blur(12px);
+  box-shadow:0 3px 12px rgba(52,152,219,0.45);
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .15s, background .15s, box-shadow .15s;
+}
+#locateBtn:hover{
+  background:#1a73e8;transform:scale(1.06);
+  box-shadow:0 5px 18px rgba(52,152,219,0.6);
+}
+#locateBtn:active{transform:scale(0.96)}
+#locateBtn:disabled{opacity:.5;cursor:default;transform:none}
 .custom-marker svg{filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4));transition:transform 0.2s}
 .custom-marker:hover svg{transform:scale(1.15)}
 .custom-marker.dragging svg{transform:scale(1.25);filter:drop-shadow(0 0 8px currentColor)}
@@ -281,20 +346,18 @@ body{
 .edit-form .form-actions .btn{padding:6px 10px;font-size:12px}
 .edit-form .hint{font-size:10px;color:var(--text-muted);margin-top:6px}
 #toast{
-  position:fixed;bottom:20px;right:20px;z-index:2000;
+  position:fixed;top:20px;left:50%;right:auto;z-index:2000;
   background:rgba(13,30,54,0.95);border:1px solid var(--border-active);
   color:var(--text-primary);padding:10px 16px;border-radius:8px;
-  font-size:13px;opacity:0;transform:translateY(10px);transition:all 0.3s;
-  box-shadow:0 4px 15px rgba(0,0,0,0.4);
+  font-size:13px;opacity:0;transform:translateX(-50%) translateY(-10px);transition:all 0.3s;
+  box-shadow:0 4px 15px rgba(0,0,0,0.4);max-width:min(560px,calc(100vw - 40px));text-align:center;
+  pointer-events:none; /* 隐藏时不挡住地图/按钮点击 */
 }
-#toast.show{opacity:1;transform:translateY(0)}
-@media(max-width:768px){
-  #sidebar{position:absolute;left:0;top:0;transform:translateX(-100%);transition:transform 0.3s;width:88vw;min-width:88vw}
-  #sidebar.open{transform:translateX(0)}
-  #toggleSidebar{display:flex}
-}
+#toast.show{pointer-events:auto; /* 显示时才可交互 */}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* 移动端媒体查询已移至 <style> 末尾（见文件下方），以确保覆盖所有基础规则 */
 #toggleSidebar{
-  display:none;position:absolute;top:12px;left:12px;z-index:1001;
+  display:none;position:absolute;top:12px;left:12px;z-index:1700;
   width:38px;height:38px;background:rgba(13,30,54,0.9);
   border:1px solid var(--border-color);border-radius:8px;
   color:var(--text-primary);cursor:pointer;
@@ -324,6 +387,11 @@ body{
 #areaToolbar .at-title{font-weight:600;color:var(--text-primary)}
 #areaToolbar .at-tip{color:var(--text-muted);font-size:11px}
 #areaToolbar .btn{padding:5px 10px;font-size:12px;flex:none}
+/* 顶部功能按钮收纳（默认收起为「⚙ 工具」，点击展开） */
+#mapModeCtrl.collapsed #mapToolsBody{display:none!important}
+#mapModeCtrl #mapToolsToggle{padding:7px 12px;font-size:12px;border:none;border-right:1px solid var(--border-color);background:transparent;color:var(--text-primary);cursor:pointer;font-weight:600;white-space:nowrap}
+#mapModeCtrl #mapToolsToggle::after{content:"▾";font-size:10px;color:var(--text-muted);margin-left:6px;display:inline-block;transition:transform .2s}
+#mapModeCtrl:not(.collapsed) #mapToolsToggle::after{transform:rotate(180deg)}
 /* 地图上永久显示的描述标签：基础容器（背景/边框/投影由 .desc-style-* 控制） */
 .map-desc-label{margin:0!important;white-space:nowrap!important;font-size:13px!important;line-height:1.4!important;border-radius:999px!important;padding:5px 14px!important;font-family:"PingFang SC","Microsoft YaHei",sans-serif!important}
 .map-desc-label .map-desc-text{font-weight:500}
@@ -356,13 +424,51 @@ body{
 *::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:4px;border:2px solid transparent;background-clip:padding-box}
 *::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.32);background-clip:padding-box;border:2px solid transparent}
 *::-webkit-scrollbar-corner{background:transparent}
+/* ===================== 移动端适配（放在最后，确保覆盖上方所有基础规则） ===================== */
+@media(max-width:768px){
+  /* 侧栏抽屉：加遮罩、限制宽度、用 dvh 适配移动浏览器地址栏 */
+  #sidebar{position:absolute;left:0;top:0;transform:translateX(-100%);transition:transform .25s;width:min(86vw,360px);min-width:min(86vw,360px);height:100dvh;max-height:100dvh}
+  #sidebar.open{transform:translateX(0)}
+  #toggleSidebar{display:flex}
+  .sb-close{display:flex}
+  /* 侧栏打开时隐藏汉堡，避免盖住侧栏标题 */
+  body.sb-open #toggleSidebar{display:none}
+  /* 顶部浮层重排，避免互相遮挡（左上☰ / 右上底图 / 其下居中圈选 / 底部快捷） */
+  /* 右上角工具面板：展开时像独立菜单，折叠时只留 toggle */
+  #mapModeCtrl{top:10px;right:10px;font-size:11px;flex-direction:column;align-items:stretch;border-radius:12px;min-width:min(170px,46vw);max-width:min(200px,52vw);box-shadow:0 6px 22px rgba(0,0,0,.45)}
+  #mapModeCtrl.collapsed{flex-direction:row;min-width:auto;max-width:none;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.35)}
+  #mapModeCtrl button{padding:9px 14px;font-size:12px;display:flex;align-items:center;gap:9px}
+  #mapModeCtrl #mapToolsToggle{padding:10px 14px;font-size:13px;border-right:none;border-bottom:1px solid var(--border-color);display:flex;align-items:center;justify-content:space-between}
+  #mapModeCtrl #mapToolsBody{flex-direction:column;align-items:stretch;width:auto;padding:4px}
+  #mapModeCtrl #mapToolsBody > button{padding:9px 12px;border:none!important;border-radius:6px;margin:2px 0;display:flex;align-items:center;gap:10px;font-size:12px;background:transparent;text-align:left}
+  #mapModeCtrl #mapToolsBody > button:hover,#mapModeCtrl #mapToolsBody > button:active{background:var(--bg-card)!important}
+  #mapModeCtrl #mapToolsBody > select{display:block;background:var(--bg-card)!important;color:var(--text-primary);border:1px solid var(--border-color)!important;width:100%;max-width:none!important;padding:9px 12px;border-radius:6px;margin:2px 0;font-size:12px}
+  /* 圈选工具条下移一行，避开左上☰与右上底图，且不与 hamburger(z1700) 重叠 */
+  #areaToolbar{top:54px;left:50%;transform:translateX(-50%);flex-wrap:wrap;justify-content:center;max-width:92vw;padding:6px 10px;gap:6px;font-size:11px}
+  #poiSearchPanel{left:12px;right:12px;width:auto;top:96px}
+  #measurePanel{left:auto;right:12px;bottom:78px;max-width:62vw}
+  #boundaryQuick{bottom:10px;max-width:92vw}
+  /* 编辑弹窗适配窄屏：限宽并放大触摸目标 */
+  .leaflet-pane.leaflet-popup-pane{z-index:1600!important}
+  .leaflet-popup{max-width:92vw!important}
+  .leaflet-popup-content-wrapper{max-width:min(92vw,340px)}
+  .leaflet-popup-content-wrapper .leaflet-popup-content{max-height:calc(100dvh - 150px)}
+  .edit-form input,.edit-form select{padding:9px 9px;font-size:14px;min-height:38px}
+  .edit-form input[type="color"]{height:38px}
+  .edit-form .form-actions .btn{padding:10px 8px;font-size:14px}
+  .combobox-input{font-size:14px;min-height:38px}
+}
 </style>
 </head>
 <body class="">
-<div id="toggleSidebar" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</div>
+<div id="toggleSidebar" onclick="toggleSidebar()">☰</div>
+<div id="sidebarMask" onclick="toggleSidebar()"></div>
 <div id="sidebar">
   <div class="sidebar-header">
-    <h1 id="platformTitle" title="点击修改平台名称" onclick="editTitle()">济宁市点位分布平台</h1>
+    <div style="display:flex;align-items:center;gap:8px">
+      <h1 id="platformTitle" title="点击修改平台名称" onclick="editTitle()" style="flex:1">济宁市点位分布平台</h1>
+      <span class="sb-close" onclick="toggleSidebar()" title="关闭面板">✕</span>
+    </div>
     <div class="subtitle">空白模板 · 类型/街道均可自定义 · 拖拽移动 · 点击编辑</div>
   </div>
   <div class="header-actions">
@@ -376,14 +482,14 @@ body{
     <input type="text" id="searchInput" placeholder="搜索店铺名称或地址...">
     <label style="font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:4px;white-space:nowrap;cursor:pointer" title="勾选后，左侧列表只显示当前地图视野内的店铺"><input type="checkbox" id="viewportOnly" onchange="currentViewportOnly=this.checked;renderList();"> 仅当前视口</label>
   </div>
-  <div style="padding:6px 16px 8px;border-bottom:1px solid var(--border-color);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-    <label style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:4px;cursor:pointer" title="地图标记旁显示「描述」字段">
-      <input type="checkbox" id="showMapDesc" checked onchange="toggleMapDescLabels()"> 描述标签
+  <div style="padding:6px 12px 8px;border-bottom:1px solid var(--border-color);display:flex;align-items:center;gap:4px;flex-wrap:nowrap;overflow:hidden">
+    <label style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:3px;cursor:pointer;white-space:nowrap" title="地图标记旁显示「描述」字段">
+      <input type="checkbox" id="showMapDesc" checked onchange="toggleMapDescLabels()" style="transform:scale(1.15);margin:0"> 标签
     </label>
-    <label style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:4px;cursor:pointer">
-      <input type="checkbox" id="showBoundary" onchange="toggleBoundary()"> 行政边界
+    <label style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:3px;cursor:pointer;white-space:nowrap" title="显示行政区划边界">
+      <input type="checkbox" id="showBoundary" onchange="toggleBoundary()" style="transform:scale(1.15);margin:0"> 边界
     </label>
-    <input type="text" id="boundaryAdcode" value="100000" list="adcodeList" placeholder="全国100000 / 济宁370800" title="行政区划 adcode：100000=全国，370000=山东，370800=济宁，110105=朝阳；下拉可选常用地区" style="width:112px;padding:3px 6px;font-size:12px;background:var(--bg-panel);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);outline:none">
+    <input type="text" id="boundaryAdcode" value="100000" list="adcodeList" placeholder="编码" title="行政区划 adcode，可手填或底部快捷选择" style="width:62px;padding:3px 5px;font-size:12px;background:var(--bg-panel);border:1px solid var(--border-color);border-radius:5px;color:var(--text-primary);outline:none">
     <datalist id="adcodeList">
       <option value="100000">全国</option>
       <option value="370000">山东</option>
@@ -391,10 +497,17 @@ body{
       <option value="370811">任城</option>
       <option value="110105">朝阳</option>
     </datalist>
-    <label style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:3px;cursor:pointer" title="父级+下一级边界：全国+省、省+市、市+区县">
-      <input type="checkbox" id="boundaryFull" onchange="applyBoundaryAdcode()"> 下级
+    <label style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:3px;cursor:pointer;white-space:nowrap" title="同时显示下一级行政区划边界">
+      <input type="checkbox" id="boundaryFull" onchange="applyBoundaryAdcode()" style="transform:scale(1.15);margin:0"> 下级
     </label>
-    <button class="btn" onclick="applyBoundaryAdcode()" style="padding:3px 8px;font-size:12px" title="按当前 adcode 刷新边界">↻</button>
+    <label title="边界颜色" style="display:flex;align-items:center;cursor:pointer;white-space:nowrap">
+      <input type="color" id="boundaryColor" value="#ff6b35" onchange="reloadBoundaryIfEnabled()" style="width:22px;height:20px;border:none;background:none;cursor:pointer;padding:0;vertical-align:middle">
+    </label>
+    <label style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:3px;cursor:pointer;white-space:nowrap" title="边界线宽（像素）">
+      宽
+      <input type="number" id="boundaryWeight" value="1.6" min="0.5" max="8" step="0.2" onchange="reloadBoundaryIfEnabled()" style="width:44px;padding:3px 4px;font-size:12px;background:var(--bg-panel);border:1px solid var(--border-color);border-radius:5px;color:var(--text-primary);outline:none">
+    </label>
+    <button class="btn" onclick="applyBoundaryAdcode()" style="padding:1px 3px;font-size:10px;line-height:1;height:18px" title="按当前 adcode 刷新边界">↻</button>
   </div>
   <div id="batchBar" style="display:none;padding:8px 12px;border-bottom:1px solid var(--border-color);background:var(--bg-card);align-items:center;gap:8px;flex-wrap:wrap;font-size:12px">
     <style>
@@ -421,14 +534,17 @@ body{
     <div class="legend-items" id="legendItems"></div>
   </div>
 </div>
-<div id="mapModeCtrl" style="position:fixed;top:12px;right:12px;z-index:1500;display:flex;background:var(--bg-panel);border:1px solid var(--border-color);border-radius:8px;overflow:hidden;backdrop-filter:blur(12px);">
-  <select id="mapModeSel" onchange="setMapMode(this.value)" title="切换底图" style="padding:7px 8px;font-size:12px;border:none;background:transparent;color:var(--text-primary);cursor:pointer;outline:none;max-width:130px"></select>
-  <button class="map-dl-btn" onclick="openDownload()" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--accent-blue);cursor:pointer;font-weight:600">📥 下载</button>
-  <button onclick="enterAreaMode()" title="预先在地图上选定下载区域（矩形/多边形），之后点下载无需再框选" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--accent-special);cursor:pointer;font-weight:600">✏ 选区域</button>
-  <button onclick="toggleMeasure()" title="测距 / 测面积：依次点击打点" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--accent-orange,#e67e22);cursor:pointer;font-weight:600">📏 测量</button>
-  <button onclick="togglePoiSearch()" title="搜索地图自带地点（高德 POI）" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--accent-special);cursor:pointer;font-weight:600">🔍 搜地点</button>
-  <button id="btnRoadNet" onclick="toggleRoadNet()" title="开/关道路线条（路网）" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--text-secondary);cursor:pointer;font-weight:600">🛣 路网</button>
-  <button id="btnTextLabels" onclick="toggleTextLabels()" title="开/关地图文字（路名·地名·POI 名称）" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--text-secondary);cursor:pointer;font-weight:600">🏷 文字</button>
+<div id="mapModeCtrl" class="collapsed" style="position:fixed;top:12px;right:12px;z-index:1500;display:flex;background:var(--bg-panel);border:1px solid var(--border-color);border-radius:8px;overflow:hidden;backdrop-filter:blur(12px);">
+  <button id="mapToolsToggle" onclick="toggleMapTools()" title="展开/收起顶部工具（下载·选区域·测量·搜索·路网·文字）">⚙ 工具</button>
+  <div id="mapToolsBody" style="display:flex;align-items:center;gap:0;overflow:hidden">
+    <select id="mapModeSel" onchange="setMapMode(this.value)" title="切换底图" style="padding:7px 8px;font-size:12px;border:none;background:transparent;color:var(--text-primary);cursor:pointer;outline:none;max-width:130px"></select>
+    <button class="map-dl-btn" onclick="openDownload()" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--accent-blue);cursor:pointer;font-weight:600">📥 下载</button>
+    <button onclick="enterAreaMode()" title="预先在地图上选定下载区域（矩形/多边形），之后点下载无需再框选" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--accent-special);cursor:pointer;font-weight:600">✏ 选区域</button>
+    <button onclick="toggleMeasure()" title="测距 / 测面积：依次点击打点" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--accent-orange,#e67e22);cursor:pointer;font-weight:600">📏 测量</button>
+    <button onclick="togglePoiSearch()" title="搜索地图自带地点（高德 POI）" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--accent-special);cursor:pointer;font-weight:600">🔍 搜地点</button>
+    <button id="btnRoadNet" onclick="toggleRoadNet()" title="开/关道路线条（路网）" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--text-secondary);cursor:pointer;font-weight:600">🛣 路网</button>
+    <button id="btnTextLabels" onclick="toggleTextLabels()" title="开/关地图文字（路名·地名·POI 名称）" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--text-secondary);cursor:pointer;font-weight:600">🏷 文字</button>
+  </div>
 </div>
 <div id="settingsModal" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.55);align-items:center;justify-content:center;">
   <div style="width:440px;max-width:92vw;max-height:86vh;overflow:auto;background:var(--bg-panel);border:1px solid var(--border-active);border-radius:12px;padding:18px;">
@@ -502,26 +618,26 @@ body{
 </div>
 <button id="manualLocBtn" onclick="startManualLocate()" title="网络定位不准时，手动在地图上点选你的真实位置（再次点击取消）" style="position:fixed;bottom:76px;right:12px;z-index:1500;width:44px;height:44px;border-radius:50%;border:1px solid var(--border-color);background:var(--bg-panel);color:var(--text-primary);cursor:pointer;backdrop-filter:blur(12px);box-shadow:0 2px 12px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;transition:color .15s,border-color .15s" onmouseover="this.style.color='var(--accent-blue)';this.style.borderColor='var(--accent-blue)'" onmouseout="this.style.color='var(--text-primary)';this.style.borderColor='var(--border-color)'"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3 L5 17 L9 13 L11.5 19.5 L13.5 18.7 L11 12 L16 12 Z"/></svg></button>
 <div id="measurePanel" style="display:none;position:fixed;bottom:20px;left:20px;z-index:1500;background:var(--bg-panel);border:1px solid var(--border-color);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--text-primary);backdrop-filter:blur(12px);max-width:250px;line-height:1.6"></div>
-<div id="boundaryQuick" style="display:none;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:1400;background:var(--bg-panel);border:1px solid var(--border-color);border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.35);backdrop-filter:blur(12px);font-size:12px;color:var(--text-secondary);max-width:94vw">
-  <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid var(--border-color);cursor:pointer" onclick="toggleBoundaryQuick()" title="折叠/展开">
-    <span style="font-weight:600;color:var(--text-primary)">行政区划快捷</span>
-    <span style="font-size:11px;color:var(--text-muted)">选省→市界；选市→区界；选区→下一级</span>
+<div id="boundaryQuick" style="display:none;position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:1400;background:var(--bg-panel);border:1px solid var(--border-color);border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.35);backdrop-filter:blur(12px);font-size:12px;color:var(--text-secondary);max-width:min(92vw,420px)">
+  <div style="display:flex;align-items:center;gap:6px;padding:6px 8px;border-bottom:1px solid var(--border-color);cursor:pointer" onclick="toggleBoundaryQuick()" title="折叠/展开">
+    <span style="font-weight:600;color:var(--text-primary);font-size:12px">行政区划快捷</span>
+    <span style="font-size:10px;color:var(--text-muted)">选省→市界；选市→区界；选区→区界</span>
     <span id="bqToggle" style="margin-left:auto;color:var(--text-muted)">▾</span>
   </div>
-  <div id="bqBody" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px">
-    <select id="bProv" onchange="onProvChange()" style="font-size:12px;padding:3px 6px;border-radius:6px;border:1px solid var(--border-color);background:var(--bg-panel);color:var(--text-primary)">
-      <option value="">— 选省（显示市界）—</option>
+  <div id="bqBody" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:6px 8px">
+    <select id="bProv" onchange="onProvChange()" style="font-size:11px;padding:2px 4px;border-radius:5px;border:1px solid var(--border-color);background:var(--bg-panel);color:var(--text-primary);width:auto;max-width:110px">
+      <option value="">— 省 —</option>
     </select>
-    <select id="bCity" onchange="onCityChange()" style="font-size:12px;padding:3px 6px;border-radius:6px;border:1px solid var(--border-color);background:var(--bg-panel);color:var(--text-primary)">
-      <option value="">— 选市（显示区界）—</option>
+    <select id="bCity" onchange="onCityChange()" style="font-size:11px;padding:2px 4px;border-radius:5px;border:1px solid var(--border-color);background:var(--bg-panel);color:var(--text-primary);width:auto;max-width:110px">
+      <option value="">— 市 —</option>
     </select>
-    <select id="bDist" onchange="onDistChange()" style="font-size:12px;padding:3px 6px;border-radius:6px;border:1px solid var(--border-color);background:var(--bg-panel);color:var(--text-primary)">
-      <option value="">— 选区（显示下一级）—</option>
+    <select id="bDist" onchange="onDistChange()" style="font-size:11px;padding:2px 4px;border-radius:5px;border:1px solid var(--border-color);background:var(--bg-panel);color:var(--text-primary);width:auto;max-width:110px">
+      <option value="">— 区县 —</option>
     </select>
-    <span style="font-size:11px;color:var(--text-muted)">镇/街道多数无数据</span>
+    <span style="font-size:10px;color:var(--text-muted)">镇街数据多数缺失</span>
   </div>
 </div>
-<button id="locateBtn" onclick="locateMe()" title="定位到我当前所在位置（需允许浏览器定位权限；localhost / HTTPS 可用，file:// 不可用）" style="position:fixed;bottom:24px;right:12px;z-index:1500;width:44px;height:44px;border-radius:50%;border:1px solid var(--border-color);background:var(--bg-panel);color:var(--text-primary);cursor:pointer;backdrop-filter:blur(12px);box-shadow:0 2px 12px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;transition:color .15s,border-color .15s" onmouseover="this.style.color='var(--accent-blue)';this.style.borderColor='var(--accent-blue)'" onmouseout="this.style.color='var(--text-primary)';this.style.borderColor='var(--border-color)'"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M12 7v4M12 13v4M9 12h2M13 12h2"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg></button>
+<button id="locateBtn" onclick="locateMe()" title="定位到我当前所在位置（需允许浏览器定位权限；localhost / HTTPS 可用，file:// 不可用）"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M12 6a6 6 0 1 0 0 12 6 6 0 1 0 0-12"/></svg></button>
 <div id="mapContainer"></div>
 <div id="toast"></div>
 <div id="catModal" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.55);align-items:center;justify-content:center;">
@@ -693,9 +809,29 @@ body{
 <script>
 // ===== 可自定义配置 =====
 // 店铺类型（分类）：初始为空，由你通过「⚙ 类型」自行添加。key=唯一标识，label=显示名，color=标记颜色
+// 手机端侧栏抽屉：切换侧栏开合，并同步遮罩显隐
+function toggleSidebar(){
+  var sb=document.getElementById('sidebar');
+  var mask=document.getElementById('sidebarMask');
+  if(!sb) return;
+  var open=sb.classList.toggle('open');
+  if(mask) mask.classList.toggle('show', open);
+  document.body.classList.toggle('sb-open', open);
+}
 var categories=[];
 // 街道候选（编辑时也可手填任意内容）
 var streets=['柳行街道','黄屯街道','王因街道','洸河街道','接庄街道'];
+// 会话内按坐标/城市动态累积的街道候选（来自高德逆地理+行政区划查询，越用越全）
+var dynStreets=[];
+function addDynStreet(name){ if(name && dynStreets.indexOf(name)<0) dynStreets.push(name); }
+// 街道下拉候选：默认若干 + 工程里已用过的街道 + 动态识别的街道（按坐标/城市自动累积）
+function streetList(){
+  var set={};
+  streets.forEach(function(s){ if(s) set[s]=1; });
+  (shops||[]).forEach(function(s){ if(s && s.street) set[s.street]=1; });
+  dynStreets.forEach(function(s){ if(s) set[s]=1; });
+  return Object.keys(set);
+}
 // 高德 WebService Key（用于「按经纬度自动识别街道/地址」）。
 // 申请：高德开放平台 https://lbs.amap.com/ → 控制台 → 创建应用 → 添加 Key（服务平台选「Web服务」），免费。
 // 留空则不自动识别，街道需手动填写；填了之后新增/拖动点位会自动反查，仍可手动改。
@@ -732,18 +868,25 @@ var _dlScale=1;        // 当前下载清晰度倍数，供标签辅助函数使
 
 var shops=[]; // 空白模板：点「+ 新增店铺」添加点位，名称/类型/街道/地址/坐标均可自定义
 
-var map=L.map('mapContainer',{zoomControl:true,attributionControl:false}).setView([35.42,116.65],12);
-// 缩放级别显示：紧贴 +/- 按钮下方，随滚轮/按钮/双击/飞行缩放实时更新
-var zoomLevelCtrl=L.control({position:'topleft'});
-zoomLevelCtrl.onAdd=function(m){
-  var div=L.DomUtil.create('div','leaflet-control-zoom-level');
-  div.id='zoomLevelVal';
-  div.title='当前缩放级别（数字越大越精细，高德底图约 3~18 级）';
-  div.textContent=Math.round(m.getZoom());
+var map=L.map('mapContainer',{zoomControl:false,attributionControl:false}).setView([35.42,116.65],12);
+// 自定义缩放控件：放大 / 级别 / 缩小 三段式，整体放在地图左下角，不与顶部模式按钮/右下角定位按钮重叠
+var customZoomCtrl=L.control({position:'bottomleft'});
+customZoomCtrl.onAdd=function(m){
+  var div=L.DomUtil.create('div','custom-zoom-control');
+  var aIn=L.DomUtil.create('a','custom-zoom-in',div);
+  aIn.href='#'; aIn.title='放大'; aIn.innerHTML='+'; aIn.setAttribute('role','button');
+  var level=L.DomUtil.create('div','custom-zoom-level',div);
+  level.id='zoomLevelVal';
+  level.title='当前缩放级别（数字越大越精细，高德底图约 3~18 级）';
+  level.textContent=Math.round(m.getZoom());
+  var aOut=L.DomUtil.create('a','custom-zoom-out',div);
+  aOut.href='#'; aOut.title='缩小'; aOut.innerHTML='−'; aOut.setAttribute('role','button');
+  L.DomEvent.on(aIn,'click',function(e){ L.DomEvent.preventDefault(e); L.DomEvent.stopPropagation(e); m.zoomIn(); });
+  L.DomEvent.on(aOut,'click',function(e){ L.DomEvent.preventDefault(e); L.DomEvent.stopPropagation(e); m.zoomOut(); });
   L.DomEvent.disableClickPropagation(div);
   return div;
 };
-zoomLevelCtrl.addTo(map);
+customZoomCtrl.addTo(map);
 function updateZoomLevelDisplay(){
   var el=document.getElementById('zoomLevelVal');
   if(!el)return;
@@ -776,16 +919,28 @@ var boundaryLayer=null;
 var boundaryEnabled=false;
 var boundaryAdcode='100000';
 var boundaryFull=false;
+var boundaryColor='#ff6b35';
+var boundaryWeight=1.6;
 function loadBoundary(){
   if(!boundaryEnabled) return;
   var adcode=(document.getElementById('boundaryAdcode').value||'').trim()||'100000';
   boundaryAdcode=adcode;
+  // 按城市自动刷新街道候选：用边界 adcode 拉取该区/市下所有街道（不阻塞边界加载）
+  if(amapKey && adcode && adcode!=='100000'){
+    loadStreetsByAdcode(adcode, function(names){ if(names){ names.forEach(addDynStreet); if(currentEditIdx!=null) refreshStreetPanel(); } });
+  }
   // 是否包含下一级行政区划：不勾 -> 仅该区域自身轮廓；勾选 -> 该区域 + 其下级边界
   boundaryFull=document.getElementById('boundaryFull').checked;
   // 例：adcode=100000 不勾=国境线；勾选=全国所有省边界（100000_full.json）
   var suffix=boundaryFull?'_full':'';
   var url='https://geo.datav.aliyun.com/areas_v3/bound/'+encodeURIComponent(adcode)+suffix+'.json';
   if(boundaryLayer){ map.removeLayer(boundaryLayer); boundaryLayer=null; }
+  // 读取边界样式（颜色/线宽），未填则回退默认值
+  var bc=document.getElementById('boundaryColor');
+  if(bc){ var c=bc.value.trim(); if(c) boundaryColor=c; }
+  var bw=document.getElementById('boundaryWeight');
+  if(bw){ var w=parseFloat(bw.value); if(!isNaN(w)&&w>0) boundaryWeight=w; }
+  var bStyle={color:boundaryColor, weight:boundaryWeight, opacity:.9, fill:false};
   fetch(url).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
     .then(function(geo){
       // DataV 边界为 GCJ-02；当前底图为 WGS-84（天地图）时需反算回 WGS-84 才能对齐
@@ -795,7 +950,7 @@ function loadBoundary(){
         transformGeoCoords(geo, function(c){ var p=gcj02_to_wgs84(c[1],c[0]); c[0]=p.lng; c[1]=p.lat; });
       }
       boundaryLayer=L.geoJSON(geo,{
-        style:{color:'#ff6b35',weight:1.6,opacity:.9,fill:false}
+        style:bStyle
       }).addTo(map);
       var cnt=geo.features?geo.features.length:0;
       var name=(geo.features&&geo.features[0]&&geo.features[0].properties&&geo.features[0].properties.name)||adcode;
@@ -826,6 +981,9 @@ function toggleBoundary(){
 function applyBoundaryAdcode(){
   if(boundaryEnabled) loadBoundary();
   else showToast('请先勾选「显示行政区划边界」');
+}
+function reloadBoundaryIfEnabled(){
+  if(boundaryEnabled) loadBoundary();
 }
 
 // ===== 省/市/区 级联快捷选择（列表从 DataV 动态拉取）=====
@@ -891,7 +1049,8 @@ function onCityChange(){
 function onDistChange(){
   var v=document.getElementById('bDist').value;
   if(!v){ return; }
-  _applyByAdcode(v, true); // 选区 -> 该区_full（下一级，镇/街道多数无数据）
+  document.getElementById('boundaryFull').checked=false; // 区县下一级（镇街）边界数据多数缺失，强制只加载区县自身轮廓
+  _applyByAdcode(v, false); // 选区县 -> 只显示该区县的自身轮廓（DataV 的区县_full.json 多数不存在，避免 404）
 }
 function toggleBoundaryQuick(){
   var b=document.getElementById('bqBody'), t=document.getElementById('bqToggle');
@@ -1298,7 +1457,61 @@ function bindMarkerEvents(marker,idx){
     var el=document.querySelector('.shop-item[data-idx="'+idx+'"]');
     if(el){el.classList.add('active');el.scrollIntoView({behavior:'smooth',block:'nearest'});}
     ensurePopupVisible(marker.getPopup());
+    makePopupDraggable(marker.getPopup());
   });
+}
+// 让编辑 popup 标题栏可拖动，避免盖住兴趣点
+// 采用「全局委托」：只挂一个 document 级 mousedown 监听，按下时实时在 DOM 里找活的
+// .edit-popup-header，再拿当前打开弹窗的容器来拖。这样无论 Leaflet 何时重建/重定位
+// _container，监听器都不会失效（修复「直接点地图标记打不开的弹窗拖不动，缩放后才行」的间歇性问题）。
+function getTranslate(el){
+  var m=window.getComputedStyle(el).transform;
+  if(!m||m==='none') return {x:0,y:0};
+  var mm=m.match(/matrix(3d)?\(([^)]+)\)/);
+  if(!mm) return {x:0,y:0};
+  var v=mm[2].split(',').map(function(s){return parseFloat(s);});
+  if(mm[1]==='3d') return {x:v[12],y:v[13]};
+  return {x:v[4],y:v[5]};
+}
+var _dragPopup=null, _dragMap=null, _dragBound=false;
+function makePopupDraggable(popup){
+  // 只记录「当前打开的编辑弹窗」与地图引用，真正的拖拽由下面的全局委托处理
+  _dragPopup=popup; _dragMap=map;
+  if(_dragBound) return; // 全局监听只挂一次，避免重复绑定
+  _dragBound=true;
+  // 用「捕获阶段」监听：Leaflet 会在 popup 内容层对 mousedown 调 stopPropagation，
+  // 冒泡阶段的 document 监听会被它截断而失效；捕获阶段从 document 向下早于该拦截，必定触发。
+  document.addEventListener('mousedown', function(e){
+    if(e.button!==0) return;
+    var header=e.target.closest && e.target.closest('.edit-popup-header');
+    if(!header) return; // 没点标题栏则忽略（交给地图/其它逻辑）
+    // 避免把标题栏里的关闭按钮/表单控件当成拖把头
+    if(e.target.closest('button,input,select,textarea,a,.leaflet-popup-close-button,.combobox-arrow,.combobox-panel')) return;
+    var pop=_dragPopup;
+    if(!pop || !pop._map) return; // L.Popup 没有 isPopupOpen()，用 _map 是否存在判断弹窗是否打开
+    var el=pop._container||(pop.getElement&&pop.getElement()); if(!el) return;
+    e.preventDefault(); e.stopPropagation();
+    L.DomEvent.disableClickPropagation(el);
+    var base=getTranslate(el); // 以 Leaflet 当前定位为基准，避免第一下弹到角落
+    var startX=e.clientX, startY=e.clientY, dragging=true;
+    header.style.cursor='grabbing';
+    // 关键：拖动期间禁用地图拖拽，否则弹窗会跟着地图一起平移，看起来像“拖不动”
+    if(_dragMap && _dragMap.dragging) _dragMap.dragging.disable();
+    function onMove(ev){
+      if(!dragging) return;
+      var ndx=base.x+(ev.clientX-startX), ndy=base.y+(ev.clientY-startY);
+      el.style.transform='translate('+ndx+'px,'+ndy+'px)';
+    }
+    function onUp(){
+      dragging=false;
+      header.style.cursor='grab';
+      document.removeEventListener('mousemove',onMove);
+      document.removeEventListener('mouseup',onUp);
+      if(_dragMap && _dragMap.dragging) _dragMap.dragging.enable();
+    }
+    document.addEventListener('mousemove',onMove);
+    document.addEventListener('mouseup',onUp);
+  }, true); // 捕获阶段：绕过 Leaflet 在 popup 内容层对 mousedown 的 stopPropagation
 }
 
 // 确保编辑 popup 完整显示在屏幕可视区域内（避开左侧边栏、顶部浏览器栏等）
@@ -1339,8 +1552,11 @@ function refreshMarkers(){
 }
 
 /* ===== 可拖拽描述标签 + 自动连线（直线 / 遮挡时折线） ===== */
-var descLabels=[];        // 当前显示的标签记录 {idx,el}
-var descLabelPos={};      // idx -> {dx,dy} 标签中心相对图钉锚点的像素偏移（用户拖拽后保存，跨缩放有效）
+var descLabels=[];        // 当前显示的标签记录 {key,el}
+var descLabelPos={};      // uid -> {dx,dy} 标签中心相对图钉锚点的像素偏移（用户拖拽后保存，跨缩放有效）
+// 为点位生成稳定 ID，使描述标签偏移（descLabelPos）以「点位」为键，删除其它点后不会串位到别的点
+function mkUid(){ return 's'+Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
+function ensureShopUids(){ if(!shops||!shops.forEach) return; shops.forEach(function(s){ if(s && !s.uid) s.uid=mkUid(); }); }
 function ensureDescLayers(){
   var c=document.getElementById('mapContainer');
   if(!document.getElementById('descLineLayer')){
@@ -1402,19 +1618,19 @@ function renderDescLabels(){
   markers.forEach(function(m){
     if(!map.hasLayer(m)) return;
     var s=m.shopData; if(!s.desc||!s.desc.trim()) return;
-    var idx=(m._idx!==undefined)?m._idx:visible.length;
+    var key=s.uid;        // 用稳定 uid 而非数组下标，删除其它点后偏移不会错位
     var pin=pinAnchorOf(m);
     var size=s.pinSize||26;
-    if(!descLabelPos[idx]) descLabelPos[idx]={dx:0, dy:size*1.38+8};
-    visible.push({idx:idx, s:s, pin:pin, lp:{x:pin.x+descLabelPos[idx].dx, y:pin.y+descLabelPos[idx].dy}, size:size, marker:m});
+    if(!descLabelPos[key]) descLabelPos[key]={dx:0, dy:size*1.38+8};
+    visible.push({key:key, s:s, pin:pin, lp:{x:pin.x+descLabelPos[key].dx, y:pin.y+descLabelPos[key].dy}, size:size, marker:m});
   });
   visible.forEach(function(v){
-    var others=visible.filter(function(o){return o.idx!==v.idx;}).map(function(o){return o.pin;});
-    buildLabelLine(lineLayer, v.idx, v.pin, v.lp, others, v.size, v.s.lineType, v.s.lineColor);
+    var others=visible.filter(function(o){return o.key!==v.key;}).map(function(o){return o.pin;});
+    buildLabelLine(lineLayer, v.key, v.pin, v.lp, others, v.size, v.s.lineType, v.s.lineColor);
     var st=v.s.style||'shadow';
     var el=document.createElement('div');
     el.className='map-desc-label desc-label desc-style-'+st;
-    el.dataset.idx=v.idx;
+    el.dataset.idx=v.key;   // 仍以 data-idx 存储，值改为 uid
     el.innerHTML='<span class="map-desc-text">'+escapeHtml(v.s.desc)+'</span>';
     var textEl=el.querySelector('.map-desc-text');
     if(textEl && v.s.descColor){ textEl.style.setProperty('color', v.s.descColor, 'important'); }
@@ -1423,24 +1639,24 @@ function renderDescLabels(){
     if(st==='border'){ el.style.setProperty('borderColor', getColor(v.s), 'important'); }
     el.style.left=v.lp.x+'px'; el.style.top=v.lp.y+'px';
     labelLayer.appendChild(el);
-    descLabels.push({idx:v.idx, el:el});
-    setupDescLabelDrag(el, v.idx, v.marker);
+    descLabels.push({key:v.key, el:el});
+    setupDescLabelDrag(el, v.key, v.marker);
   });
 }
-function updateOneLabel(idx, marker, mx, my){
+function updateOneLabel(key, marker, mx, my){
   var pin=pinAnchorOf(marker);
-  descLabelPos[idx]={dx:mx-pin.x, dy:my-pin.y};
-  var el=document.querySelector('#descLabelLayer .desc-label[data-idx="'+idx+'"]');
+  descLabelPos[key]={dx:mx-pin.x, dy:my-pin.y};
+  var el=document.querySelector('#descLabelLayer .desc-label[data-idx="'+key+'"]');
   if(el){ el.style.left=mx+'px'; el.style.top=my+'px'; }
   var lineLayer=document.getElementById('descLineLayer');
-  var old=lineLayer.querySelector('path[data-idx="'+idx+'"]'); if(old) old.remove();
-  var oldDot=lineLayer.querySelector('circle[data-idx="'+idx+'"]'); if(oldDot) oldDot.remove();
-  var others=markers.filter(function(m){return map.hasLayer(m)&&(m._idx!==undefined?m._idx:null)!==idx;})
+  var old=lineLayer.querySelector('path[data-idx="'+key+'"]'); if(old) old.remove();
+  var oldDot=lineLayer.querySelector('circle[data-idx="'+key+'"]'); if(oldDot) oldDot.remove();
+  var others=markers.filter(function(m){return map.hasLayer(m)&&m.shopData&&m.shopData.uid!==key;})
                     .map(function(m){return pinAnchorOf(m);});
   var s=marker.shopData;
-  buildLabelLine(lineLayer, idx, pin, {x:mx,y:my}, others, (s.pinSize||26), s.lineType, s.lineColor);
+  buildLabelLine(lineLayer, key, pin, {x:mx,y:my}, others, (s.pinSize||26), s.lineType, s.lineColor);
 }
-function setupDescLabelDrag(el, idx, marker){
+function setupDescLabelDrag(el, key, marker){
   el.addEventListener('mousedown', function(e){
     if(e.button!==0) return;
     e.preventDefault(); e.stopPropagation();
@@ -1449,7 +1665,7 @@ function setupDescLabelDrag(el, idx, marker){
     el.classList.add('dragging');
     function move(ev){
       var c=document.getElementById('mapContainer'); var rect=c.getBoundingClientRect();
-      updateOneLabel(idx, marker, ev.clientX-rect.left, ev.clientY-rect.top);
+      updateOneLabel(key, marker, ev.clientX-rect.left, ev.clientY-rect.top);
     }
     function up(){
       el.classList.remove('dragging');
@@ -1477,29 +1693,83 @@ function applyFilter(){
   });
 }
 
-function openEditPopup(idx){
+function openEditPopup(idx, fillRegeo){
   // 打开新编辑页面前，先关闭其它已打开的 popup，确保始终只显示一个
   markers.forEach(function(m,i){if(i!==idx && m.isPopupOpen())m.closePopup();});
   currentEditIdx=idx;var s=shops[idx];var c=getColor(s);
   var fontWeight=(s.fontWeight!==undefined?s.fontWeight:(s.bold===false?400:700));
   var typeOpts=categories.map(function(ct){return '<option value="'+ct.key+'" '+(s.type===ct.key?'selected':'')+'>'+escapeHtml(ct.label)+'</option>';}).join('');
-  var streetOpts=streets.map(function(st){return '<option value="'+st+'">'+st+'</option>';}).join('');
-  var html='<h4 style="color:'+c+'">编辑店铺</h4>'+
+  var streetCbOpts=streetList().map(function(st){return '<div class="cb-opt" data-val="'+escapeHtml(st)+'" onclick="pickStreetCb(this)">'+escapeHtml(st)+'</div>';}).join('');
+  var html='<h4 class="edit-popup-header" style="color:'+c+'"><span class="edit-popup-drag" title="按住拖动弹窗">⋮⋮</span>编辑店铺</h4>'+
     '<div class="edit-form">'+
     '<div class="edit-row"><div class="edit-col"><label>店名</label><input type="text" id="editName" value="'+escapeHtml(s.name)+'"></div><div class="edit-col" style="flex:0 0 110px"><label>类型</label><select id="editType">'+typeOpts+'</select></div></div>'+
-    '<label>所属街道（可手填）</label><input type="text" id="editStreet" list="streetList" value="'+escapeHtml(s.street)+'"><datalist id="streetList">'+streetOpts+'</datalist>'+
-    '<label>地址</label><input type="text" id="editAddr" value="'+escapeHtml(s.addr)+'">'+
+    '<div class="edit-row"><div class="edit-col" style="flex:0 0 auto"><label>所属街道</label><div class="combobox" id="streetCb"><input type="text" id="editStreet" class="combobox-input" value="'+escapeHtml(s.street)+'" autocomplete="off" placeholder="街道" onfocus="openStreetCb()" oninput="streetCbFilter()"><span class="combobox-arrow" onclick="toggleStreetCb(event)">▾</span><div class="combobox-panel" id="streetCbPanel">'+streetCbOpts+'</div></div></div><div class="edit-col"><label>地址</label><input type="text" id="editAddr" value="'+escapeHtml(s.addr)+'" placeholder="详细地址"></div></div>'+
     '<label>经纬度（改动后自动按坐标识别街道）</label><div class="edit-row"><input type="text" id="editLat" style="flex:1" value="'+s.lat+'" onchange="onCoordChange('+idx+')"><input type="text" id="editLng" style="flex:1" value="'+s.lng+'" onchange="onCoordChange('+idx+')"></div>'+
     '<div class="form-actions"><button class="btn btn-primary" onclick="saveEdit()">保存</button><button class="btn" onclick="detectFromCoord('+idx+')">📍 按坐标识别</button><button class="btn btn-danger" onclick="deleteShop()">删除</button></div>'+
     '<div class="section-title">标签与样式（下载图中显示）</div>'+
     '<label>描述文字（留空则用店名；可超长自动换行）</label><input type="text" id="editDesc" value="'+escapeHtml(s.desc||'')+'">'+
     '<div class="edit-row"><div class="edit-col" style="flex:0 0 80px"><label>图钉大小</label><input type="number" id="editPin" value="'+(s.pinSize||26)+'" min="14" max="60"></div><div class="edit-col"><label>图钉形状</label><select id="editShape"><option value="">跟随类型</option>'+PIN_SHAPES.map(function(o){return '<option value="'+o.id+'"'+(s.shape===o.id?' selected':'')+'>'+o.label+'</option>';}).join('')+'</select></div><div class="edit-col" style="flex:1;min-width:90px"><label>自定义图标</label><input type="hidden" id="editIconVal" value="'+(s.icon||'')+'"><span id="editIconWrap">'+(s.icon?'<img src="'+s.icon+'" style="height:22px;width:22px;object-fit:contain;border:1px solid var(--border-color);border-radius:4px;vertical-align:middle"><button type="button" class="btn" style="padding:2px 6px;font-size:12px;margin-left:4px" onclick="editIconClear()">清除</button>':'<label class="btn" style="display:inline-block;padding:4px 8px;font-size:12px;cursor:pointer">选择图片<input type="file" id="editIconFile" accept="image/png,image/svg+xml,image/jpeg,image/webp" style="display:none" onchange="editIconPick(this)"></label>')+'</span></div></div>'+
-    '<div class="edit-row"><div class="edit-col" style="flex:0 0 70px"><label>文字大小</label><input type="number" id="editFs" value="'+(s.fontSize||14)+'" min="8" max="40"></div><div class="edit-col" style="flex:0 0 50px"><label>颜色</label><input type="color" id="editDescColor" value="'+(s.descColor||'#222222')+'"></div><div class="edit-col" style="flex:0 0 60px"><label>粗细</label><select id="editFontWeight" style="width:100%;padding:4px 2px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);font-size:12px">'+[100,200,300,400,500,600,700,800,900].map(function(w){return '<option value="'+w+'"'+(fontWeight==w?' selected':'')+'>'+w+'</option>';}).join('')+'</select></div><div class="edit-col"><label>样式</label><select id="editStyle"><option value="white"'+(s.style==='white'?' selected':'')+'>白底黑字</option><option value="dark"'+(s.style==='dark'?' selected':'')+'>黑底白字</option><option value="border"'+(s.style==='border'?' selected':'')+'>白底彩边</option><option value="stroke"'+(s.style==='stroke'?' selected':'')+'>描边字</option><option value="shadow"'+(s.style==='shadow'?' selected':'')+'>白底投影</option></select></div><div class="edit-col"><label>位置</label><select id="editPos"><option value="bottom"'+(s.pos==='bottom'?' selected':'')+'>下方</option><option value="top"'+(s.pos==='top'?' selected':'')+'>上方</option><option value="left"'+(s.pos==='left'?' selected':'')+'>左侧</option><option value="right"'+(s.pos==='right'?' selected':'')+'>右侧</option></select></div></div>'+
-    '<div class="edit-row"><div class="edit-col"><label>连线类型</label><select id="editLineType"><option value="none"'+(s.lineType==='none'?' selected':'')+'>不连线</option><option value="solid"'+(s.lineType==='solid'?' selected':'')+'>实线</option><option value="dashed"'+(s.lineType==='dashed'?' selected':'')+'>虚线</option><option value="dotted"'+(s.lineType==='dotted'?' selected':'')+'>点线</option><option value="poly"'+(s.lineType==='poly'?' selected':'')+'>自动折线</option></select></div><div class="edit-col" style="flex:0 0 70px"><label>连线颜色</label><input type="color" id="editLineColor" value="'+(s.lineColor||labelCfg.lineColor||'#999999')+'"></div></div>'+
-    '<div class="edit-row"><div class="edit-col"><label>偏移X(px)</label><input type="number" id="editOffX" value="'+(s.offX||0)+'"></div><div class="edit-col"><label>偏移Y(px)</label><input type="number" id="editOffY" value="'+(s.offY||0)+'"></div></div>'+
-    '<div class="hint">提示：也可直接在地图上拖拽标记移动位置；类型可在「⚙ 类型」里自定义。标签重叠时可调「偏移」或用引线拉开</div>'+
+    '<div class="edit-row"><div class="edit-col" style="flex:0 0 70px"><label>文字大小</label><input type="number" id="editFs" value="'+(s.fontSize||14)+'" min="8" max="40"></div><div class="edit-col" style="flex:0 0 50px"><label>颜色</label><input type="color" id="editDescColor" value="'+(s.descColor||'#222222')+'"></div><div class="edit-col" style="flex:0 0 60px"><label>粗细</label><select id="editFontWeight" style="width:100%;padding:4px 2px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);font-size:12px">'+[100,200,300,400,500,600,700,800,900].map(function(w){return '<option value="'+w+'"'+(fontWeight==w?' selected':'')+'>'+w+'</option>';}).join('')+'</select></div><div class="edit-col"><label>样式</label><select id="editStyle"><option value="white"'+(s.style==='white'?' selected':'')+'>白底黑字</option><option value="dark"'+(s.style==='dark'?' selected':'')+'>黑底白字</option><option value="border"'+(s.style==='border'?' selected':'')+'>白底彩边</option><option value="stroke"'+(s.style==='stroke'?' selected':'')+'>描边字</option><option value="shadow"'+(s.style==='shadow'?' selected':'')+'>白底投影</option></select></div></div>'+
+    '<div class="edit-row"><div class="edit-col" style="flex:0 0 70px"><label>位置</label><select id="editPos"><option value="bottom"'+(s.pos==='bottom'?' selected':'')+'>下方</option><option value="top"'+(s.pos==='top'?' selected':'')+'>上方</option><option value="left"'+(s.pos==='left'?' selected':'')+'>左侧</option><option value="right"'+(s.pos==='right'?' selected':'')+'>右侧</option></select></div><div class="edit-col" style="flex:0 0 110px"><label>连线类型</label><select id="editLineType"><option value="none"'+(s.lineType==='none'?' selected':'')+'>不连线</option><option value="solid"'+(s.lineType==='solid'?' selected':'')+'>实线</option><option value="dashed"'+(s.lineType==='dashed'?' selected':'')+'>虚线</option><option value="dotted"'+(s.lineType==='dotted'?' selected':'')+'>点线</option><option value="poly"'+(s.lineType==='poly'?' selected':'')+'>自动折线</option></select></div><div class="edit-col" style="flex:0 0 70px"><label>连线颜色</label><input type="color" id="editLineColor" value="'+(s.lineColor||labelCfg.lineColor||'#999999')+'"></div></div>'+
+    '<div class="hint">提示：可直接在地图上拖拽标记移动位置；类型在「⚙ 类型」里自定义。标签重叠时可在地图上直接拖拽标签错开，或开启自动折线引线。</div>'+
     '</div>';
   markers[idx].setPopupContent(html).openPopup();
+  refreshStreetPanel();
+  autoSizeStreetInput();
+  if(amapKey) regeoForPopup(s.lng, s.lat, idx, !!fillRegeo); // 按坐标自动刷新街道候选（有 Key 时）
+}
+// ===== 自定义街道 combobox =====
+var _streetCbOpen=false;
+function openStreetCb(){
+  var cb=document.getElementById('streetCb'); if(!cb) return;
+  // 绑定一次“点击外部关闭”
+  if(!window._streetCbOutsideBound){
+    window._streetCbOutsideBound=true;
+    document.addEventListener('mousedown', function(e){
+      var c=document.getElementById('streetCb');
+      if(c && !c.contains(e.target)) closeStreetCb();
+    });
+  }
+  cb.classList.add('open'); _streetCbOpen=true; streetCbRender();
+}
+function closeStreetCb(){
+  var cb=document.getElementById('streetCb'); if(!cb) return;
+  cb.classList.remove('open'); _streetCbOpen=false;
+}
+function toggleStreetCb(e){
+  if(e) e.stopPropagation();
+  var cb=document.getElementById('streetCb'); if(!cb) return;
+  if(cb.classList.contains('open')) closeStreetCb(); else openStreetCb();
+}
+function streetCbRender(){
+  var cb=document.getElementById('streetCb'); if(!cb) return;
+  var panel=document.getElementById('streetCbPanel'); if(!panel) return;
+  var inp=document.getElementById('editStreet'); if(!inp) return;
+  var val=(inp.value||'').trim().toLowerCase();
+  panel.querySelectorAll('.cb-opt').forEach(function(o){
+    var t=(o.getAttribute('data-val')||'').toLowerCase();
+    o.style.display=(!val || t.indexOf(val)>=0)?'block':'none';
+    if(o.getAttribute('data-val')===(inp.value||'').trim()) o.classList.add('active'); else o.classList.remove('active');
+  });
+}
+// 街道输入框：默认至少显示 4 个汉字宽，内容更长时自动加宽（em 单位，避免 ch 对中文过窄）
+function autoSizeStreetInput(){
+  var inp=document.getElementById('editStreet'); if(!inp) return;
+  var len=(inp.value||'').length;
+  // 默认 7em（扣除 7px 左内边距 + 24px 箭头后仍能完整显示 4 个汉字），
+  // 内容更长时按 len+3 加宽（留足余量），最长 10em
+  var em=Math.max(7, Math.min(10, len+3));
+  inp.style.width=em+'em';
+}
+function streetCbFilter(){
+  if(!_streetCbOpen) openStreetCb(); else streetCbRender();
+  autoSizeStreetInput();
+}
+function pickStreetCb(el){
+  var v=el.getAttribute('data-val')||'';
+  var inp=document.getElementById('editStreet'); if(inp) inp.value=v;
+  closeStreetCb();
+  autoSizeStreetInput();
 }
 // 编辑面板内：选择自定义图标（转为 dataURL 存入隐藏域，并即时预览）
 function editIconPick(input){
@@ -1531,8 +1801,6 @@ function saveEdit(){
   s.descColor=document.getElementById('editDescColor').value||'#222222';
   s.lineType=document.getElementById('editLineType').value;
   s.lineColor=document.getElementById('editLineColor').value;
-  s.offX=parseInt(document.getElementById('editOffX').value,10)||0;
-  s.offY=parseInt(document.getElementById('editOffY').value,10)||0;
   var shp=document.getElementById('editShape').value;
   s.shape=shp?shp:'';                 // 空 = 跟随类型默认
   var iv=document.getElementById('editIconVal').value;
@@ -1572,12 +1840,10 @@ function addNewShop(){
   var raw=map.getCenter();
   // 统一基准：POI 全部存 GCJ-02；在 WGS-84 底图下点位原始值是 WGS-84，先逆算 GCJ-02 再存
   var cc=(BASEMAPS[mapMode]&&BASEMAPS[mapMode].crs==='wgs84')?wgs84_to_gcj02(raw.lat,raw.lng):raw;
-  var ns={name:nextShopName(),street:'',type:(categories[0]?categories[0].key:'uncat'),addr:'',lat:cc.lat,lng:cc.lng,desc:'',mtime:Date.now(),pinSize:labelCfg.pinSize,fontSize:labelCfg.fontSize,fontWeight:labelCfg.fontWeight,style:'shadow',pos:labelCfg.pos,offX:labelCfg.offX,offY:labelCfg.offY,lineType:labelCfg.lineType,lineColor:labelCfg.lineColor,descColor:labelCfg.descColor};
+  var ns={name:nextShopName(),street:'',type:(categories[0]?categories[0].key:'uncat'),addr:'',lat:cc.lat,lng:cc.lng,desc:'',mtime:Date.now(),uid:mkUid(),pinSize:labelCfg.pinSize,fontSize:labelCfg.fontSize,fontWeight:labelCfg.fontWeight,style:'shadow',pos:labelCfg.pos,offX:labelCfg.offX,offY:labelCfg.offY,lineType:labelCfg.lineType,lineColor:labelCfg.lineColor,descColor:labelCfg.descColor};
   shops.push(ns);var idx=shops.length-1;
   refreshMarkers();updateStats();renderList();
-  setTimeout(function(){openEditPopup(idx);},100);
-  // 有 Key 则按落点经纬度自动识别街道/地址（结果仍可手动改）
-  reverseGeocode(center.lng,center.lat,function(res){applyRegeo(idx,res);});
+  setTimeout(function(){openEditPopup(idx, true);},100); // 新点位：打开即按坐标识别街道并刷新下拉候选
   showToast(amapKey?'已新增，正在按坐标识别街道…':'已新增店铺，请填写信息（未配置高德Key）');
   autosave();
 }
@@ -1701,6 +1967,7 @@ function migrateData(){
     labelCfg.fontWeight=labelCfg.bold===false?400:700;
     delete labelCfg.bold;
   }
+  ensureShopUids(); // 旧工程点位可能没有 uid，统一补上，保证描述标签偏移不串位
 }
 function refreshDerived(){renderFilterBar();renderLegend();updateStats();renderList();refreshMarkers();autosave();}
 
@@ -1894,7 +2161,13 @@ function reverseGeocode(lng,lat,cb){
     delete window[cbName];
     if(d&&d.status==='1'&&d.regeocode){
       var ac=d.regeocode.addressComponent||{};
-      cb({street:(ac.township||''),addr:(d.regeocode.formatted_address||''),road:(ac.street||'')});
+      cb({
+        street:(ac.township||''),                 // 街道/乡镇（最贴近用户的行政单元）
+        addr:(d.regeocode.formatted_address||''), // 完整格式化地址
+        road:(ac.street||''),                     // 道路名（与 township 不同，是路不是街道）
+        adcode:(ac.adcode||''),                   // 当前坐标所属区/县 adcode（用于拉取该区下所有街道）
+        city:(ac.city||''), district:(ac.district||''), province:(ac.province||'')
+      });
     }else cb(null);
   };
   var script=document.createElement('script');
@@ -1902,6 +2175,79 @@ function reverseGeocode(lng,lat,cb){
   script.onerror=function(){try{document.body.removeChild(script);}catch(e){}delete window[cbName];cb(null);};
   document.body.appendChild(script);
 }
+// ===== 按坐标/城市自动刷新街道候选（高德行政区划查询，JSONP 免 CORS） =====
+// 按 adcode 缓存，避免同一区域重复请求；返回该区/县下所有街道/乡镇名称
+var _streetAdcodeCache={};
+function loadStreetsByAdcode(adcode, cb){
+  if(!amapKey||!adcode){ cb(null); return; }
+  if(Object.prototype.hasOwnProperty.call(_streetAdcodeCache,adcode)){ cb(_streetAdcodeCache[adcode]); return; }
+  var cbName='_amapDist'+(Date.now())+Math.floor(Math.random()*1000);
+  var url='https://restapi.amap.com/v3/config/district?keywords='+encodeURIComponent(adcode)+
+          '&subdistrict=2&extensions=base&key='+encodeURIComponent(amapKey)+(amapSecret?('&jscode='+encodeURIComponent(amapSecret)):'')+'&callback='+cbName;
+  window[cbName]=function(d){
+    try{document.body.removeChild(script);}catch(e){}
+    delete window[cbName];
+    var names=_collectStreetNames(d);
+    if(names){ _streetAdcodeCache[adcode]=names; cb(names); } else cb(null);
+  };
+  var script=document.createElement('script');
+  script.src=url;
+  script.onerror=function(){try{document.body.removeChild(script);}catch(e){}delete window[cbName];cb(null);};
+  document.body.appendChild(script);
+}
+// 从 district 接口响应里抽取街道/乡镇名（递归到下钻两层，兼容「传市级 adcode」时街道在更深的区县下）
+function _collectStreetNames(d){
+  if(!d||d.status!=='1'||!d.districts||!d.districts.length) return null;
+  var seen={}, names=[];
+  (function walk(list){
+    (list||[]).forEach(function(k){
+      if(!k) return;
+      var lvl=(k.level||'');
+      if(lvl==='street'||lvl==='town'){ if(k.name && !seen[k.name]){ seen[k.name]=1; names.push(k.name); } }
+      if(k.districts && k.districts.length) walk(k.districts); // 继续向下找街道（市级→区县→街道）
+    });
+  })(d.districts);
+  // 防极端情况（如省级 adcode）下拉过长，截断到 400 条
+  if(names.length>400) names=names.slice(0,400);
+  return names.length?names:null;
+}
+// 重新渲染编辑弹窗里的街道下拉面板（合并默认/已用/动态候选后重建选项）
+function refreshStreetPanel(){
+  var panel=document.getElementById('streetCbPanel'); if(!panel) return;
+  var opts=streetList().map(function(st){return '<div class="cb-opt" data-val="'+escapeHtml(st)+'" onclick="pickStreetCb(this)">'+escapeHtml(st)+'</div>';}).join('');
+  panel.innerHTML=opts;
+  if(_streetCbOpen) streetCbRender();
+}
+// 打开弹窗时：按坐标逆地理 → 拉取该区街道 → 刷新下拉；fillEmpty=true 时仅当字段为空才回填
+function regeoForPopup(lng,lat,idx,fillEmpty){
+  if(!amapKey) return;
+  reverseGeocode(lng,lat,function(res){
+    if(!res) return;
+    if(res.street) addDynStreet(res.street);
+    if(fillEmpty){
+      var s=shops[idx];
+      if(s){
+        if(!s.street && res.street) s.street=res.street;
+        if(!s.addr && res.addr) s.addr=res.addr;
+        if(currentEditIdx===idx){
+          var es=document.getElementById('editStreet'), ea=document.getElementById('editAddr');
+          if(es) es.value=s.street;
+          if(ea) ea.value=s.addr;
+        }
+        updateStats(); renderList(); autosave();
+      }
+    }
+    if(res.adcode){
+      loadStreetsByAdcode(res.adcode, function(names){
+        if(names) names.forEach(addDynStreet);
+        if(currentEditIdx===idx) refreshStreetPanel();
+      });
+    } else if(currentEditIdx===idx){
+      refreshStreetPanel();
+    }
+  });
+}
+
 // 把反查结果写回某个点位（仅当字段为空时才自动填入，避免覆盖手动修改）
 function applyRegeo(idx,res){
   if(!res)return;
@@ -1912,6 +2258,7 @@ function applyRegeo(idx,res){
     var es=document.getElementById('editStreet'),ea=document.getElementById('editAddr');
     if(es)es.value=s.street;
     if(ea)ea.value=s.addr;
+    autoSizeStreetInput();
   }
   updateStats();renderList();autosave();
 }
@@ -1923,6 +2270,8 @@ function detectFromCoord(idx){
     s.street=res.street;s.addr=res.addr;
     var es=document.getElementById('editStreet'),ea=document.getElementById('editAddr');
     if(es)es.value=s.street;if(ea)ea.value=s.addr;
+    autoSizeStreetInput();
+    if(res.adcode) loadStreetsByAdcode(res.adcode, function(names){ if(names) names.forEach(addDynStreet); refreshStreetPanel(); });
     updateStats();renderList();showToast('已识别：'+(res.street||res.addr||'—'));
   });
 }
@@ -1935,7 +2284,10 @@ function onCoordChange(idx){
   // 统一基准：手输坐标视为 WGS-84 → 转 GCJ-02 后再存储（避免不同底图下坐标错位）
   var cc=wgs84_to_gcj02(lat,lng);
   s.lat=cc.lat;s.lng=cc.lng;
-  reverseGeocode(lng,lat,function(res){applyRegeo(idx,res);});
+  reverseGeocode(lng,lat,function(res){
+    applyRegeo(idx,res);
+    if(res&&res.adcode) loadStreetsByAdcode(res.adcode, function(names){ if(names) names.forEach(addDynStreet); refreshStreetPanel(); });
+  });
 }
 
 // ===== 平台名称自定义 =====
@@ -1972,6 +2324,8 @@ function buildSaveHtml(){
   var _sb=clone.querySelector('#showBoundary'); if(_sb) _sb.checked=boundaryEnabled;
   var _ba=clone.querySelector('#boundaryAdcode'); if(_ba) _ba.value=boundaryAdcode;
   var _bf=clone.querySelector('#boundaryFull'); if(_bf) _bf.checked=boundaryFull;
+  var _bc=clone.querySelector('#boundaryColor'); if(_bc) _bc.value=boundaryColor;
+  var _bw=clone.querySelector('#boundaryWeight'); if(_bw) _bw.value=boundaryWeight;
   var html=clone.outerHTML;
   html=html.replace(/var shops=\[[\s\S]*?\];/,shopsStr);
   html=html.replace(/var categories=\[[\s\S]*?\];/,catsStr);
@@ -1980,6 +2334,8 @@ function buildSaveHtml(){
   html=html.replace(/var boundaryEnabled=\w+;/,'var boundaryEnabled='+boundaryEnabled+';'); // 持久化边界开关
   html=html.replace(/var boundaryAdcode='[^']*';/,'var boundaryAdcode=\''+boundaryAdcode+'\';'); // 持久化边界 adcode
   html=html.replace(/var boundaryFull=\w+;/,'var boundaryFull='+boundaryFull+';'); // 持久化「包含下级」开关
+  html=html.replace(/var boundaryColor='[^']*';/,'var boundaryColor=\''+boundaryColor+'\';'); // 持久化边界颜色
+  html=html.replace(/var boundaryWeight=[\d.]+;/,'var boundaryWeight='+boundaryWeight+';'); // 持久化边界线宽
   html=html.replace(/var tdtKey='[^']*';/,'var tdtKey=\''+tdtKey.replace(/'/g,'\\\'')+'\';'); // 持久化天地图 Key，使保存版天地图底图可用
   html=html.replace(/var showRoadNet=\w+;/,'var showRoadNet='+showRoadNet+';'); // 持久化「路网」开关
   html=html.replace(/var showTextLabels=\w+;/,'var showTextLabels='+showTextLabels+';'); // 持久化「文字」开关
@@ -2111,7 +2467,7 @@ function computeTileStats(bounds,z,mode){
   var wpx=Math.round((cxMax-cxMin)*256), hpx=Math.round((cyMax-cyMin)*256);
   return {cols:cols,rows:rows,xMin:xMin,yMin:yMin,cxMin:cxMin,cyMin:cyMin,wpx:wpx,hpx:hpx,tiles:tiles,warn:tiles>1500};
 }
-var dlBounds=null, dlRunning=false, dlSelecting=false, selRect=null, selStart=null, dlFailCount=0;
+var dlBounds=null, dlRunning=false, dlSelecting=false, selRect=null, selStart=null, dlFailCount=0, dlAbort=false;
 var tileSource='amap'; // 'proxy'=本地 server.py 同源代理；'browser'=浏览器直接 fetch 高德 blob URL；'amap'=Image.crossOrigin 直连高德
 function startBoxSelect(){
   if(dlSelecting)return;
@@ -2149,6 +2505,8 @@ var dlFromSelArea=false;  // 当前下载弹窗是否源于「预选区域」
 var areaState=null;      // null | 'rect-pick' | 'poly-pick'
 var areaPreview=null;    // 选择过程中的预览图层
 function areaToolbar(on){ document.getElementById('areaToolbar').style.display = on?'flex':'none'; }
+// 顶部功能按钮收纳：点击「⚙ 工具」展开/收起整排工具
+function toggleMapTools(){ var c=document.getElementById('mapModeCtrl'); if(c) c.classList.toggle('collapsed'); }
 function setAreaTip(t){ document.getElementById('areaTip').textContent=t; }
 function selAreaBounds(){
   if(!selArea||!selArea.pts||!selArea.pts.length) return null;
@@ -2356,8 +2714,18 @@ function updateDlInfo(){
   if(st.warn) html+='<br><span class="dl-warn">⚠ 瓦片较多，下载可能较慢，请耐心等待</span>';
   el.innerHTML=html;
 }
+function cancelDownload(){
+  // 下载中关闭弹窗 = 主动取消：停止轮询/加载、复位状态、关闭弹窗
+  dlAbort=true; // 粘性取消标记：飞行中的瓦片回调在 after()/finishDl() 处统一 bailing，避免导出半张图
+  try{ if(window._lastStitchCleanup) window._lastStitchCleanup(); }catch(e){} // 停止服务端拼图轮询
+  dlRunning=false;
+  var sb=document.getElementById('dlStart'); if(sb) sb.disabled=false;
+  hideDlProgress();
+  document.getElementById('dlModal').style.display='none'; dlBounds=null;
+  showToast('已取消下载');
+}
 function closeDlModal(){
-  if(dlRunning){showToast('下载中，暂不可关闭');return;}
+  if(dlRunning){ cancelDownload(); return; }
   document.getElementById('dlModal').style.display='none'; dlBounds=null;
 }
 function showDlProgress(done,total){
@@ -2690,7 +3058,7 @@ function drawPOIs(ctx,st,z,mode,scale){
     var _ll=projToBasemap(s.lat,s.lng); // 天地图(wgs84) 底图下点位反算回 WGS-84 才能对齐
     var cx=(lon2xCont(_ll.lng,z)-st.cxMin)*256*scale, cy=(lat2yCont(_ll.lat,z)-st.cyMin)*256*scale;
     if(cx<-200||cy<-200||cx>st.wpx*scale+200||cy>st.hpx*scale+200)return;
-    pinPts.push({idx:idx, x:cx, y:cy, size:(s.pinSize||labelCfg.pinSize)*scale});
+    pinPts.push({idx:idx, uid:s.uid, x:cx, y:cy, size:(s.pinSize||labelCfg.pinSize)*scale});
   });
   // canvas 画连线（直线 / 遮挡时折线），支持 per-shop 线型/颜色
   function drawDlLabelLine(ax,ay,bx,by,curSize,lineType,lineColor){
@@ -2740,7 +3108,7 @@ function drawPOIs(ctx,st,z,mode,scale){
     var boxH=lines.length*lh+padY*2;
     var lcx,lcy,bx,by;
     if(useMapDesc){
-      var dpos=descLabelPos[p.idx]||{dx:0, dy:(s.pinSize||labelCfg.pinSize)*1.38+8};
+      var dpos=descLabelPos[p.uid]||{dx:0, dy:(s.pinSize||labelCfg.pinSize)*1.38+8};
       lcx=cx+dpos.dx*scale; lcy=cy+dpos.dy*scale;
       bx=lcx-boxW/2; by=lcy-boxH/2;
       // 统一用与地图标签一致的 shadow 立体白底灰边样式
@@ -2772,6 +3140,7 @@ function runDownload(){
     return;
   }
   dlFailCount=0;
+  dlAbort=false; // 新一次下载，清除上次的取消标记（粘性，仅本次取消时不会被复位）
   var mode=document.getElementById('dlMode').value;
   if(BASEMAPS[mode] && BASEMAPS[mode].needKey==='tdt' && !tdtKey){
     showToast('当前底图需要天地图 Key，请在「设置 → 天地图 Key」中填写后再下载（且需启动本地服务器代理）');
@@ -2951,10 +3320,12 @@ function _runDownloadCore(mode,z,scale,dpi,st){
     }, function(){ dlFailCount++; after(); }); // 单块失败则跳过（留背景色）
   }
   function after(){
+    if(dlAbort){ dlRunning=false; var b=document.getElementById('dlStart'); if(b)b.disabled=false; hideDlProgress(); return; }
     done++; showDlProgress(done,total);
     if(done>=total){ finishDl(); } else { dlNext(); }
   }
   function finishDl(){
+    if(dlAbort){ dlRunning=false; var b=document.getElementById('dlStart'); if(b)b.disabled=false; hideDlProgress(); return; }
     // 失败率保护：瓦片大量失败时不应导出空白/背景图，以免误导
     if(dlFailCount>total*0.3){
       hideDlProgress(); dlRunning=false; var sb=document.getElementById('dlStart'); if(sb)sb.disabled=false;
@@ -3118,7 +3489,7 @@ function parseHtmlProject(txt){
 // ===================== CSV 批量导入 =====================
 function makeShop(name,lng,lat,catKey,addr){
   if(categories.length===0){categories.push({key:'uncat',label:'未分类',color:'#3498db'});renderFilterBar();renderLegend();}
-  return {name:name,street:'',type:(catKey||(categories[0]?categories[0].key:'uncat')),addr:(addr||''),lat:lat,lng:lng,desc:'',pinSize:labelCfg.pinSize,fontSize:labelCfg.fontSize,fontWeight:labelCfg.fontWeight,style:'shadow',pos:labelCfg.pos,offX:labelCfg.offX,offY:labelCfg.offY,lineType:labelCfg.lineType,lineColor:labelCfg.lineColor,descColor:labelCfg.descColor};
+  return {name:name,street:'',type:(catKey||(categories[0]?categories[0].key:'uncat')),addr:(addr||''),lat:lat,lng:lng,desc:'',uid:mkUid(),pinSize:labelCfg.pinSize,fontSize:labelCfg.fontSize,fontWeight:labelCfg.fontWeight,style:'shadow',pos:labelCfg.pos,offX:labelCfg.offX,offY:labelCfg.offY,lineType:labelCfg.lineType,lineColor:labelCfg.lineColor,descColor:labelCfg.descColor};
 }
 function openImportModal(){
   var sel=document.getElementById('csvCat');
@@ -3429,7 +3800,7 @@ function addPoiAsShop(p){
   if(isNaN(lng)||isNaN(lat)){ showToast('该地点无有效坐标'); return; }
   if(categories.length===0){ categories.push({key:'uncat',label:'未分类',color:'#3498db'}); renderFilterBar(); renderLegend(); }
   snapshot();
-  var ns={name:p.name||'地点',street:'',type:(categories[0]?categories[0].key:'uncat'),addr:(p.address||''),lat:lat,lng:lng,desc:'',pinSize:labelCfg.pinSize,fontSize:labelCfg.fontSize,fontWeight:labelCfg.fontWeight,style:'shadow',pos:labelCfg.pos,offX:labelCfg.offX,offY:labelCfg.offY,lineType:labelCfg.lineType,lineColor:labelCfg.lineColor,descColor:labelCfg.descColor};
+  var ns={name:p.name||'地点',street:'',type:(categories[0]?categories[0].key:'uncat'),addr:(p.address||''),lat:lat,lng:lng,desc:'',uid:mkUid(),pinSize:labelCfg.pinSize,fontSize:labelCfg.fontSize,fontWeight:labelCfg.fontWeight,style:'shadow',pos:labelCfg.pos,offX:labelCfg.offX,offY:labelCfg.offY,lineType:labelCfg.lineType,lineColor:labelCfg.lineColor,descColor:labelCfg.descColor};
   shops.push(ns);
   refreshMarkers(); updateStats(); renderList(); autosave();
   showToast('已加入：'+ns.name);
@@ -3445,7 +3816,7 @@ function addAllPoisAsShops(){
     if(!p||!p.location) return;
     var ll=(p.location||'').split(','); var lng=parseFloat(ll[0]), lat=parseFloat(ll[1]);
     if(isNaN(lng)||isNaN(lat)) return;
-    var ns={name:p.name||'地点',street:'',type:ctype,addr:(p.address||''),lat:lat,lng:lng,desc:'',pinSize:labelCfg.pinSize,fontSize:labelCfg.fontSize,fontWeight:labelCfg.fontWeight,style:'shadow',pos:labelCfg.pos,offX:labelCfg.offX,offY:labelCfg.offY,lineType:labelCfg.lineType,lineColor:labelCfg.lineColor,descColor:labelCfg.descColor};
+    var ns={name:p.name||'地点',street:'',type:ctype,addr:(p.address||''),lat:lat,lng:lng,desc:'',uid:mkUid(),pinSize:labelCfg.pinSize,fontSize:labelCfg.fontSize,fontWeight:labelCfg.fontWeight,style:'shadow',pos:labelCfg.pos,offX:labelCfg.offX,offY:labelCfg.offY,lineType:labelCfg.lineType,lineColor:labelCfg.lineColor,descColor:labelCfg.descColor};
     shops.push(ns); added++;
   });
   refreshMarkers(); updateStats(); renderList(); autosave();
