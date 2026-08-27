@@ -77,18 +77,24 @@ body{
 .locked .sidebar-header h1{cursor:default}
 .locked .sidebar-header h1:hover{color:var(--text-primary)}
 .locked .sidebar-header h1::after{display:none}
+.locked .header-actions{display:none}
+.locked .footer-actions{display:none}
+.locked .shop-item .actions{display:none}
 .sidebar-header .subtitle{
   font-size:11px;
   color:var(--text-muted);
   margin-top:4px;
 }
 .header-actions{
-  display:flex;
+  display:grid;
+  grid-template-columns:1fr 1fr;
   gap:8px;
   padding:10px 16px;
   border-bottom:1px solid var(--border-color);
   background:rgba(10,20,40,0.3);
 }
+.header-actions .btn{flex:none}
+.header-actions .btn.wide{grid-column:1 / -1}
 .btn{
   flex:1;
   padding:7px 10px;
@@ -107,21 +113,23 @@ body{
 .btn-danger{background:rgba(231,76,60,0.15);border-color:rgba(231,76,60,0.5);color:#e74c3c}
 .btn-danger:hover{background:rgba(231,76,60,0.3)}
 .stats-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:8px;
-  padding:10px 16px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  padding:8px 16px;
   border-bottom:1px solid var(--border-color);
 }
 .stat-card{
+  flex:1 1 0;
+  min-width:70px;
   background:var(--bg-card);
   border:1px solid var(--border-color);
-  border-radius:8px;
-  padding:10px 12px;
+  border-radius:6px;
+  padding:6px 8px;
 }
-.stat-card .stat-label{font-size:11px;color:var(--text-secondary);margin-bottom:2px}
-.stat-card .stat-value{font-size:20px;font-weight:700}
-.stat-card .stat-value .unit{font-size:11px;color:var(--text-muted);margin-left:2px}
+.stat-card .stat-label{font-size:10px;color:var(--text-secondary);margin-bottom:1px}
+.stat-card .stat-value{font-size:15px;font-weight:700}
+.stat-card .stat-value .unit{font-size:10px;color:var(--text-muted);margin-left:1px}
 .filter-bar{
   padding:10px 16px;
   border-bottom:1px solid var(--border-color);
@@ -165,12 +173,29 @@ body{
 .shop-item .shop-info{flex:1;min-width:0}
 .shop-item .shop-name{font-size:12px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .shop-item .shop-addr{font-size:10px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.shop-item.shop-warn{background:rgba(231,76,60,0.06)}
+.shop-issue{font-size:10px;color:#e74c3c;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.shop-mt{font-size:10px;color:var(--text-muted);margin-left:6px}
 .shop-item .actions{display:flex;gap:4px;flex-shrink:0}
 .shop-item .actions .btn{padding:3px 6px;font-size:10px;flex:none}
 .sidebar-footer{
   padding:10px 16px;
   border-top:1px solid var(--border-color);
   background:rgba(10,20,40,0.5);
+}
+.footer-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr 36px 36px 36px 36px;
+  gap:8px;
+}
+.footer-actions .btn{flex:none}
+.footer-actions .icon-btn{
+  padding:0;
+  font-size:18px;
+  min-height:34px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 .legend-items{display:flex;flex-wrap:wrap;gap:10px}
 .legend-item{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-secondary)}
@@ -223,6 +248,15 @@ body{
 .leaflet-touch .leaflet-control-zoom-level{width:30px;padding:6px 0}
 .map-mode-btn{transition:all .15s}
 .map-mode-btn.active{background:var(--accent-blue);color:#fff!important}
+#btnRoadNet.active,#btnTextLabels.active{background:var(--accent-blue);color:#fff!important}
+/* 底图图层滤镜：路网层把米色底提亮变淡、彩色路网线提饱和更鲜明；文字层加深路名/POI */
+.bl-roadnet{filter:brightness(1.12) contrast(1.18) saturate(1.35)}
+.bl-roadnet-white{filter:grayscale(1) brightness(1.22) contrast(0.85)}
+.bl-anno{filter:contrast(1.4) saturate(1.3) brightness(0.92)}
+#mapModeSel{font-family:inherit}
+#mapModeSel option{background:var(--bg-panel);color:var(--text-primary)}
+/* 暗色大屏底图：仅对瓦片面板做反色，不影响点位/标注（它们在别的面板） */
+.dark-mode .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(0.92) contrast(1.08)}
 .map-dl-btn{transition:all .15s}
 .map-dl-btn:hover{background:var(--bg-hover)}
 #locateBtn{transition:all .15s}
@@ -315,6 +349,13 @@ body{
 .desc-label.dragging{cursor:grabbing;z-index:999}
 .desc-label-line{fill:none;stroke:#cfcfcf;stroke-width:1.6px;stroke-linejoin:round;stroke-linecap:round}
 .desc-label-dot{fill:#cfcfcf}
+/* 滚动条：深色细圆角（弹窗/侧栏通用） */
+*{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.18) transparent}
+*::-webkit-scrollbar{width:8px;height:8px}
+*::-webkit-scrollbar-track{background:transparent}
+*::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:4px;border:2px solid transparent;background-clip:padding-box}
+*::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.32);background-clip:padding-box;border:2px solid transparent}
+*::-webkit-scrollbar-corner{background:transparent}
 </style>
 </head>
 <body class="">
@@ -326,31 +367,129 @@ body{
   </div>
   <div class="header-actions">
     <button class="btn btn-primary" onclick="addNewShop()">+ 新增店铺</button>
-    <button class="btn btn-primary" onclick="saveFile()">💾 保存文件</button>
-    <button class="btn" id="btnTypes" onclick="openCatManager()">⚙ 类型</button>
+    <button class="btn btn-primary" onclick="saveFile()" title="导出为可离线打开的 HTML 文件（点位数据已内置）">💾 导出HTML</button>
+    <input type="file" id="projFileInput" accept=".ditu,.html,.htm" style="display:none" onchange="handleProjectFile(this)">
   </div>
   <div class="stats-grid" id="statsGrid"></div>
   <div class="filter-bar" id="filterBar"></div>
   <div class="search-box">
     <input type="text" id="searchInput" placeholder="搜索店铺名称或地址...">
+    <label style="font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:4px;margin-top:6px;cursor:pointer"><input type="checkbox" id="viewportOnly" onchange="currentViewportOnly=this.checked;renderList();"> 仅显示当前视口内</label>
   </div>
-  <div style="padding:6px 16px 8px;border-bottom:1px solid var(--border-color);display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-    <label style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:5px;cursor:pointer">
-      <input type="checkbox" id="showMapDesc" onchange="toggleMapDescLabels()"> 显示描述标签
+  <div style="padding:6px 16px 8px;border-bottom:1px solid var(--border-color);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <label style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:4px;cursor:pointer" title="地图标记旁显示「描述」字段">
+      <input type="checkbox" id="showMapDesc" checked onchange="toggleMapDescLabels()"> 描述标签
     </label>
-    <span style="font-size:11px;color:var(--text-muted)">勾选后地图标记旁显示「描述」字段内容</span>
+    <label style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:4px;cursor:pointer">
+      <input type="checkbox" id="showBoundary" onchange="toggleBoundary()"> 行政边界
+    </label>
+    <input type="text" id="boundaryAdcode" value="100000" list="adcodeList" placeholder="全国100000 / 济宁370800" title="行政区划 adcode：100000=全国，370000=山东，370800=济宁，110105=朝阳；下拉可选常用地区" style="width:112px;padding:3px 6px;font-size:12px;background:var(--bg-panel);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);outline:none">
+    <datalist id="adcodeList">
+      <option value="100000">全国</option>
+      <option value="370000">山东</option>
+      <option value="370800">济宁</option>
+      <option value="370811">任城</option>
+      <option value="110105">朝阳</option>
+    </datalist>
+    <label style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:3px;cursor:pointer" title="父级+下一级边界：全国+省、省+市、市+区县">
+      <input type="checkbox" id="boundaryFull" onchange="applyBoundaryAdcode()"> 下级
+    </label>
+    <button class="btn" onclick="applyBoundaryAdcode()" style="padding:3px 8px;font-size:12px" title="按当前 adcode 刷新边界">↻</button>
+  </div>
+  <div id="batchBar" style="display:none;padding:8px 12px;border-bottom:1px solid var(--border-color);background:var(--bg-card);align-items:center;gap:8px;flex-wrap:wrap;font-size:12px">
+    <style>
+      #batchBar .btn,#batchBar select,#batchBar label{flex:0 0 auto;white-space:nowrap}
+      #batchBar .btn-danger{margin-left:auto}
+    </style>
+    <label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" id="batchAll" onchange="batchSelectAll(this)"> 全选</label>
+    <span id="batchCount" style="color:var(--text-muted)">已选 0 个</span>
+    <select id="batchCat" onchange="batchSetCategory()" style="padding:5px 7px;background:var(--bg-panel);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary)"><option value="">改分类…</option></select>
+    <button class="btn" onclick="openBatchStyleModal()" title="批量修改选中点位的描述字号/粗细">🎨 改样式</button>
+    <button class="btn btn-danger" onclick="batchDelete()">删除选中</button>
+    <button class="btn" onclick="toggleBatch()">退出</button>
   </div>
   <div class="shop-list" id="shopList"></div>
   <div class="sidebar-footer">
-    <button class="btn btn-danger" id="btnClearDraft" onclick="clearDraftAndReload()" title="清除本地临时保存的草稿并恢复空白模板" style="width:100%;margin-bottom:10px">🗑 清空调试草稿</button>
+    <div class="footer-actions">
+      <button class="btn" onclick="printReport()" title="打印清单">🖨 打印</button>
+      <button class="btn" id="btnBatch" onclick="toggleBatch()" title="批量选择/改分类/删除">☑ 批量</button>
+      <button class="btn icon-btn" onclick="undo()" title="撤销 (Ctrl+Z)">↶</button>
+      <button class="btn icon-btn" onclick="redo()" title="重做 (Ctrl+Y)">↷</button>
+      <button class="btn icon-btn" onclick="openClearConfirmModal()" title="清空调试草稿" style="color:#e74c3c;border-color:rgba(231,76,60,.45);background:rgba(231,76,60,.08)">🗑</button>
+      <button class="btn icon-btn" onclick="openSettingsModal()" title="设置">⚙</button>
+    </div>
     <div class="legend-items" id="legendItems"></div>
   </div>
 </div>
 <div id="mapModeCtrl" style="position:fixed;top:12px;right:12px;z-index:1500;display:flex;background:var(--bg-panel);border:1px solid var(--border-color);border-radius:8px;overflow:hidden;backdrop-filter:blur(12px);">
-  <button class="map-mode-btn" data-mode="city" onclick="setMapMode('city')" style="padding:7px 12px;font-size:12px;border:none;background:transparent;color:var(--text-secondary);cursor:pointer">🗺 城市图</button>
-  <button class="map-mode-btn active" data-mode="sat" onclick="setMapMode('sat')" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--text-secondary);cursor:pointer">🛰 卫星图</button>
+  <select id="mapModeSel" onchange="setMapMode(this.value)" title="切换底图" style="padding:7px 8px;font-size:12px;border:none;background:transparent;color:var(--text-primary);cursor:pointer;outline:none;max-width:130px"></select>
   <button class="map-dl-btn" onclick="openDownload()" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--accent-blue);cursor:pointer;font-weight:600">📥 下载</button>
   <button onclick="enterAreaMode()" title="预先在地图上选定下载区域（矩形/多边形），之后点下载无需再框选" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--accent-special);cursor:pointer;font-weight:600">✏ 选区域</button>
+  <button onclick="toggleMeasure()" title="测距 / 测面积：依次点击打点" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--accent-orange,#e67e22);cursor:pointer;font-weight:600">📏 测量</button>
+  <button onclick="togglePoiSearch()" title="搜索地图自带地点（高德 POI）" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--accent-special);cursor:pointer;font-weight:600">🔍 搜地点</button>
+  <button id="btnRoadNet" onclick="toggleRoadNet()" title="开/关道路线条（路网）" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--text-secondary);cursor:pointer;font-weight:600">🛣 路网</button>
+  <button id="btnTextLabels" onclick="toggleTextLabels()" title="开/关地图文字（路名·地名·POI 名称）" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--text-secondary);cursor:pointer;font-weight:600">🏷 文字</button>
+</div>
+<div id="settingsModal" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.55);align-items:center;justify-content:center;">
+  <div style="width:440px;max-width:92vw;max-height:86vh;overflow:auto;background:var(--bg-panel);border:1px solid var(--border-active);border-radius:12px;padding:18px;">
+    <h3 style="margin:0 0 10px;font-size:16px;color:var(--text-primary)">⚙ 设置</h3>
+    <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:8px;padding:12px;margin-bottom:14px">
+      <h4 style="margin:0 0 8px;font-size:14px;color:var(--text-primary)">🔑 高德地图 Key</h4>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5">
+        用于「自动识别街道」和「搜索地图地点」。申请：<a href="https://lbs.amap.com/" target="_blank" style="color:var(--accent-blue)">高德开放平台</a> → 创建应用 → 添加 Key（服务平台选「Web 服务」）。Key 仅保存在本机浏览器，不随工程文件分享。
+      </div>
+      <label style="font-size:12px;color:var(--text-secondary)">Web 服务 Key</label>
+      <input id="setAmapKey" style="width:100%;padding:8px;margin:4px 0 10px;font-size:13px;background:var(--bg-panel);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);outline:none">
+      <label style="font-size:12px;color:var(--text-secondary)">安全密钥 jscode（可选，新版账号需要）</label>
+      <input id="setAmapSecret" style="width:100%;padding:8px;margin:4px 0 10px;font-size:13px;background:var(--bg-panel);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);outline:none">
+      <div style="display:flex;justify-content:flex-end"><button class="btn btn-primary" onclick="saveKeyConfig()">保存 Key</button></div>
+    </div>
+    <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:8px;padding:12px;margin-bottom:14px">
+      <h4 style="margin:0 0 8px;font-size:14px;color:var(--text-primary)">🛰 天地图 Key</h4>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5">
+        用于「天地图影像 / 地形 / 矢量」三类底图（国家测绘官方，WGS-84 坐标，无偏移）。申请：<a href="https://www.tianditu.gov.cn/" target="_blank" style="color:var(--accent-blue)">天地图</a> → 注册 → 创建应用（类型选「浏览器端」）→ 复制 tk。Key 仅保存在本机浏览器。
+      </div>
+      <label style="font-size:12px;color:var(--text-secondary)">天地图 tk（Key）</label>
+      <input id="setTdtKey" placeholder="例如：a1b2c3d4e5f6...（t= 后面的字符串）" style="width:100%;padding:8px;margin:4px 0 10px;font-size:13px;background:var(--bg-panel);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);outline:none">
+      <div style="display:flex;justify-content:flex-end"><button class="btn btn-primary" onclick="saveKeyConfig()">保存 Key</button></div>
+    </div>
+    <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:8px;padding:12px;margin-bottom:14px">
+      <h4 style="margin:0 0 6px;font-size:14px;color:var(--text-primary)">⚙ 类型管理</h4>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5">添加、修改、删除点位分类与颜色。</div>
+      <button class="btn" onclick="openCatManager(); closeSettingsModal();" style="width:100%">打开类型管理</button>
+    </div>
+    <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:8px;padding:12px;margin-bottom:14px">
+      <h4 style="margin:0 0 6px;font-size:14px;color:var(--text-primary)">📁 导入 / 导出</h4>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5">CSV 批量导入点位，或导出 GIS 格式到 QGIS / Google Earth。</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn" onclick="closeSettingsModal();openImportModal()">📥 导入CSV</button>
+        <button class="btn" onclick="closeSettingsModal();openGisModal()">🌐 导出GIS</button>
+      </div>
+    </div>
+    <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:8px;padding:12px;margin-bottom:14px">
+      <h4 style="margin:0 0 6px;font-size:14px;color:var(--text-primary)">🔐 工程文件</h4>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5">加密保存为受密码保护的 .ditu 文件，或打开已有的工程文件（.ditu / .html）。</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn" onclick="closeSettingsModal();saveEncrypted()">🔐 加密保存</button>
+        <button class="btn" onclick="closeSettingsModal();document.getElementById('projFileInput').click()">📂 打开工程</button>
+      </div>
+    </div>
+    <div style="text-align:right;display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="closeSettingsModal()">关闭</button>
+    </div>
+  </div>
+</div>
+<div id="poiSearchPanel" style="position:fixed;top:56px;right:12px;z-index:1490;width:300px;background:var(--bg-panel);border:1px solid var(--border-color);border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.35);backdrop-filter:blur(12px);overflow:hidden;display:none">
+  <div style="display:flex;align-items:center;gap:6px;padding:8px;border-bottom:1px solid var(--border-color)">
+    <input id="poiKeyword" placeholder="搜地点：加油站 / 肯德基..." style="flex:1;padding:7px 9px;font-size:13px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);outline:none">
+    <button class="btn btn-primary" onclick="runPoiSearch()" style="padding:7px 10px;white-space:nowrap">搜索</button>
+    <button class="btn" onclick="togglePoiSearch()" style="padding:7px 10px;white-space:nowrap">✕</button>
+  </div>
+  <div style="padding:6px 8px;display:flex;gap:6px;align-items:center;border-bottom:1px solid var(--border-color)">
+    <input id="poiCity" placeholder="城市(可选，如 北京)" style="flex:1;padding:6px 8px;font-size:12px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);outline:none">
+    <span style="font-size:11px;color:var(--text-muted);white-space:nowrap">留空=当前地图周边</span>
+  </div>
+  <div id="poiResults" style="max-height:320px;overflow:auto;padding:4px 0"></div>
 </div>
 <div id="areaToolbar">
   <span class="at-title">选定下载区域</span>
@@ -361,8 +500,28 @@ body{
   <button class="btn btn-primary" id="atFinish" onclick="finishAreaSelect()" style="display:none">完成</button>
   <button class="btn" id="atClear" onclick="clearSelArea()">清除</button>
 </div>
-<button id="manualLocBtn" onclick="startManualLocate()" title="网络定位不准时，手动在地图上点选你的真实位置（再次点击取消）" style="position:fixed;bottom:76px;right:12px;z-index:1500;width:44px;height:44px;border-radius:50%;border:1px solid var(--border-color);background:var(--bg-panel);color:var(--accent-blue);font-size:19px;cursor:pointer;backdrop-filter:blur(12px);box-shadow:0 2px 12px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;">🖱</button>
-<button id="locateBtn" onclick="locateMe()" title="定位到我当前所在位置（需允许浏览器定位权限；localhost / HTTPS 可用，file:// 不可用）" style="position:fixed;bottom:24px;right:12px;z-index:1500;width:44px;height:44px;border-radius:50%;border:1px solid var(--border-color);background:var(--bg-panel);color:var(--accent-blue);font-size:19px;cursor:pointer;backdrop-filter:blur(12px);box-shadow:0 2px 12px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;">📍</button>
+<button id="manualLocBtn" onclick="startManualLocate()" title="网络定位不准时，手动在地图上点选你的真实位置（再次点击取消）" style="position:fixed;bottom:76px;right:12px;z-index:1500;width:44px;height:44px;border-radius:50%;border:1px solid var(--border-color);background:var(--bg-panel);color:var(--text-primary);cursor:pointer;backdrop-filter:blur(12px);box-shadow:0 2px 12px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;transition:color .15s,border-color .15s" onmouseover="this.style.color='var(--accent-blue)';this.style.borderColor='var(--accent-blue)'" onmouseout="this.style.color='var(--text-primary)';this.style.borderColor='var(--border-color)'"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3 L5 17 L9 13 L11.5 19.5 L13.5 18.7 L11 12 L16 12 Z"/></svg></button>
+<div id="measurePanel" style="display:none;position:fixed;bottom:20px;left:20px;z-index:1500;background:var(--bg-panel);border:1px solid var(--border-color);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--text-primary);backdrop-filter:blur(12px);max-width:250px;line-height:1.6"></div>
+<div id="boundaryQuick" style="display:none;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:1400;background:var(--bg-panel);border:1px solid var(--border-color);border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.35);backdrop-filter:blur(12px);font-size:12px;color:var(--text-secondary);max-width:94vw">
+  <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid var(--border-color);cursor:pointer" onclick="toggleBoundaryQuick()" title="折叠/展开">
+    <span style="font-weight:600;color:var(--text-primary)">行政区划快捷</span>
+    <span style="font-size:11px;color:var(--text-muted)">选省→市界；选市→区界；选区→下一级</span>
+    <span id="bqToggle" style="margin-left:auto;color:var(--text-muted)">▾</span>
+  </div>
+  <div id="bqBody" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px">
+    <select id="bProv" onchange="onProvChange()" style="font-size:12px;padding:3px 6px;border-radius:6px;border:1px solid var(--border-color);background:var(--bg-panel);color:var(--text-primary)">
+      <option value="">— 选省（显示市界）—</option>
+    </select>
+    <select id="bCity" onchange="onCityChange()" style="font-size:12px;padding:3px 6px;border-radius:6px;border:1px solid var(--border-color);background:var(--bg-panel);color:var(--text-primary)">
+      <option value="">— 选市（显示区界）—</option>
+    </select>
+    <select id="bDist" onchange="onDistChange()" style="font-size:12px;padding:3px 6px;border-radius:6px;border:1px solid var(--border-color);background:var(--bg-panel);color:var(--text-primary)">
+      <option value="">— 选区（显示下一级）—</option>
+    </select>
+    <span style="font-size:11px;color:var(--text-muted)">镇/街道多数无数据</span>
+  </div>
+</div>
+<button id="locateBtn" onclick="locateMe()" title="定位到我当前所在位置（需允许浏览器定位权限；localhost / HTTPS 可用，file:// 不可用）" style="position:fixed;bottom:24px;right:12px;z-index:1500;width:44px;height:44px;border-radius:50%;border:1px solid var(--border-color);background:var(--bg-panel);color:var(--text-primary);cursor:pointer;backdrop-filter:blur(12px);box-shadow:0 2px 12px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;transition:color .15s,border-color .15s" onmouseover="this.style.color='var(--accent-blue)';this.style.borderColor='var(--accent-blue)'" onmouseout="this.style.color='var(--text-primary)';this.style.borderColor='var(--border-color)'"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M12 7v4M12 13v4M9 12h2M13 12h2"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg></button>
 <div id="mapContainer"></div>
 <div id="toast"></div>
 <div id="catModal" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.55);align-items:center;justify-content:center;">
@@ -379,6 +538,81 @@ body{
     </div>
   </div>
 </div>
+<!-- ===== 导入 CSV 弹窗 ===== -->
+<div id="importModal" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.55);align-items:center;justify-content:center;">
+  <div style="width:520px;max-width:94vw;max-height:88vh;overflow:auto;background:var(--bg-panel);border:1px solid var(--border-active);border-radius:12px;padding:18px;">
+    <h3 style="margin:0 0 10px;font-size:15px;color:var(--text-primary)">批量导入坐标（CSV / 文本）</h3>
+    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">支持经纬度：<b>lng/lon/经度/x</b>、<b>lat/纬度/y</b>、<b>name/名称/店名</b>（首行可带表头，自动识别列）。也可直接粘贴或用文件。</div>
+    <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center;flex-wrap:wrap">
+      <input type="file" id="csvFile" accept=".csv,.txt" style="font-size:12px;color:var(--text-secondary)">
+      <select id="csvCat" style="padding:6px 8px;font-size:12px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary)"></select>
+      <label style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" id="csvHasHeader" checked> 首行表头</label>
+    </div>
+    <textarea id="csvText" placeholder="lng,lat,name&#10;116.397,39.908,示例店A&#10;116.401,39.912,示例店B" style="width:100%;height:150px;resize:vertical;padding:8px;font-size:12px;font-family:monospace;background:var(--bg-card);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);outline:none"></textarea>
+    <div id="csvPreview" style="font-size:12px;color:var(--text-muted);margin:8px 0;min-height:18px"></div>
+    <div style="text-align:right;display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="closeImportModal()">取消</button>
+      <button class="btn btn-primary" onclick="doImportCsv()">导入</button>
+    </div>
+  </div>
+</div>
+<!-- ===== 导出 GIS 弹窗 ===== -->
+<div id="gisModal" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.55);align-items:center;justify-content:center;">
+  <div style="width:440px;max-width:92vw;max-height:86vh;overflow:auto;background:var(--bg-panel);border:1px solid var(--border-active);border-radius:12px;padding:18px;">
+    <h3 style="margin:0 0 12px;font-size:15px;color:var(--text-primary)">导出 GIS 格式</h3>
+    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px">把当前点位（含名称/描述/分类/连线）导出为标准地理格式，可导入 QGIS / Google Earth / 高德。</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px">
+      <label style="font-size:13px;display:flex;align-items:center;gap:8px;cursor:pointer"><input type="radio" name="gisFmt" value="kml" checked> KML（Google Earth / 高德）</label>
+      <label style="font-size:13px;display:flex;align-items:center;gap:8px;cursor:pointer"><input type="radio" name="gisFmt" value="geojson"> GeoJSON（QGIS / 通用）</label>
+      <label style="font-size:13px;display:flex;align-items:center;gap:8px;cursor:pointer"><input type="radio" name="gisFmt" value="gpx"> GPX（轨迹/路点）</label>
+    </div>
+    <div style="text-align:right;display:flex;gap:8px;justify-content:flex-end;margin-top:6px">
+      <button class="btn" onclick="closeGisModal()">取消</button>
+      <button class="btn btn-primary" onclick="doExportGis()">导出</button>
+    </div>
+  </div>
+</div>
+<div id="clearConfirmModal" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.6);align-items:center;justify-content:center;">
+  <div style="width:360px;max-width:92vw;background:var(--bg-panel);border:1px solid var(--border-active);border-radius:12px;padding:18px;box-shadow:0 8px 32px rgba(0,0,0,.5)">
+    <h3 style="margin:0 0 10px;font-size:15px;color:var(--text-primary)">⚠️ 确认清空所有数据？</h3>
+    <div style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-bottom:14px">
+      当前共有 <b id="clearCount" style="color:var(--text-primary)">0</b> 个点位、<b id="clearCatCount" style="color:var(--text-primary)">0</b> 个分类。
+      清空后<b style="color:#e74c3c">不可恢复</b>，请确认是否继续。
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="closeClearConfirmModal()">取消</button>
+      <button class="btn btn-danger" onclick="doClearDraftAndReload()">确认清空</button>
+    </div>
+  </div>
+</div>
+<div id="batchStyleModal" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.55);align-items:center;justify-content:center;">
+  <div style="width:420px;max-width:92vw;max-height:86vh;overflow:auto;background:var(--bg-panel);border:1px solid var(--border-active);border-radius:12px;padding:18px;">
+    <h3 style="margin:0 0 8px;font-size:16px;color:var(--text-primary)">🎨 批量设置描述样式</h3>
+    <div id="batchStyleCount" style="font-size:12px;color:var(--text-secondary);margin-bottom:14px">已选 0 个点位</div>
+    <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:8px;padding:12px;margin-bottom:14px">
+      <div style="display:flex;gap:12px;align-items:flex-end;margin-bottom:12px">
+        <div style="flex:1">
+          <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px">字号（px）</label>
+          <input type="number" id="batchStyleFs" min="8" max="40" value="14" style="width:100%;padding:7px 9px;background:var(--bg-panel);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);outline:none" oninput="updateBatchStylePreview()">
+        </div>
+        <div style="flex:1">
+          <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px">粗细</label>
+          <select id="batchStyleFw" style="width:100%;padding:7px 9px;background:var(--bg-panel);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);outline:none" onchange="updateBatchStylePreview()">
+            <option value="100">100</option><option value="200">200</option><option value="300">300</option><option value="400">400</option><option value="500">500</option><option value="600">600</option><option value="700">700</option><option value="800">800</option><option value="900">900</option>
+          </select>
+        </div>
+      </div>
+      <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:6px">实时预览</label>
+      <div style="background:var(--bg-panel);border:1px solid var(--border-color);border-radius:6px;padding:12px;min-height:60px;display:flex;align-items:center;justify-content:center">
+        <span id="batchStylePreview" style="font-family:'PingFang SC','Microsoft YaHei',sans-serif;color:var(--text-primary);white-space:nowrap">示例描述文字</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="closeBatchStyleModal()">取消</button>
+      <button class="btn btn-primary" onclick="applyBatchStyle()">应用</button>
+    </div>
+  </div>
+</div>
 <div id="dlModal" class="dl-modal">
   <div class="dl-box">
     <h3>下载区域地图（框选范围拼接大图）</h3>
@@ -386,10 +620,7 @@ body{
     <div id="dlSourceHint" style="display:none;background:rgba(52,152,219,0.12);border:1px solid rgba(52,152,219,0.3);color:#3498db;font-size:12px;padding:6px 10px;border-radius:6px;margin-bottom:10px">加载中…</div>
     <div class="dl-row">
       <label>底图类型</label>
-      <div class="dl-radio">
-        <label><input type="radio" name="dlMode" value="sat" checked> 🛰 卫星图（含路名）</label>
-        <label><input type="radio" name="dlMode" value="road"> 🗺 城市路网图</label>
-      </div>
+      <select id="dlMode" style="padding:6px 8px;background:var(--bg-panel);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);font-size:13px;max-width:220px"></select>
     </div>
     <div class="dl-row">
       <label>下载缩放级别</label>
@@ -435,6 +666,7 @@ body{
       <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
         <label style="font-size:13px"><input type="checkbox" id="dlShowLabel" checked> 显示标签</label>
         <label style="font-size:13px"><input type="checkbox" id="dlUseDesc"> 用描述字段</label>
+        <label style="font-size:13px" title="自动把重叠的标签错开，避免下载图中文字压在一起"><input type="checkbox" id="dlAvoid" checked> 智能避让重叠</label>
         <span style="font-size:12px;color:var(--text-secondary)">样式</span>
         <select id="dlStyle">
           <option value="original" selected>原始样式</option>
@@ -446,7 +678,7 @@ body{
         </select>
         <!-- 字号/粗细/位置已移至「编辑」弹窗，按点位单独设置 -->
       </div>
-      <div style="font-size:11px;color:var(--text-muted);margin-top:6px">字号 / 粗细 / 位置：在「编辑」弹窗里按每个点位单独设置，下载时各自生效（下载弹窗不再统一调）；样式选「原始样式」时也跟随各点位。标签重叠时用「编辑→偏移/引线」错开</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:6px">字号/粗细/位置在「编辑」弹窗按点位单独设置。标签重叠请先勾选「智能避让重叠」；若使用「服务端高清导出」，修改代码/设置后必须<b>重启「启动地图服务器.bat」</b>才会生效。</div>
     </div>
     <div class="dl-info" id="dlInfo"></div>
     <div class="dl-progress" id="dlProgress"><div></div></div>
@@ -470,6 +702,11 @@ var streets=['柳行街道','黄屯街道','王因街道','洸河街道','接庄
 // 高德新版部分账号需「安全密钥」(jscode)，没有可留空。
 var amapKey='';
 var amapSecret='';
+// 运行时从本地存储读取用户配置的高德 Key（避免改代码），逆地理编码 / POI 搜索共用
+try{
+  var _k=localStorage.getItem('amap_key'); if(_k) amapKey=_k;
+  var _s=localStorage.getItem('amap_secret'); if(_s) amapSecret=_s;
+}catch(e){}
 // 平台名称（点击侧边栏标题即可修改，保存时一并写回文件）
 var platformTitle=document.getElementById('platformTitle').textContent.trim();
 // 锁定开关：模板为 false（可编辑）；保存后的文件强制为 true（表头与类型定义锁定，点位仍可增改）
@@ -515,51 +752,358 @@ function updateZoomLevelDisplay(){
 }
 map.on('zoom zoomend',updateZoomLevelDisplay);
 // 两种底图：城市路网图 / 卫星影像图（均来自高德，合规白名单）
-// 城市图：webrd+style=8 标准路网图（白底，含道路名称）
-// 卫星图：webst+style=6 卫星影像 + webst+style=8 透明注记层（仅路名/路网，背景透明，不可替换为白底地图）
-// detectRetina:true → 高分屏(Retina)自动请求更精细(zoom+1)的瓦片并缩小显示，文字/路名更锐利；maxNativeZoom:18 防止超出高德最高级别
-var cityLayer=L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}',{subdomains:'1234',maxZoom:18});
-var satLayer=L.tileLayer('https://webst0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}',{subdomains:'1234',maxZoom:18});
-var satLabel=L.tileLayer('https://webst0{s}.is.autonavi.com/appmaptile?style=8&x={x}&y={y}&z={z}&lang=zh_cn',{subdomains:'1234',maxZoom:18,opacity:0.9});
-function setMapMode(mode){
-  mapMode=mode;
-  if(mode==='city'){
-    if(map.hasLayer(satLayer))map.removeLayer(satLayer);
-    if(map.hasLayer(satLabel))map.removeLayer(satLabel);
-    if(!map.hasLayer(cityLayer))cityLayer.addTo(map);
-  }else{
-    if(map.hasLayer(cityLayer))map.removeLayer(cityLayer);
-    if(!map.hasLayer(satLayer))satLayer.addTo(map);
-    if(!map.hasLayer(satLabel))satLabel.addTo(map);
-  }
-  document.querySelectorAll('.map-mode-btn').forEach(function(b){b.classList.toggle('active',b.dataset.mode===mode);});
+// ===== 底图系统：注册表 =====
+// 高德(AMap) 瓦片为 GCJ-02；天地图(Tianditu) 瓦片为 CGCS2000≈WGS-84。本工程点位按 GCJ-02 存储，
+// 切到天地图(wgs84) 底图时，点位由 projToBasemap 反算回 WGS-84 以对齐（见下方 setMapMode）。
+var tdtKey='';
+try{ var _tk=localStorage.getItem('tdt_key'); if(_tk) tdtKey=_tk; }catch(e){}
+
+// ===== 地图自带注记显隐控制（拆成「路网」「文字」两个独立开关）=====
+// 瓦片底图里，道路线条(amap_roadnet)与文字注记(路名/地名/POI)是独立的两层叠加在底图之上。
+// 两者可分别开关：既能「只显道路线不显文字」，也能「只显文字不显线」。
+// 注：城市路网图(amap_road)、天地图矢量(tdt_vec) 的基础路名是烧在底图瓦片里的，
+// 无法单独剥离；且瓦片是整张栅格图，文字层里「路名」与「POI 名」混在一起，
+// 做不到「只显示路名」或「按 POI 类型分类隐藏」。
+var showRoadNet=true;     // 道路线条层
+var showTextLabels=true;  // 文字注记层（路名/地名/POI 名称）
+try{ var _rn=localStorage.getItem('show_roadnet'); if(_rn!==null) showRoadNet=(_rn!=='0'&&_rn!=='false'); }catch(e){}
+try{ var _tl=localStorage.getItem('show_text_labels'); if(_tl!==null) showTextLabels=(_tl!=='0'&&_tl!=='false'); }catch(e){}
+var ROADNET_LAYERS={amap_roadnet:1,tdt_vec:1};
+var TEXT_LAYERS={tdt_cia:1,tdt_cta:1,tdt_cva:1,amap_anno:1};
+
+// ===== 行政区划边界（阿里 DataV GeoJSON，GCJ-02 坐标系）=====
+var boundaryLayer=null;
+var boundaryEnabled=false;
+var boundaryAdcode='100000';
+var boundaryFull=false;
+function loadBoundary(){
+  if(!boundaryEnabled) return;
+  var adcode=(document.getElementById('boundaryAdcode').value||'').trim()||'100000';
+  boundaryAdcode=adcode;
+  // 是否包含下一级行政区划：不勾 -> 仅该区域自身轮廓；勾选 -> 该区域 + 其下级边界
+  boundaryFull=document.getElementById('boundaryFull').checked;
+  // 例：adcode=100000 不勾=国境线；勾选=全国所有省边界（100000_full.json）
+  var suffix=boundaryFull?'_full':'';
+  var url='https://geo.datav.aliyun.com/areas_v3/bound/'+encodeURIComponent(adcode)+suffix+'.json';
+  if(boundaryLayer){ map.removeLayer(boundaryLayer); boundaryLayer=null; }
+  fetch(url).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(function(geo){
+      // DataV 边界为 GCJ-02；当前底图为 WGS-84（天地图）时需反算回 WGS-84 才能对齐
+      var toWgs84 = (BASEMAPS[mapMode] && BASEMAPS[mapMode].crs==='wgs84');
+      if(toWgs84){
+        geo=JSON.parse(JSON.stringify(geo));
+        transformGeoCoords(geo, function(c){ var p=gcj02_to_wgs84(c[1],c[0]); c[0]=p.lng; c[1]=p.lat; });
+      }
+      boundaryLayer=L.geoJSON(geo,{
+        style:{color:'#ff6b35',weight:1.6,opacity:.9,fill:false}
+      }).addTo(map);
+      var cnt=geo.features?geo.features.length:0;
+      var name=(geo.features&&geo.features[0]&&geo.features[0].properties&&geo.features[0].properties.name)||adcode;
+      showToast('已加载边界：'+name+(boundaryFull?('（含下级 '+cnt+' 个）'):''));
+    })
+    .catch(function(err){ showToast('边界加载失败：'+(err&&err.message||err)+'（检查 adcode 或网络）'); });
 }
-// WGS-84 转 GCJ-02（火星坐标系），适配高德底图
-function wgs84_to_gcj02(lat, lng){
-  function transformLat(lng2, lat2){
-    var ret = -100.0 + 2.0*lng2 + 3.0*lat2 + 0.2*lat2*lat2 + 0.1*lng2*lat2 + 0.2*Math.sqrt(Math.abs(lng2));
-    ret += (20.0*Math.sin(6.0*lng2*Math.PI) + 20.0*Math.sin(2.0*lng2*Math.PI)) * 2.0 / 3.0;
-    ret += (20.0*Math.sin(lat2*Math.PI) + 40.0*Math.sin(lat2/3.0*Math.PI)) * 2.0 / 3.0;
-    ret += (160.0*Math.sin(lat2/12.0*Math.PI) + 320*Math.sin(lat2*Math.PI/30.0)) * 2.0 / 3.0;
-    return ret;
+// 递归遍历 GeoJSON 坐标并回调 [lng,lat]
+function transformGeoCoords(obj, cb){
+  if(!obj||typeof obj!=='object') return;
+  if(Array.isArray(obj)){
+    if(obj.length>=2 && typeof obj[0]==='number' && typeof obj[1]==='number'){ cb(obj); }
+    else { for(var i=0;i<obj.length;i++) transformGeoCoords(obj[i],cb); }
+  } else {
+    for(var k in obj){ if(obj.hasOwnProperty(k)) transformGeoCoords(obj[k],cb); }
   }
-  function transformLng(lng2, lat2){
-    var ret = 300.0 + lng2 + 2.0*lat2 + 0.1*lng2*lng2 + 0.1*lng2*lat2 + 0.1*Math.sqrt(Math.abs(lng2));
-    ret += (20.0*Math.sin(6.0*lng2*Math.PI) + 20.0*Math.sin(2.0*lng2*Math.PI)) * 2.0 / 3.0;
-    ret += (20.0*Math.sin(lng2*Math.PI) + 40.0*Math.sin(lng2/3.0*Math.PI)) * 2.0 / 3.0;
-    ret += (150.0*Math.sin(lng2/12.0*Math.PI) + 300.0*Math.sin(lng2/30.0*Math.PI)) * 2.0 / 3.0;
-    return ret;
+}
+function syncBoundaryQuickVisibility(){
+  var p=document.getElementById('boundaryQuick');
+  if(p) p.style.display=boundaryEnabled?'block':'none';
+}
+function toggleBoundary(){
+  boundaryEnabled=document.getElementById('showBoundary').checked;
+  syncBoundaryQuickVisibility();
+  if(boundaryEnabled){ loadBoundary(); }
+  else { if(boundaryLayer){ map.removeLayer(boundaryLayer); boundaryLayer=null; } }
+}
+function applyBoundaryAdcode(){
+  if(boundaryEnabled) loadBoundary();
+  else showToast('请先勾选「显示行政区划边界」');
+}
+
+// ===== 省/市/区 级联快捷选择（列表从 DataV 动态拉取）=====
+// 思路：父级 adcode + _full = 其下一级边界。选省→市界，选市→区界，选区→下一级。
+function _fillSelect(sel, items, placeholder){
+  sel.innerHTML='';
+  var ph=document.createElement('option'); ph.value=''; ph.textContent=placeholder; sel.appendChild(ph);
+  (items||[]).forEach(function(it){
+    var o=document.createElement('option'); o.value=it.adcode; o.textContent=it.name; sel.appendChild(o);
+  });
+}
+// 拉取某 adcode 的 _full 列表（其下一级），返回 [{adcode,name}]
+function _fetchChildren(adcode){
+  return fetch('https://geo.datav.aliyun.com/areas_v3/bound/'+encodeURIComponent(adcode)+'_full.json')
+    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(function(geo){
+      return (geo.features||[]).map(function(f){
+        var p=f.properties||{};
+        return {adcode:String(p.adcode), name:p.name||p.adcode};
+      });
+    });
+}
+function _applyByAdcode(adcode, alsoCheckFull){
+  document.getElementById('boundaryAdcode').value=adcode;
+  if(alsoCheckFull) document.getElementById('boundaryFull').checked=true;
+  if(!boundaryEnabled){ document.getElementById('showBoundary').checked=true; boundaryEnabled=true; }
+  syncBoundaryQuickVisibility();
+  loadBoundary();
+}
+function initBoundaryCascade(){
+  // 省级列表来自 100000_full
+  _fetchChildren('100000').then(function(provs){
+    var sel=document.getElementById('bProv');
+    sel.innerHTML='';
+    var nat=document.createElement('option'); nat.value='100000'; nat.textContent='全国省界（34 省级）'; sel.appendChild(nat);
+    var sep=document.createElement('option'); sep.disabled=true; sep.textContent='— 选省份（显示该市界）—'; sel.appendChild(sep);
+    provs.forEach(function(p){ var o=document.createElement('option'); o.value=p.adcode; o.textContent=p.name; sel.appendChild(o); });
+  }).catch(function(e){ console.warn('加载省级列表失败',e); });
+}
+function onProvChange(){
+  var v=document.getElementById('bProv').value;
+  if(!v){ return; }
+  // 选全国省界 -> 100000_full（省界）；选省 -> 该省_full（市界）
+  _applyByAdcode(v, true);
+  var citySel=document.getElementById('bCity'), distSel=document.getElementById('bDist');
+  citySel.innerHTML='<option value="">— 选市（显示区界）—</option>';
+  distSel.innerHTML='<option value="">— 选区（显示下一级）—</option>';
+  if(v==='100000') return; // 全国没有下钻
+  _fetchChildren(v).then(function(cities){
+    _fillSelect(citySel, cities, '— 选市（显示区界）—');
+  }).catch(function(e){ console.warn('加载市级列表失败',e); });
+}
+function onCityChange(){
+  var v=document.getElementById('bCity').value;
+  if(!v){ return; }
+  _applyByAdcode(v, true); // 选市 -> 该市_full（区界）
+  var distSel=document.getElementById('bDist');
+  distSel.innerHTML='<option value="">— 选区（显示下一级）—</option>';
+  _fetchChildren(v).then(function(dists){
+    _fillSelect(distSel, dists, '— 选区（显示下一级）—');
+  }).catch(function(e){ console.warn('加载区县级列表失败',e); });
+}
+function onDistChange(){
+  var v=document.getElementById('bDist').value;
+  if(!v){ return; }
+  _applyByAdcode(v, true); // 选区 -> 该区_full（下一级，镇/街道多数无数据）
+}
+function toggleBoundaryQuick(){
+  var b=document.getElementById('bqBody'), t=document.getElementById('bqToggle');
+  var hide=(b.style.display==='none');
+  b.style.display=hide?'flex':'none';
+  t.textContent=hide?'▾':'▴';
+}
+
+// 高德瓦片模板 / 具体地址
+function amapTpl(t){
+  if(t==='sat') return 'https://webst0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}';
+  if(t==='satlabel') return 'https://webst0{s}.is.autonavi.com/appmaptile?style=8&lang=zh_cn&x={x}&y={y}&z={z}';
+  if(t==='satroadnet') return 'https://webst0{s}.is.autonavi.com/appmaptile?style=7&x={x}&y={y}&z={z}';
+  return 'https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}'; // road
+}
+// 天地图瓦片走本地代理 /amap?layer=tdt_xxx：
+// 服务端 build_tile_url 已支持 tdt_*，并自带 curl→urllib→公共DNS三级fallback。
+// 直接连 tianditu.gov.cn 在某些网络下会因 DNS / CDN 拦截静默失败（Leaflet errorTileUrl:'' 也是静默）。
+var _tdtLayerMap={img_c:'tdt_img',cia_c:'tdt_cia',cta_c:'tdt_cta',vec_c:'tdt_vec',cva_c:'tdt_cva'};
+function tdtTpl(t){ return '/amap?layer='+(_tdtLayerMap[t]||'tdt_vec')+'&sub=0&x={x}&y={y}&z={z}&tk='+encodeURIComponent(tdtKey||''); }
+function amapUrl(t,x,y,z,sub){ return amapTpl(t).replace('{s}',sub).replace('{x}',x).replace('{y}',y).replace('{z}',z); }
+function tdtUrl(t,x,y,z,sub){ return tdtTpl(t).replace('{s}',sub).replace('{x}',x).replace('{y}',y).replace('{z}',z); }
+// 必应瓦片 quadkey 计算（Bing Maps Tile System）：由 z 维逐位取 x/y 二进制交叉合并为四进制
+function bingQuadKey(x, y, z){
+  var key='';
+  for(var i=z;i>0;i--){
+    var d=0;
+    var m=1<<(i-1);
+    if((x&m)!==0) d+=1;
+    if((y&m)!==0) d+=2;
+    key+=d;
   }
-  if(lng<72.004 || lng>137.8347 || lat<0.8293 || lat>55.8271) return {lat:lat, lng:lng}; // 境外不偏移
-  var dLat = transformLat(lng-105.0, lat-35.0);
-  var dLng = transformLng(lng-105.0, lat-35.0);
-  var radLat = lat / 180.0 * Math.PI;
-  var magic = Math.sin(radLat);
-  magic = 1 - 0.00669342162296594323 * magic * magic;
-  var sqrtMagic = Math.sqrt(magic);
-  dLat = (dLat * 180.0) / ((6378245.0 * (1 - 0.00669342162296594323)) / (magic * sqrtMagic) * Math.PI);
-  dLng = (dLng * 180.0) / (6378245.0 / sqrtMagic * Math.cos(radLat) * Math.PI);
-  return {lat:lat+dLat, lng:lng+dLng};
+  return key;
+}
+// 必应卫星图层（quadkey 路径格式，由本地代理 /amap?layer=bing_sat 转发，避免浏览器直连 virtualearth.net 被 CORS/网络策略拦截）
+// url 加 &v=2 是为了让浏览器硬盘 tile cache 里旧的直连 URL（被 CORS 拒）彻底失效
+// 注意：Leaflet 内部把 subdomains 当数组处理，这里直接用整数轮换 (x+y)%4 作为子域，避免 .charAt 在非字符串上报错
+var BingLayer=L.TileLayer.extend({
+  getTileUrl:function(c){
+    var sd=(c.x+c.y)%4;
+    return '/amap?layer=bing_sat&sub='+sd+'&x='+c.x+'&y='+c.y+'&z='+c.z+'&v=2';
+  }
+});
+
+// 单个瓦片图层规格：key -> {f:数据源, t:瓦片类型, op:不透明度, cls:CSS类名}
+var TILE_SPECS={
+  amap_road:{f:'amap',t:'road'},
+  amap_sat:{f:'amap',t:'sat'},
+  amap_anno:{f:'amap',t:'satlabel',op:0.9, cls:'bl-anno'},
+  amap_roadnet:{f:'amap',t:'satroadnet',op:0.5, cls:'bl-roadnet'},  // 0.5 透出底图卫星影像；之前 0.85 视觉上几乎盖住卫星
+  tdt_img:{f:'tdt',t:'img_c'},
+  tdt_vec:{f:'tdt',t:'vec_c'},
+  tdt_cia:{f:'tdt',t:'cia_c',op:0.9, cls:'bl-anno'},
+  tdt_cta:{f:'tdt',t:'cta_c',op:0.9, cls:'bl-anno'},
+  tdt_cva:{f:'tdt',t:'cva_c',op:0.9, cls:'bl-anno'},
+  bing_sat:{f:'bing',t:'sat'}
+};
+// 浏览器下载（canvas）端使用的滤镜，与 CSS .bl-roadnet/.bl-anno 完全一致，保证导出图与屏幕观感一致
+var LAYER_FILTER={
+  amap_roadnet:'brightness(1.12) contrast(1.18) saturate(1.35)',
+  amap_anno:'contrast(1.4) saturate(1.3) brightness(0.92)',
+  tdt_cia:'contrast(1.4) saturate(1.3) brightness(0.92)',
+  tdt_cta:'contrast(1.4) saturate(1.3) brightness(0.92)',
+  tdt_cva:'contrast(1.4) saturate(1.3) brightness(0.92)'
+};
+// 底图注册表：layers 顺序即叠放顺序（先底后上）；crs 决定点位坐标是否需反算；sat 决定下载底色与标注明暗
+var BASEMAPS={
+  urban:{label:'🗺 城区图', crs:'gcj02', sat:false, white:true, layers:['amap_road']},
+  sat:{label:'🛰 卫星图', crs:'gcj02', sat:true, layers:['amap_sat','amap_anno']},
+  satroad:{label:'🛰 卫星+路网', crs:'gcj02', sat:true, layers:['amap_sat','amap_roadnet','amap_anno']},
+  dark:{label:'🌑 暗色大屏', crs:'gcj02', sat:false, dark:true, layers:['amap_road']},
+  tdt_img:{label:'🛰 天地图影像', crs:'wgs84', sat:true, layers:['tdt_img','tdt_cia'], needKey:'tdt'},
+  tdt_vec:{label:'🗺 天地图矢量', crs:'wgs84', sat:false, layers:['tdt_vec','tdt_cva'], needKey:'tdt'},
+  bing:{label:'🛰 必应卫星', crs:'wgs84', sat:true, layers:['bing_sat']}
+};
+var _tileLayerCache={};
+function getTileLayer(key){
+  if(_tileLayerCache[key]) return _tileLayerCache[key];
+  var sp=TILE_SPECS[key];
+  var l;
+  if(sp.f==='bing'){
+    // 必应卫星：quadkey 路径模板，需自定义 Layer；sub 由 getTileUrl 内 (x+y)%4 轮换，无需传 subdomains
+    l=new BingLayer('',{maxZoom:18, opacity:(sp.op||1), errorTileUrl:''});
+  } else {
+    var url= sp.f==='amap' ? amapTpl(sp.t) : tdtTpl(sp.t);
+    var opts={subdomains: sp.f==='amap'?'1234':'0123', maxZoom:18, opacity:(sp.op||1), errorTileUrl:''};
+    if(sp.cls) opts.className=sp.cls;
+    l=L.tileLayer(url, opts);
+  }
+  // 累计瓦片失败次数；连续失败给出明确错误提示（替代原静默失败）
+  var _errCount=0; var _errToastShown=false;
+  l.on('tileerror', function(e){
+    _errCount++;
+    try{ console.error('[tileerror]', key, e.tile?e.tile.src:'no-tile'); }catch(_){}
+    if(_errCount===3 && !_errToastShown){
+      _errToastShown=true;
+      showToast('瓦片加载失败（连续 '+_errCount+' 次）— 请确认本地服务已启动：'+location.origin);
+    }
+  });
+  l.on('tileload', function(){ _errCount=0; _errToastShown=false; });
+  _tileLayerCache[key]=l; return l;
+}
+var curBaseLayers=[];
+function setMapMode(mode){
+  var def=BASEMAPS[mode]||BASEMAPS.sat;
+  mapMode=mode;
+  // 卸载当前底图图层
+  curBaseLayers.forEach(function(l){ if(map.hasLayer(l)) map.removeLayer(l); });
+  curBaseLayers=[];
+  // 按注册表加载并叠放；按数组顺序显式设置 zIndex，确保「文字层」始终压在「路网层」之上（缓存复用的 layer 跨模式后顺序会乱）
+  def.layers.forEach(function(key, idx){
+    if(!showRoadNet && ROADNET_LAYERS[key]) return;      // 关闭路网时不加载道路线条层
+    if(!showTextLabels && TEXT_LAYERS[key]) return;       // 关闭文字时不加载文字注记层（路名/地名/POI）
+    var l=getTileLayer(key);
+    if(!map.hasLayer(l)) l.addTo(map);
+    if(l.setZIndex) l.setZIndex(idx+1);                   // 声明靠后的层 zIndex 更高，叠在最上方
+    curBaseLayers.push(l);
+  });
+  // 暗色滤镜作用于整个瓦片面板（不影响点位/标注，它们在不同面板）
+  var mc=document.getElementById('mapContainer');
+  if(mc) mc.classList.toggle('dark-mode', !!def.dark);
+  // 按模式设置地图容器背景：城市路网图用白底（其余深蓝，避免瓦片缝隙露白）
+  var lv=map.getContainer();
+  if(lv) lv.style.background=(def.white)?'#ffffff':'#0a1628';
+  updateBasemapUI(mode);
+  // 点位坐标需按底图坐标系重绘（wgs84 底图反算回 WGS-84）
+  refreshMarkers();
+  renderDescLabels();
+  if(def.needKey==='tdt' && !tdtKey){
+    showToast('当前底图需要天地图 Key，请在「设置 → 天地图 Key」中填写');
+  }
+  if(boundaryEnabled) loadBoundary(); // 坐标系变化后重新对齐边界
+}
+
+// （「水系·铁路图」高德 JS API 矢量专题图已移除，相关 AMap 引擎代码随之删除）
+
+function updateBasemapUI(mode){
+  var sel=document.getElementById('mapModeSel');
+  if(sel) sel.value=mode;
+  document.querySelectorAll('.map-mode-btn').forEach(function(b){b.classList.toggle('active',b.dataset.mode===mode);});
+  var rn=document.getElementById('btnRoadNet');
+  if(rn) rn.classList.toggle('active', showRoadNet);
+  var tl=document.getElementById('btnTextLabels');
+  if(tl) tl.classList.toggle('active', showTextLabels);
+}
+// 道路线条（路网）显隐开关
+function toggleRoadNet(){
+  showRoadNet=!showRoadNet;
+  try{ localStorage.setItem('show_roadnet', showRoadNet?'1':'0'); }catch(e){}
+  setMapMode(mapMode); // 重建底图，立即应用
+  showToast(showRoadNet?'已显示道路线条（路网）':'已隐藏道路线条（仅底图+文字）');
+}
+// 地图文字（路名/地名/POI 名称）显隐开关
+function toggleTextLabels(){
+  showTextLabels=!showTextLabels;
+  try{ localStorage.setItem('show_text_labels', showTextLabels?'1':'0'); }catch(e){}
+  setMapMode(mapMode); // 重建底图，立即应用
+  showToast(showTextLabels?'已显示地图文字（路名/地名/POI）':'已隐藏地图文字（仅留纯底图）');
+}
+// 初始化底图下拉选项
+function populateBasemapSelect(){
+  var sel=document.getElementById('mapModeSel');
+  if(!sel) return;
+  sel.innerHTML='';
+  Object.keys(BASEMAPS).forEach(function(k){
+    var o=document.createElement('option'); o.value=k; o.textContent=BASEMAPS[k].label; sel.appendChild(o);
+  });
+  sel.value=mapMode;
+}
+// ===== 坐标系变换 =====
+// WGS-84 与 GCJ-02（火星坐标系）互转。高德(AMap) 瓦片为 GCJ-02；本工程点位按 GCJ-02 存储。
+// 天地图(Tianditu) 瓦片为 CGCS2000≈WGS-84（未做 GCJ 加密），切到天地图时需把点位反算回 WGS-84 才能对齐。
+function gcjTransformLat(lng2, lat2){
+  var ret = -100.0 + 2.0*lng2 + 3.0*lat2 + 0.2*lat2*lat2 + 0.1*lng2*lat2 + 0.2*Math.sqrt(Math.abs(lng2));
+  ret += (20.0*Math.sin(6.0*lng2*Math.PI) + 20.0*Math.sin(2.0*lng2*Math.PI)) * 2.0 / 3.0;
+  ret += (20.0*Math.sin(lat2*Math.PI) + 40.0*Math.sin(lat2/3.0*Math.PI)) * 2.0 / 3.0;
+  ret += (160.0*Math.sin(lat2/12.0*Math.PI) + 320*Math.sin(lat2*Math.PI/30.0)) * 2.0 / 3.0;
+  return ret;
+}
+function gcjTransformLng(lng2, lat2){
+  var ret = 300.0 + lng2 + 2.0*lat2 + 0.1*lng2*lng2 + 0.1*lng2*lat2 + 0.1*Math.sqrt(Math.abs(lng2));
+  ret += (20.0*Math.sin(6.0*lng2*Math.PI) + 20.0*Math.sin(2.0*lng2*Math.PI)) * 2.0 / 3.0;
+  ret += (20.0*Math.sin(lng2*Math.PI) + 40.0*Math.sin(lng2/3.0*Math.PI)) * 2.0 / 3.0;
+  ret += (150.0*Math.sin(lng2/12.0*Math.PI) + 300.0*Math.sin(lng2/30.0*Math.PI)) * 2.0 / 3.0;
+  return ret;
+}
+function gcjDelta(lat,lng){
+  if(lng<72.004||lng>137.8347||lat<0.8293||lat>55.8271) return {dlat:0,dlng:0};
+  var dLat=gcjTransformLat(lng-105.0,lat-35.0);
+  var dLng=gcjTransformLng(lng-105.0,lat-35.0);
+  var radLat=lat/180.0*Math.PI;
+  var magic=Math.sin(radLat); magic=1-0.00669342162296594323*magic*magic;
+  var sqrtMagic=Math.sqrt(magic);
+  dLat=(dLat*180.0)/((6378245.0*(1-0.00669342162296594323))/(magic*sqrtMagic)*Math.PI);
+  dLng=(dLng*180.0)/(6378245.0/sqrtMagic*Math.cos(radLat)*Math.PI);
+  return {dlat:dLat,dlng:dLng};
+}
+function wgs84_to_gcj02(lat,lng){
+  if(lng<72.004||lng>137.8347||lat<0.8293||lat>55.8271) return {lat:lat,lng:lng};
+  var d=gcjDelta(lat,lng);
+  return {lat:lat+d.dlat,lng:lng+d.dlng};
+}
+function gcj02_to_wgs84(lat,lng){
+  if(lng<72.004||lng>137.8347||lat<0.8293||lat>55.8271) return {lat:lat,lng:lng};
+  var d=gcjDelta(lat,lng); // 标准逆近似：wgs≈gcj−delta(gcj)，误差<1m
+  return {lat:lat-d.dlat,lng:lng-d.dlng};
+}
+// 当前底图坐标系下，点位应使用的经纬度（wgs84 底图需反算回 WGS-84 才能对齐）
+function projToBasemap(lat,lng){
+  var def=BASEMAPS[mapMode];
+  if(def&&def.crs==='wgs84') return gcj02_to_wgs84(lat,lng);
+  return {lat:lat,lng:lng};
 }
 
 // 一键定位到当前所在位置（浏览器地理定位）
@@ -575,9 +1119,15 @@ function locateMe(){
   navigator.geolocation.getCurrentPosition(function(pos){
     if(btn){btn.disabled=false;}
     var rawLat=pos.coords.latitude, rawLng=pos.coords.longitude;
-    // 浏览器返回 WGS-84，高德底图需要 GCJ-02，先转换
-    var conv=wgs84_to_gcj02(rawLat, rawLng);
-    var lat=conv.lat, lng=conv.lng;
+    // 浏览器返回 WGS-84；需按当前底图坐标系显示：
+    // 天地图(WGS-84) 直接用原始坐标，否则(高德 GCJ-02) 转 GCJ-02
+    var lat, lng;
+    if(BASEMAPS[mapMode] && BASEMAPS[mapMode].crs==='wgs84'){
+      lat=rawLat; lng=rawLng;
+    } else {
+      var conv=wgs84_to_gcj02(rawLat, rawLng);
+      lat=conv.lat; lng=conv.lng;
+    }
     map.flyTo([lat,lng], Math.max(map.getZoom(),15));
     if(myLocMarker) map.removeLayer(myLocMarker);
     myLocMarker=L.circleMarker([lat,lng],{radius:8,color:'#3498db',fillColor:'#3498db',fillOpacity:1,weight:3}).addTo(map);
@@ -627,18 +1177,28 @@ function onMapClickForManual(e){
 map.on('click', onMapClickForManual);
 
 var markers=[];
-var showMapDesc=false; // 是否在地图标记旁永久显示描述标签
+var showMapDesc=true; // 是否在地图标记旁永久显示描述标签
 function toggleMapDescLabels(){
   showMapDesc=document.getElementById('showMapDesc').checked;
   refreshMarkers(); // 重建标记（含/不含标签）
 }
 var currentFilter='all';
 var currentSearch='';
+var currentViewportOnly=false;
 var currentEditIdx=null;
 var mapMode='sat'; // 默认与源文件一致：卫星影像图；'city'=城市路网图
 
 function catMap(){var m={};categories.forEach(function(c){m[c.key]=c});return m;}
 function getColor(s){var m=catMap();return (m[s.type]&&m[s.type].color)||'#3498db';}
+// 点位完善度检查：返回待完善原因（空串=已完善）。用于列表红字提示与「待完善」统计
+function shopIssue(s){
+  if(s.lat==null||s.lng==null||isNaN(s.lat)||isNaN(s.lng)) return '坐标缺失';
+  if(s.lng<72.004||s.lng>137.8347||s.lat<0.8293||s.lat>55.8271) return '坐标越界';
+  if(!s.street||!s.street.trim()) return '街道未识别';
+  return '';
+}
+// 格式化编辑时间（mm-dd HH:MM）
+function fmtMtime(ts){ if(!ts)return ''; var d=new Date(ts); var p=function(n){return (n<10?'0':'')+n;}; return p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes()); }
 function getLabel(s){var m=catMap();return (m[s.type]&&m[s.type].label)||s.type;}
 
 // 内置图钉形状（多种类型：几何 + 常见 POI 图标）
@@ -701,15 +1261,22 @@ function resolvePin(s){
   var cat=catMap()[s.type]||{};
   return {shape:(s.shape||cat.shape||'teardrop'), icon:(s.icon||cat.icon||null)};
 }
-function makeIcon(s){
+function iconHtml(s){
   var size=(s.pinSize||26), p=resolvePin(s), c=getColor(s);
   if(p.icon){
-    var html='<img src="'+p.icon+'" style="width:'+size+'px;height:'+size+'px;display:block;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.35));pointer-events:none">';
+    return '<img src="'+p.icon+'" style="width:'+size+'px;height:'+size+'px;display:block;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.35));pointer-events:none">';
+  }
+  var g=pinSvg(p.shape,c,size);
+  return '<svg width="'+g.w+'" height="'+g.h+'" viewBox="'+g.vb+'">'+g.body+'</svg>';
+}
+function makeIcon(s){
+  var size=(s.pinSize||26), p=resolvePin(s), c=getColor(s);
+  var html=iconHtml(s);
+  if(p.icon){
     return L.divIcon({className:'custom-marker',html:html,iconSize:[size,size],iconAnchor:[size/2,size],popupAnchor:[0,-size]});
   }
   var g=pinSvg(p.shape,c,size);
-  var svg='<svg width="'+g.w+'" height="'+g.h+'" viewBox="'+g.vb+'">'+g.body+'</svg>';
-  return L.divIcon({className:'custom-marker',html:svg,iconSize:[g.w,g.h],iconAnchor:g.anchor,popupAnchor:[0,-g.h]});
+  return L.divIcon({className:'custom-marker',html:html,iconSize:[g.w,g.h],iconAnchor:g.anchor,popupAnchor:[0,-g.h]});
 }
 
 function bindMarkerEvents(marker,idx){
@@ -758,7 +1325,8 @@ function refreshMarkers(){
   markers.forEach(function(m){map.removeLayer(m)});
   markers=[];
   shops.forEach(function(s,idx){
-    var m=L.marker([s.lat,s.lng],{icon:makeIcon(s),draggable:true}).bindPopup('',{closeOnClick:false,autoClose:false,autoPan:true,autoPanPadding:[20,20],autoPanPaddingTopLeft:[380,20],autoPanPaddingBottomRight:[20,20],keepInView:true,maxWidth:360});
+    var _ll=projToBasemap(s.lat,s.lng);
+    var m=L.marker([_ll.lat,_ll.lng],{icon:makeIcon(s),draggable:true}).bindPopup('',{closeOnClick:false,autoClose:false,autoPan:true,autoPanPadding:[20,20],autoPanPaddingTopLeft:[380,20],autoPanPaddingBottomRight:[20,20],keepInView:true,maxWidth:360});
     if(!(showMapDesc && s.desc && s.desc.trim())){
       // 未开启永久描述标签时：鼠标悬停提示名称 + 描述
       m.bindTooltip(((s.name||'')+(s.desc?('｜'+s.desc):'')),{direction:'top',opacity:0.92});
@@ -851,6 +1419,7 @@ function renderDescLabels(){
     var textEl=el.querySelector('.map-desc-text');
     if(textEl && v.s.descColor){ textEl.style.setProperty('color', v.s.descColor, 'important'); }
     if(textEl){ var fw=(v.s.fontWeight!==undefined?v.s.fontWeight:(v.s.bold===false?400:500)); textEl.style.setProperty('font-weight', fw, 'important'); }
+    if(textEl && v.s.fontSize){ textEl.style.setProperty('font-size', (v.s.fontSize||14)+'px', 'important'); }
     if(st==='border'){ el.style.setProperty('borderColor', getColor(v.s), 'important'); }
     el.style.left=v.lp.x+'px'; el.style.top=v.lp.y+'px';
     labelLayer.appendChild(el);
@@ -946,6 +1515,7 @@ function editIconClear(){
 
 function saveEdit(){
   if(currentEditIdx===null)return;var s=shops[currentEditIdx];
+  snapshot();
   s.name=document.getElementById('editName').value.trim()||s.name;
   s.type=document.getElementById('editType').value;
   s.street=document.getElementById('editStreet').value.trim()||'';
@@ -970,6 +1540,7 @@ function saveEdit(){
   markers[currentEditIdx].setLatLng([s.lat,s.lng]);
   markers[currentEditIdx].setIcon(makeIcon(s));
   markers[currentEditIdx].closePopup();
+  s.mtime=Date.now();
   showToast('已保存：'+s.name);
   updateStats();renderList();autosave();
   renderDescLabels(); // 立即按新样式/连线重画地图标签，无需 F5
@@ -978,8 +1549,16 @@ function saveEdit(){
 function deleteShop(){
   if(currentEditIdx===null)return;
   if(!confirm('确定要删除「'+shops[currentEditIdx].name+'」吗？'))return;
+  snapshot();
   shops.splice(currentEditIdx,1);currentEditIdx=null;
   refreshMarkers();updateStats();renderList();showToast('已删除');autosave();
+}
+
+// 新增点位自动编号：在已有「店铺N」中取最大 N+1，避免重名（N 从 1 开始）
+function nextShopName(){
+  var max=0;
+  shops.forEach(function(s){ var m=/^店铺(\d+)$/.exec(s.name||''); if(m){ var n=parseInt(m[1],10); if(n>max)max=n; } });
+  return '店铺'+(max+1);
 }
 
 function addNewShop(){
@@ -989,7 +1568,11 @@ function addNewShop(){
     categories.push({key:'uncat',label:'未分类',color:'#3498db'});
     renderFilterBar();renderLegend();
   }
-  var ns={name:'新店铺',street:'',type:(categories[0]?categories[0].key:'uncat'),addr:'',lat:center.lat,lng:center.lng,desc:'',pinSize:labelCfg.pinSize,fontSize:labelCfg.fontSize,fontWeight:labelCfg.fontWeight,style:'shadow',pos:labelCfg.pos,offX:labelCfg.offX,offY:labelCfg.offY,lineType:labelCfg.lineType,lineColor:labelCfg.lineColor,descColor:labelCfg.descColor};
+  snapshot();
+  var raw=map.getCenter();
+  // 统一基准：POI 全部存 GCJ-02；在 WGS-84 底图下点位原始值是 WGS-84，先逆算 GCJ-02 再存
+  var cc=(BASEMAPS[mapMode]&&BASEMAPS[mapMode].crs==='wgs84')?wgs84_to_gcj02(raw.lat,raw.lng):raw;
+  var ns={name:nextShopName(),street:'',type:(categories[0]?categories[0].key:'uncat'),addr:'',lat:cc.lat,lng:cc.lng,desc:'',mtime:Date.now(),pinSize:labelCfg.pinSize,fontSize:labelCfg.fontSize,fontWeight:labelCfg.fontWeight,style:'shadow',pos:labelCfg.pos,offX:labelCfg.offX,offY:labelCfg.offY,lineType:labelCfg.lineType,lineColor:labelCfg.lineColor,descColor:labelCfg.descColor};
   shops.push(ns);var idx=shops.length-1;
   refreshMarkers();updateStats();renderList();
   setTimeout(function(){openEditPopup(idx);},100);
@@ -1002,10 +1585,15 @@ function addNewShop(){
 function updateStats(){
   var total=shops.length;
   var streetCount=new Set(shops.map(function(s){return s.street})).size;
+  var incomplete=shops.filter(function(s){return shopIssue(s);}).length;
   var cards='<div class="stat-card"><div class="stat-label">点位总数</div><div class="stat-value">'+total+'<span class="unit">个</span></div></div>'+
+            '<div class="stat-card"><div class="stat-label">待完善</div><div class="stat-value" style="color:'+(incomplete?'#e74c3c':'#2ecc71')+'">'+incomplete+'<span class="unit">个</span></div></div>'+
             '<div class="stat-card"><div class="stat-label">覆盖街道</div><div class="stat-value">'+streetCount+'<span class="unit">个</span></div></div>';
-  categories.forEach(function(c){var n=shops.filter(function(s){return s.type===c.key}).length;
-    cards+='<div class="stat-card"><div class="stat-label">'+escapeHtml(c.label)+'</div><div class="stat-value" style="color:'+c.color+'">'+n+'<span class="unit">个</span></div></div>';});
+  categories.forEach(function(c){
+    if(categories.length===1 && c.key==='uncat') return; // 单「未分类」时与总数重复，不显示
+    var n=shops.filter(function(s){return s.type===c.key}).length;
+    cards+='<div class="stat-card"><div class="stat-label">'+escapeHtml(c.label)+'</div><div class="stat-value" style="color:'+c.color+'">'+n+'<span class="unit">个</span></div></div>';
+  });
   document.getElementById('statsGrid').innerHTML=cards;
 }
 
@@ -1014,17 +1602,30 @@ function renderList(){
   var filtered=shops.map(function(s,i){return{s:s,idx:i}}).filter(function(item){
     var s=item.s;
     if(currentFilter!=='all'&&s.type!==currentFilter)return false;
+    if(currentViewportOnly){ var b=map.getBounds(); var _ll=projToBasemap(s.lat,s.lng); if(!b.contains([_ll.lat,_ll.lng]))return false; }
     if(currentSearch){var q=currentSearch.toLowerCase();if(s.name.toLowerCase().indexOf(q)<0&&s.addr.toLowerCase().indexOf(q)<0&&s.street.toLowerCase().indexOf(q)<0)return false;}
     return true;
   });
   if(filtered.length===0){list.innerHTML='<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px">暂无点位，点「+ 新增店铺」开始添加</div>';return;}
   list.innerHTML=filtered.map(function(item){var s=item.s,c=getColor(s);
-    return '<div class="shop-item" data-idx="'+item.idx+'"><div class="marker-dot" style="background:'+c+';color:'+c+'"></div>'+
-      '<div class="shop-info"><div class="shop-name">'+escapeHtml(s.name)+'</div>'+
-      '<div class="shop-addr">'+escapeHtml(s.street)+' · '+escapeHtml(s.addr)+' · '+s.lat.toFixed(5)+','+s.lng.toFixed(5)+'</div></div>'+
-      '<div class="actions"><button class="btn" onclick="event.stopPropagation();openEditPopup('+item.idx+')">编辑</button></div></div>';
+    var cb=batchMode?'<input type="checkbox" class="batch-cb" data-idx="'+item.idx+'" '+(selectedShops[item.idx]?'checked':'')+' style="margin-right:6px;flex:none">':'';
+    var issue=shopIssue(s);
+    var note=issue?('<div class="shop-issue">⚠ '+issue+'</div>'):'';
+    var mt=s.mtime?('<span class="shop-mt">· '+fmtMtime(s.mtime)+'</span>'):'';
+    return '<div class="shop-item'+(issue?' shop-warn':'')+'" data-idx="'+item.idx+'">'+cb+'<div class="marker-dot" style="background:'+c+';color:'+c+'"></div>'+
+      '<div class="shop-info"><div class="shop-name">'+escapeHtml(s.name)+mt+'</div>'+
+      '<div class="shop-addr">'+escapeHtml(s.street)+' · '+escapeHtml(s.addr)+' · '+s.lat.toFixed(5)+','+s.lng.toFixed(5)+'</div>'+note+'</div>'+
+      (batchMode?'':('<div class="actions"><button class="btn" onclick="event.stopPropagation();openEditPopup('+item.idx+')">编辑</button></div>'))+'</div>';
   }).join('');
-  list.querySelectorAll('.shop-item').forEach(function(el){el.addEventListener('click',function(){var idx=parseInt(this.dataset.idx);var m=markers[idx];map.setView(m.getLatLng(),16,{animate:true});openEditPopup(idx);});});
+  list.querySelectorAll('.shop-item').forEach(function(el){
+    var idx=parseInt(el.dataset.idx);
+    var cb=el.querySelector('.batch-cb');
+    if(cb){cb.addEventListener('change',function(){toggleShopSelect(idx,cb);});}
+    el.addEventListener('click',function(e){
+      if(batchMode){ if(e.target!==cb){cb.checked=!cb.checked;toggleShopSelect(idx,cb);} return; }
+      var m=markers[idx];map.setView(m.getLatLng(),16,{animate:true});openEditPopup(idx);
+    });
+  });
 }
 
 function renderFilterBar(){
@@ -1037,6 +1638,12 @@ function renderFilterBar(){
 
 function renderLegend(){
   var el=document.getElementById('legendItems');
+  if(categories.length<=1){
+    el.innerHTML='';
+    el.style.display='none';
+    return;
+  }
+  el.style.display='flex';
   el.innerHTML=categories.map(function(c){return '<div class="legend-item"><span class="dot" style="background:'+c.color+'"></span>'+escapeHtml(c.label)+'</div>';}).join('');
 }
 
@@ -1097,6 +1704,122 @@ function migrateData(){
 }
 function refreshDerived(){renderFilterBar();renderLegend();updateStats();renderList();refreshMarkers();autosave();}
 
+// ===================== 撤销 / 重做 =====================
+var undoStack=[], redoStack=[], UNDO_MAX=60;
+function _snapState(){
+  return JSON.stringify({shops:shops,categories:categories,selArea:(selArea&&selArea.pts&&selArea.pts.length)?{type:selArea.type,pts:selArea.pts}:null});
+}
+function snapshot(){
+  try{
+    undoStack.push(_snapState());
+    if(undoStack.length>UNDO_MAX) undoStack.shift();
+    redoStack=[];
+  }catch(e){}
+}
+function _restoreSnap(s){
+  try{
+    var d=JSON.parse(s);
+    shops=d.shops||[]; categories=d.categories||[];
+    if(d.selArea&&d.selArea.pts&&d.selArea.pts.length){selArea={type:d.selArea.type,pts:d.selArea.pts,layer:null,handles:[]};buildAreaLayer();}
+    else if(selArea){clearSelArea();}
+    migrateData(); refreshDerived();
+  }catch(e){}
+}
+function undo(){
+  if(!undoStack.length){showToast('没有可撤销的操作');return;}
+  try{ redoStack.push(_snapState()); var s=JSON.parse(undoStack.pop()); _restoreSnap(s); showToast('已撤销'); }catch(e){}
+}
+function redo(){
+  if(!redoStack.length){showToast('没有可重做的操作');return;}
+  try{ undoStack.push(_snapState()); var s=JSON.parse(redoStack.pop()); _restoreSnap(s); showToast('已重做'); }catch(e){}
+}
+document.addEventListener('keydown',function(e){
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){ if(e.shiftKey){redo();} else {undo();} e.preventDefault(); }
+  else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='y'){ redo(); e.preventDefault(); }
+});
+
+// ===================== 批量管理 =====================
+var batchMode=false, selectedShops={};
+function toggleBatch(){
+  batchMode=!batchMode;
+  var bb=document.getElementById('batchBar'); if(bb)bb.style.display=batchMode?'flex':'none';
+  var btn=document.getElementById('btnBatch'); if(btn){btn.textContent=batchMode?'✅ 退出批量':'☑ 批量'; btn.classList.toggle('btn-primary',batchMode);}
+  if(!batchMode){selectedShops={};}
+  renderList();
+  if(batchMode) updateBatchCount();
+}
+function batchSelectAll(cb){
+  selectedShops={};
+  if(cb.checked){ shops.forEach(function(s,i){selectedShops[i]=true;}); }
+  renderList(); updateBatchCount();
+}
+function toggleShopSelect(idx,cb){ if(cb.checked)selectedShops[idx]=true; else delete selectedShops[idx]; updateBatchCount(); }
+function updateBatchCount(){
+  var n=Object.keys(selectedShops).length;
+  var el=document.getElementById('batchCount'); if(el)el.textContent='已选 '+n+' 个';
+  var all=document.getElementById('batchAll'); if(all)all.checked=(n===shops.length&&n>0);
+  // 批量改分类下拉同步类型选项
+  var bc=document.getElementById('batchCat');
+  if(bc&&!bc.value){ bc.innerHTML='<option value="">改分类…</option>'+categories.map(function(c){return '<option value="'+c.key+'">'+escapeHtml(c.label)+'</option>';}).join(''); }
+}
+function batchDelete(){
+  var keys=Object.keys(selectedShops).map(Number).sort(function(a,b){return b-a;});
+  if(!keys.length){showToast('请先勾选点位');return;}
+  if(!confirm('确定删除选中的 '+keys.length+' 个点位？'))return;
+  snapshot();
+  keys.forEach(function(i){shops.splice(i,1);});
+  selectedShops={};
+  refreshDerived(); updateBatchCount();
+  showToast('已删除 '+keys.length+' 个点位');
+}
+function batchSetCategory(){
+  var key=document.getElementById('batchCat').value;
+  if(!key)return;
+  var keys=Object.keys(selectedShops).map(Number);
+  if(!keys.length){showToast('请先勾选点位');document.getElementById('batchCat').value='';return;}
+  snapshot();
+  keys.forEach(function(i){if(shops[i])shops[i].type=key;});
+  document.getElementById('batchCat').value='';
+  refreshDerived();
+  showToast('已修改 '+keys.length+' 个点位分类');
+}
+// 批量设置选中点位的描述文字大小 / 字重（弹窗形式，带实时预览）
+function openBatchStyleModal(){
+  var keys=Object.keys(selectedShops).map(Number);
+  if(!keys.length){ showToast('请先勾选点位'); return; }
+  var first=shops[keys[0]]||{};
+  document.getElementById('batchStyleCount').textContent='已选 '+keys.length+' 个点位';
+  document.getElementById('batchStyleFs').value=(first.fontSize||14);
+  document.getElementById('batchStyleFw').value=(first.fontWeight!==undefined?first.fontWeight:700);
+  document.getElementById('batchStyleModal').style.display='flex';
+  updateBatchStylePreview();
+}
+function closeBatchStyleModal(){ document.getElementById('batchStyleModal').style.display='none'; }
+function updateBatchStylePreview(){
+  var fs=parseInt(document.getElementById('batchStyleFs').value,10)||14;
+  var fw=parseInt(document.getElementById('batchStyleFw').value,10)||700;
+  var el=document.getElementById('batchStylePreview');
+  el.style.fontSize=fs+'px';
+  el.style.fontWeight=fw;
+}
+function applyBatchStyle(){
+  var fs=parseInt(document.getElementById('batchStyleFs').value,10)||14;
+  var fw=parseInt(document.getElementById('batchStyleFw').value,10)||700;
+  var keys=Object.keys(selectedShops).map(Number);
+  if(!keys.length){ showToast('请先勾选点位'); closeBatchStyleModal(); return; }
+  snapshot();
+  var cnt=0;
+  keys.forEach(function(i){
+    if(!shops[i])return;
+    shops[i].fontSize=fs;
+    shops[i].fontWeight=fw;
+    cnt++;
+  });
+  refreshDerived();
+  closeBatchStyleModal();
+  showToast('已为 '+cnt+' 个点位设置描述样式（字号'+fs+' / 粗细'+fw+'）');
+}
+
 // ===== 类型管理 =====
 function openCatManager(){
   if(locked){showToast('已锁定：类型不可修改');return;}
@@ -1141,6 +1864,7 @@ function addCategory(){
   var color=document.getElementById('newCatColor').value;
   if(!name){showToast('请填写类型名称');return;}
   if(categories.some(function(c){return c.label===name;})){showToast('类型已存在');return;}
+  snapshot();
   categories.push({key:'c'+Math.random().toString(36).slice(2,8),label:name,color:color,shape:'',icon:null});
   document.getElementById('newCatName').value='';
   renderCatList();refreshDerived();showToast('已添加类型：'+name);
@@ -1151,6 +1875,7 @@ function delCategory(i){
   var used=shops.filter(function(s){return s.type===key;}).length;
   if(used>0 && !confirm('有 '+used+' 个点位正在使用「'+categories[i].label+'」，删除后将改为「'+categories[0].label+'」'))return;
   if(used>0){shops.forEach(function(s){if(s.type===key)s.type=categories[0].key;});}
+  snapshot();
   categories.splice(i,1);
   renderCatList();refreshDerived();
 }
@@ -1207,7 +1932,9 @@ function onCoordChange(idx){
   var lat=parseFloat(document.getElementById('editLat').value);
   var lng=parseFloat(document.getElementById('editLng').value);
   if(isNaN(lat)||isNaN(lng)){showToast('经纬度格式不正确');return;}
-  s.lat=lat;s.lng=lng;
+  // 统一基准：手输坐标视为 WGS-84 → 转 GCJ-02 后再存储（避免不同底图下坐标错位）
+  var cc=wgs84_to_gcj02(lat,lng);
+  s.lat=cc.lat;s.lng=cc.lng;
   reverseGeocode(lng,lat,function(res){applyRegeo(idx,res);});
 }
 
@@ -1232,18 +1959,30 @@ document.getElementById('searchInput').addEventListener('input',function(){curre
 
 // 保存：同时写入 shops 与 categories（自定义类型一并持久化）
 function buildSaveHtml(){
-  var shopsStr='var shops=[\n'+shops.map(function(s){return '  '+JSON.stringify({name:s.name,street:s.street,type:s.type,addr:s.addr,lng:s.lng,lat:s.lat,desc:(s.desc||''),pinSize:(s.pinSize||26),fontSize:(s.fontSize||14),fontWeight:(s.fontWeight||(s.bold===false?400:700)),style:(s.style||'white'),pos:(s.pos||'bottom'),offX:(s.offX||0),offY:(s.offY||0)});}).join(',\n')+'\n];';
+  var shopsStr='var shops=[\n'+shops.map(function(s){return '  '+JSON.stringify({name:s.name,street:s.street,type:s.type,addr:s.addr,lng:s.lng,lat:s.lat,desc:(s.desc||''),mtime:(s.mtime||0),pinSize:(s.pinSize||26),fontSize:(s.fontSize||14),fontWeight:(s.fontWeight||(s.bold===false?400:700)),style:(s.style||'white'),pos:(s.pos||'bottom'),offX:(s.offX||0),offY:(s.offY||0)});}).join(',\n')+'\n];';
   var catsStr='var categories='+JSON.stringify(categories)+';';
   // 用克隆节点序列化，并清空地图容器：Leaflet 运行时生成的瓦片/控件/弹窗 DOM 不能写进保存文件，
   // 否则保存版重新打开时会与脚本重建的地图叠加，出现重复的缩放按钮、残影瓦片等
   var clone=document.documentElement.cloneNode(true);
   var mc=clone.querySelector('#mapContainer');
   if(mc){while(mc.firstChild){mc.removeChild(mc.firstChild);}}
+  // 保存版精简：移除下载/搜地点/测量/选区域及设置等高级功能 UI，只保留地图与点位查看
+  clone.querySelectorAll('#settingsModal, #dlModal, #poiSearchPanel, #areaToolbar, #measurePanel, .map-dl-btn, [onclick="enterAreaMode()"], [onclick="toggleMeasure()"], [onclick="togglePoiSearch()"]').forEach(function(e){e.remove();});
+  // 保留并同步「行政区划边界」开关与 adcode，使保存版打开后状态一致
+  var _sb=clone.querySelector('#showBoundary'); if(_sb) _sb.checked=boundaryEnabled;
+  var _ba=clone.querySelector('#boundaryAdcode'); if(_ba) _ba.value=boundaryAdcode;
+  var _bf=clone.querySelector('#boundaryFull'); if(_bf) _bf.checked=boundaryFull;
   var html=clone.outerHTML;
   html=html.replace(/var shops=\[[\s\S]*?\];/,shopsStr);
   html=html.replace(/var categories=\[[\s\S]*?\];/,catsStr);
   html=html.replace(/var locked=\w+;/,'var locked=true;'); // 保存后的文件锁定表头与类型定义
   html=html.replace(/var mapMode='\w+';/,'var mapMode=\''+mapMode+'\';'); // 持久化底图模式
+  html=html.replace(/var boundaryEnabled=\w+;/,'var boundaryEnabled='+boundaryEnabled+';'); // 持久化边界开关
+  html=html.replace(/var boundaryAdcode='[^']*';/,'var boundaryAdcode=\''+boundaryAdcode+'\';'); // 持久化边界 adcode
+  html=html.replace(/var boundaryFull=\w+;/,'var boundaryFull='+boundaryFull+';'); // 持久化「包含下级」开关
+  html=html.replace(/var tdtKey='[^']*';/,'var tdtKey=\''+tdtKey.replace(/'/g,'\\\'')+'\';'); // 持久化天地图 Key，使保存版天地图底图可用
+  html=html.replace(/var showRoadNet=\w+;/,'var showRoadNet='+showRoadNet+';'); // 持久化「路网」开关
+  html=html.replace(/var showTextLabels=\w+;/,'var showTextLabels='+showTextLabels+';'); // 持久化「文字」开关
   return '<!DOCTYPE html>\n'+html;
 }
 async function saveFile(){
@@ -1268,17 +2007,21 @@ function lat2yCont(lat,z){
   return (1 - Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*n;
 }
 function tileUrl(layer,x,y,z,sub){
-  // 注意：高德瓦片子域必须带前导 0（webrd01/02/03/04），webrd1 等形式会被 DNS 判为 Non-existent domain
-  if(layer==='sat') return 'https://webst0'+sub+'.is.autonavi.com/appmaptile?style=6&x='+x+'&y='+y+'&z='+z;
-  if(layer==='satlabel') return 'https://webst0'+sub+'.is.autonavi.com/appmaptile?style=8&lang=zh_cn&x='+x+'&y='+y+'&z='+z;
-  return 'https://webrd0'+sub+'.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x='+x+'&y='+y+'&z='+z;
+  // 兼容旧调用：layer 为 'sat'/'satlabel'/'road'，映射到高德具体瓦片
+  if(layer==='sat') return amapUrl('sat',x,y,z,sub);
+  if(layer==='satlabel') return amapUrl('satlabel',x,y,z,sub);
+  return amapUrl('road',x,y,z,sub);
 }
-// 下载时实际请求的瓦片地址：若启用本地代理（同源）则走 /amap，否则直连高德
-function tileFetchUrl(layer,x,y,z,sub){
+// 下载时实际请求的瓦片地址：若启用本地代理（同源）则走 /amap（自动识别 amap/tdt 图层与 tk），否则直连
+function tileFetchUrl(specKey,x,y,z,sub){
   if(tileSource==='proxy'){
-    return '/amap?layer='+layer+'&sub='+sub+'&x='+x+'&y='+y+'&z='+z;
+    var sp=TILE_SPECS[specKey];
+    var url='/amap?layer='+encodeURIComponent(specKey)+'&sub='+sub+'&x='+x+'&y='+y+'&z='+z;
+    if(sp.f==='tdt' && tdtKey) url+='&tk='+encodeURIComponent(tdtKey);
+    return url;
   }
-  return tileUrl(layer,x,y,z,sub);
+  var sp=TILE_SPECS[specKey];
+  return sp.f==='amap' ? amapUrl(sp.t,x,y,z,sub) : tdtUrl(sp.t,x,y,z,sub);
 }
 // 探测瓦片来源：
 // 1) 优先本地代理 /amap（同源、不受高德 CORS 限制）；
@@ -1340,6 +2083,22 @@ function setDlSourceHint(status, src){
     el.innerHTML='⚠ 本地代理不可用，将直连高德（依赖其 CORS）。若下载失败，请关闭旧服务器窗口并重新运行「启动地图服务器.bat」。';
   }
 }
+// ===== 本地服务器可用性探测（下载功能优雅降级）=====
+// GitHub Pages 等纯静态托管不会执行 server.py，既没有同源瓦片代理 /amap（canvas 会被跨域瓦片污染），
+// 也没有服务端拼图端点 /stitch。探测不到本地代理时，应禁用下载而非让用户点到一堆报错。
+var localServerOK=null; // null=未探测; true=本地 /amap 代理可用(可下载); false=静态托管/file:// 无代理(下载不可用)
+function probeLocalServer(cb){
+  if(location.protocol==='file:'){ localServerOK=false; if(cb)cb(); return; }
+  fetch('/amap?layer=road&sub=1&x=1&y=1&z=2',{cache:'no-store'}).then(function(r){
+    var ct=r.headers.get('content-type')||'';
+    localServerOK=(r.ok && ct.indexOf('image')>=0);
+  }).catch(function(){ localServerOK=false; }).then(function(){ if(cb)cb(); });
+}
+// 根据本地服务器可用性，启用/禁用「开始下载」按钮（静态托管/file:// 下禁用，避免点到报错）
+function refreshDlServerState(){
+  var btn=document.getElementById('dlStart');
+  if(btn) btn.disabled=(localServerOK===false);
+}
 function computeTileStats(bounds,z,mode){
   var nw=bounds.getNorthWest(), se=bounds.getSouthEast();
   var cxMin=lon2xCont(nw.lng,z), cxMax=lon2xCont(se.lng,z);
@@ -1347,7 +2106,8 @@ function computeTileStats(bounds,z,mode){
   var xMin=Math.floor(cxMin), xMax=Math.floor(cxMax);
   var yMin=Math.floor(cyMin), yMax=Math.floor(cyMax);
   var cols=xMax-xMin+1, rows=yMax-yMin+1;
-  var tiles=cols*rows*(mode==='sat'?2:1);
+  var layerN=(BASEMAPS[mode]&&BASEMAPS[mode].layers)?BASEMAPS[mode].layers.length:1;
+  var tiles=cols*rows*layerN;
   var wpx=Math.round((cxMax-cxMin)*256), hpx=Math.round((cyMax-cyMin)*256);
   return {cols:cols,rows:rows,xMin:xMin,yMin:yMin,cxMin:cxMin,cyMin:cyMin,wpx:wpx,hpx:hpx,tiles:tiles,warn:tiles>1500};
 }
@@ -1398,9 +2158,13 @@ function selAreaBounds(){
   if(selArea.type==='circle' && selArea.pts.length>=2){
     var c=L.latLng(selArea.pts[0].lat,selArea.pts[0].lng), e=L.latLng(selArea.pts[1].lat,selArea.pts[1].lng);
     var r=c.distanceTo(e);
-    return c.toBounds(r*1.5); // 用稍大的边界框保证圆完整落入下载画布
+    // toBounds(尺寸) 的"尺寸"是边界总边长(米)；圆直径=2r，所以画布需 2r 才能正好包住圆
+    // 加 4 米极小余量，避免瓦片取整把圆边切掉
+    return c.toBounds(r*2+4);
   }
-  return L.latLngBounds(selArea.pts.map(function(p){return L.latLng(p.lat,p.lng);}));
+  // 多边形：紧贴顶点最小外接矩形 + 0.5% 余量（按比例，防瓦片切边）
+  var b=L.latLngBounds(selArea.pts.map(function(p){return L.latLng(p.lat,p.lng);}));
+  return b.pad(0.005);
 }
 function enterAreaMode(){
   areaToolbar(true);
@@ -1550,22 +2314,28 @@ function openDlModal(bounds){
     if(location.protocol==='file:'){
       fw.style.display='block';
       fw.style.background='rgba(243,156,18,0.15)'; fw.style.borderColor='rgba(243,156,18,0.5)'; fw.style.color='#f39c12';
-      fw.innerHTML='⚠ 检测到你是用 <b>file://</b> 直接双击打开本文件。此方式浏览器会拦截跨域底图、且高德 CORS 不可控，<b>下载极易失败/黑图</b>。请双击「启动地图服务器.bat」，再访问 <b>http://localhost:8000/index.html</b> 下载（本地代理已规避 CORS）。';
+      fw.innerHTML='⚠ 检测到你是用 <b>file://</b> 直接双击打开本文件。此方式下载极易失败/黑图，请双击「启动地图服务器.bat」再访问 <b>http://localhost:8000/index.html</b> 下载（本地代理已规避 CORS）。';
     } else if(location.hostname.indexOf('github.io')>=0 || location.hostname.indexOf('githubusercontent')>=0){
       fw.style.display='block';
-      fw.style.background='rgba(46,204,113,0.15)'; fw.style.borderColor='rgba(46,204,113,0.5)'; fw.style.color='#1e9e5a';
-      fw.innerHTML='✅ 检测到已通过 HTTPS（'+location.hostname+'）打开，直连高德（依赖其 CORS 头），通常可直接下载合并大图。';
+      fw.style.background='rgba(231,76,60,0.15)'; fw.style.borderColor='rgba(231,76,60,0.5)'; fw.style.color='#c0392b';
+      fw.innerHTML='❌ 当前为 <b>GitHub Pages 静态托管</b>，没有本地瓦片代理，<b>高清下载功能不可用</b>（瓦片跨域会使 canvas 被污染，且服务端拼图 /stitch 不存在）。请在本机双击「启动地图服务器.bat」后访问 <b>http://localhost:8000/index.html</b> 使用该功能。地图浏览不受影响。';
     } else {
       fw.style.display='none';
     }
   }
+  // 先禁用下载按钮，待本地代理探测结果再决定是否启用（静态托管下保持禁用，避免点到一堆报错）
+  var _dlBtn=document.getElementById('dlStart'); if(_dlBtn) _dlBtn.disabled=true;
+  probeLocalServer(refreshDlServerState);
   // 打开弹窗时即探测一次瓦片来源，给用户明确提示
   detectTileSource(function(res){ setDlSourceHint(res.status, res.src); });
   dlBounds=bounds;
   var sel=document.getElementById('dlZoom'); sel.innerHTML='';
   var cur=Math.max(12,Math.min(18,Math.round(map.getZoom())));
   for(var z=18;z>=12;z--){var o=document.createElement('option');o.value=z;o.textContent='级别 '+z+(z===cur?'（当前）':'');if(z===cur)o.selected=true;sel.appendChild(o);}
-  var m=document.querySelector('input[name=dlMode][value="'+mapMode+'"]'); if(m)m.checked=true;
+  // 填充下载底图下拉（仅首次），并默认选中当前地图所用底图
+  var dm=document.getElementById('dlMode');
+  if(dm && dm.options.length===0){ Object.keys(BASEMAPS).forEach(function(k){ var o=document.createElement('option');o.value=k;o.textContent=BASEMAPS[k].label;dm.appendChild(o);}); }
+  if(dm) dm.value=mapMode;
   document.getElementById('dlModal').style.display='flex';
   var h3=document.querySelector('#dlModal .dl-box h3');
   if(h3){ var nm={rect:'矩形',circle:'圆形',poly:'多边形'}; h3.textContent = (dlFromSelArea&&selArea) ? ('下载区域地图（'+(nm[selArea.type]||'自定义')+'范围）') : '下载区域地图（框选范围拼接大图）'; }
@@ -1573,7 +2343,7 @@ function openDlModal(bounds){
 }
 function updateDlInfo(){
   if(!dlBounds)return;
-  var mode=document.querySelector('input[name=dlMode]:checked').value;
+  var mode=document.getElementById('dlMode').value;
   var z=parseInt(document.getElementById('dlZoom').value,10);
   var scale=parseInt(document.getElementById('dlScale').value,10)||1;
   var dpi=parseInt(document.getElementById('dlDpi').value,10)||300;
@@ -1581,7 +2351,8 @@ function updateDlInfo(){
   var ow=st.wpx*scale, oh=st.hpx*scale;
   var wcm=(ow/dpi*2.54).toFixed(1), hcm=(oh/dpi*2.54).toFixed(1);
   var el=document.getElementById('dlInfo');
-  var html='输出像素：约 <b>'+ow+'</b> × <b>'+oh+'</b> px（'+scale+'× 清晰度）<br>下载瓦片：'+st.cols+' × '+st.rows+' = <b>'+st.tiles+'</b> 张'+(mode==='sat'?'（卫星 + 路名注记层）':'')+'<br>打印尺寸：约 <b>'+wcm+' × '+hcm+'</b> cm（'+dpi+' DPI）';
+  var multiLayer=(BASEMAPS[mode]&&BASEMAPS[mode].layers&&BASEMAPS[mode].layers.length>1);
+  var html='输出像素：约 <b>'+ow+'</b> × <b>'+oh+'</b> px（'+scale+'× 清晰度）<br>下载瓦片：'+st.cols+' × '+st.rows+' = <b>'+st.tiles+'</b> 张'+(multiLayer?'（多图层叠加）':'')+'<br>打印尺寸：约 <b>'+wcm+' × '+hcm+'</b> cm（'+dpi+' DPI）';
   if(st.warn) html+='<br><span class="dl-warn">⚠ 瓦片较多，下载可能较慢，请耐心等待</span>';
   el.innerHTML=html;
 }
@@ -1680,30 +2451,25 @@ function loadSingleTile(url,timeout,allowCorsFallback,cb){
   });
 }
 function loadTile(x,y,z,mode,onok,onerr){
+  var def=BASEMAPS[mode]||BASEMAPS.city;
+  var specs=def.layers;
   var sub=['1','2','3','4'][(x+y)%4];
   var TILE_TIMEOUT=8000; // 单张瓦片 8 秒超时
   // proxy 模式下 /amap 是同源，fetch 失败就是真失败；其他模式允许 fallback 到 Image.crossOrigin
   var allowCorsFallback=(tileSource!=='proxy');
-  if(mode==='sat'){
-    // 卫星底图为主，路名注记层为可选：底图成功即算成功
-    var satImg=null, labImg=null, gotSat=false, gotLab=false, settled=false;
-    function settle(){
-      if(settled)return; settled=true;
-      if(satImg) onok({sat:satImg, label:labImg});
-      else onerr();
-    }
-    loadSingleTile(tileFetchUrl('sat',x,y,z,sub),TILE_TIMEOUT,allowCorsFallback,function(ok,img){
-      gotSat=true; if(ok) satImg=img;
-      if(gotLab) settle();
+  var results={}, doneCount=0, okBase=false, settled=false;
+  function isBase(key){ return key===specs[0]; }
+  specs.forEach(function(key){
+    loadSingleTile(tileFetchUrl(key,x,y,z,sub),TILE_TIMEOUT,allowCorsFallback,function(ok,img){
+      doneCount++;
+      if(ok){ results[key]=img; if(isBase(key)) okBase=true; }
+      if(doneCount>=specs.length) settle();
     });
-    loadSingleTile(tileFetchUrl('satlabel',x,y,z,sub),TILE_TIMEOUT,allowCorsFallback,function(ok,img){
-      gotLab=true; if(ok) labImg=img;
-      if(gotSat) settle();
-    });
-  } else {
-    loadSingleTile(tileFetchUrl('road',x,y,z,sub),TILE_TIMEOUT,allowCorsFallback,function(ok,img){
-      if(ok) onok({road:img}); else onerr();
-    });
+  });
+  function settle(){
+    if(settled)return; settled=true;
+    if(okBase) onok(results);
+    else onerr();
   }
 }
 function roundRect(ctx,x,y,w,h,r){
@@ -1867,7 +2633,7 @@ function drawLabelBox(ctx,bx,by,bw,bh,lh,lines,fs,cfg,mode,color){
   for(var i=0;i<lines.length;i++){
     var ty=y0+i*lh;
     if(cfg.style==='stroke'){
-      ctx.lineWidth=3*sc; ctx.strokeStyle=(mode==='sat'?'rgba(0,0,0,0.9)':'rgba(255,255,255,0.95)');
+      ctx.lineWidth=3*sc; ctx.strokeStyle=(isSat?'rgba(0,0,0,0.9)':'rgba(255,255,255,0.95)');
       ctx.strokeText(lines[i].t,bx+bw/2,ty);
       ctx.fillStyle=txtColor; ctx.fillText(lines[i].t,bx+bw/2,ty);
     } else {
@@ -1875,8 +2641,33 @@ function drawLabelBox(ctx,bx,by,bw,bh,lh,lines,fs,cfg,mode,color){
     }
   }
 }
+// 标签防重叠：螺旋搜索一个不与已放置标签相交的位置（带最小间距）
+function findFreeRect(bx,by,bw,bh,placed){
+  var PAD=6; // 标签之间留 6px 呼吸间距
+  function hit(x,y){
+    for(var i=0;i<placed.length;i++){
+      var r=placed[i];
+      // 把两个矩形都向外扩展 PAD 做碰撞检测
+      if(x < r.x+r.w+PAD && x+bw+PAD > r.x && y < r.y+r.h+PAD && y+bh+PAD > r.y) return true;
+    }
+    return false;
+  }
+  if(!hit(bx,by)) return {x:bx,y:by};
+  var step=Math.max(bw,bh)*0.15, max=step*60, d=step;
+  // 优先上下错开（水平长条标签上下错开最省地方），再左右/对角
+  var dirs=[[0,-1],[0,1],[-1,0],[1,0],[-1,-1],[1,-1],[-1,1],[1,1]];
+  while(d<=max){
+    for(var k=0;k<dirs.length;k++){
+      var nx=bx+dirs[k][0]*d, ny=by+dirs[k][1]*d;
+      if(!hit(nx,ny)) return {x:nx,y:ny};
+    }
+    d+=step;
+  }
+  return {x:bx,y:by};
+}
 function drawPOIs(ctx,st,z,mode,scale){
   scale=scale||1; _dlScale=scale;
+  var isSat=!!(BASEMAPS[mode]&&BASEMAPS[mode].sat);
   function cfgOf(s){
     // 样式：选择「原始样式（跟随点位）」时，使用每个点位自己保存的 s.style；缺省时回退为 shadow。
     var resolvedStyle=(labelCfg.style==='original')?(s.style||'shadow'):labelCfg.style;
@@ -1894,8 +2685,10 @@ function drawPOIs(ctx,st,z,mode,scale){
   }
   // 预计算所有可见图钉锚点（下载图 canvas 坐标），用于标签连线遮挡检测
   var pinPts=[];
+  var placedRects=[]; var avoidOverlap=!!labelCfg.avoidOverlap;
   shops.forEach(function(s,idx){
-    var cx=(lon2xCont(s.lng,z)-st.cxMin)*256*scale, cy=(lat2yCont(s.lat,z)-st.cyMin)*256*scale;
+    var _ll=projToBasemap(s.lat,s.lng); // 天地图(wgs84) 底图下点位反算回 WGS-84 才能对齐
+    var cx=(lon2xCont(_ll.lng,z)-st.cxMin)*256*scale, cy=(lat2yCont(_ll.lat,z)-st.cyMin)*256*scale;
     if(cx<-200||cy<-200||cx>st.wpx*scale+200||cy>st.hpx*scale+200)return;
     pinPts.push({idx:idx, x:cx, y:cy, size:(s.pinSize||labelCfg.pinSize)*scale});
   });
@@ -1962,20 +2755,34 @@ function drawPOIs(ctx,st,z,mode,scale){
       bx+=cf.offX*scale; by+=cf.offY*scale;
       lcx=bx+boxW/2; lcy=by+boxH/2;
     }
+    if(avoidOverlap){
+      var fr=findFreeRect(bx,by,boxW,boxH,placedRects);
+      bx=fr.x; by=fr.y; lcx=bx+boxW/2; lcy=by+boxH/2;
+    }
+    placedRects.push({x:bx,y:by,w:boxW,h:boxH});
     drawDlLabelLine(cx,cy,lcx,lcy,cf.pinSize*scale,cf.lineType,cf.lineColor);
     drawLabelBox(ctx,bx,by,boxW,boxH,lh,lines,fs,cf,mode,c);
   });
 }
 function runDownload(){
   if(dlRunning||!dlBounds)return;
+  // 静态托管/file:// 无本地代理：下载不可用，直接提示并返回，避免 canvas 污染等一堆报错
+  if(localServerOK===false){
+    showToast('高清下载需本地服务器：请双击「启动地图服务器.bat」后访问 http://localhost:8000/index.html');
+    return;
+  }
   dlFailCount=0;
-  var mode=document.querySelector('input[name=dlMode]:checked').value;
+  var mode=document.getElementById('dlMode').value;
+  if(BASEMAPS[mode] && BASEMAPS[mode].needKey==='tdt' && !tdtKey){
+    showToast('当前底图需要天地图 Key，请在「设置 → 天地图 Key」中填写后再下载（且需启动本地服务器代理）');
+  }
   var z=parseInt(document.getElementById('dlZoom').value,10);
   var scale=parseInt(document.getElementById('dlScale').value,10)||1;
   var dpi=parseInt(document.getElementById('dlDpi').value,10)||300;
   labelCfg.showLabel=document.getElementById('dlShowLabel').checked;
   labelCfg.useDesc=document.getElementById('dlUseDesc').checked;
   labelCfg.style=document.getElementById('dlStyle').value;
+  labelCfg.avoidOverlap=document.getElementById('dlAvoid').checked;
   autosave();
   // 服务端高清导出：由本地服务器用 Pillow 拼大图，彻底绕开浏览器 canvas 上限（可出超大幅面）
   if(document.getElementById('dlServerStitch').checked){
@@ -2010,7 +2817,10 @@ function startServerStitch(bounds, mode, z, scale, dpi){
   var minlng=bounds.getWest(), minlat=bounds.getSouth(), maxlng=bounds.getEast(), maxlat=bounds.getNorth();
   var payload={
     minlng:minlng, minlat:minlat, maxlng:maxlng, maxlat:maxlat,
-    z:z, scale:scale, mode:mode, label:(mode==='sat')?1:0,
+    z:z, scale:scale, mode:mode, label:(BASEMAPS[mode]&&BASEMAPS[mode].sat)?1:0,
+    tdtKey:tdtKey,
+    showRoadNet:showRoadNet,
+    showTextLabels:showTextLabels,
     labelCfg:labelCfg,
     shops:shops,
     categories:categories,
@@ -2090,10 +2900,11 @@ function _runDownloadCore(mode,z,scale,dpi,st){
   var hasClip=selArea && ((selArea.type==='poly' && selArea.pts.length>=3) || (selArea.type==='circle' && selArea.pts.length>=2));
   // 非自定义形状下载：先铺背景色，缺块处不显空洞；自定义形状（多边形/圆形）范围外保持透明
   if(!hasClip){
-    ctx.fillStyle=mode==='sat'?'#0a1628':'#f5f5f5'; ctx.fillRect(0,0,st.wpx*scale,st.hpx*scale);
+    var isSat=!!(BASEMAPS[mode]&&BASEMAPS[mode].sat);
+    ctx.fillStyle=(BASEMAPS[mode]&&BASEMAPS[mode].white)?'#ffffff':(isSat?'#0a1628':'#f5f5f5'); ctx.fillRect(0,0,st.wpx*scale,st.hpx*scale);
   }
   // 自定义形状区域：把绘制裁剪到形状内部，范围外保持透明
-  var clipPath=null;
+  var clipPath=null, circleClip=null;
   if(selArea && selArea.type==='poly' && selArea.pts.length>=3){
     clipPath=new Path2D();
     selArea.pts.forEach(function(p,i){
@@ -2109,6 +2920,7 @@ function _runDownloadCore(mode,z,scale,dpi,st){
     var ex=(lon2xCont(ep.lng,z)-st.cxMin)*256*scale, ey=(lat2yCont(ep.lat,z)-st.cyMin)*256*scale;
     var r=Math.sqrt((ex-cx)*(ex-cx)+(ey-cy)*(ey-cy));
     clipPath.arc(cx,cy,r,0,Math.PI*2);
+    circleClip={cx:cx,cy:cy,r:r};
     ctx.save(); ctx.clip(clipPath);
   }
   var total=tasks.length, done=0, idx=0;
@@ -2119,10 +2931,22 @@ function _runDownloadCore(mode,z,scale,dpi,st){
     loadTile(t.x,t.y,z,mode,function(imgs){
       var dx=(t.x-st.cxMin)*256*scale, dy=(t.y-st.cyMin)*256*scale, ts=256*scale;
       ctx.globalAlpha=1;
-      if(mode==='sat'){ ctx.drawImage(imgs.sat,dx,dy,ts,ts); ctx.globalAlpha=0.9; if(imgs.label)ctx.drawImage(imgs.label,dx,dy,ts,ts); }
-      else { ctx.drawImage(imgs.road,dx,dy,ts,ts); }
+      // 按注册表顺序叠加各瓦片图层（底→上），并应用各自不透明度
+      // 关闭「路网」/「文字」时分别跳过对应层，与地图显示一致
+      (BASEMAPS[mode]?BASEMAPS[mode].layers:['amap_road']).forEach(function(key){
+        if(!showRoadNet && ROADNET_LAYERS[key]) return;
+        if(!showTextLabels && TEXT_LAYERS[key]) return;
+        var img=imgs[key]; if(!img) return;
+        var op=(TILE_SPECS[key]&&TILE_SPECS[key].op!==undefined)?TILE_SPECS[key].op:1;
+        // 与屏幕 CSS 滤镜一致：路网层淡化米色底+路网线更鲜明；文字层加深
+        ctx.filter = LAYER_FILTER[key] ? LAYER_FILTER[key] : 'none';
+        ctx.globalAlpha=op;
+        ctx.drawImage(img,dx,dy,ts,ts);
+      });
+      ctx.filter='none';
       ctx.globalAlpha=1;
-      imgs.sat=null; imgs.label=null; imgs.road=null; // 释放瓦片 Image，降低内存峰值避免白屏
+      // 释放瓦片 Image，降低内存峰值避免白屏
+      Object.keys(imgs).forEach(function(k){ imgs[k]=null; });
       after();
     }, function(){ dlFailCount++; after(); }); // 单块失败则跳过（留背景色）
   }
@@ -2138,8 +2962,28 @@ function _runDownloadCore(mode,z,scale,dpi,st){
       return;
     }
     ensurePinIcons(function(){
+      // 暗色大屏底图：对底图（已绘制瓦片）做反色滤镜，不影响上方点位/标注
+      if(BASEMAPS[mode] && BASEMAPS[mode].dark){
+        var _t=document.createElement('canvas'); _t.width=canvas.width; _t.height=canvas.height;
+        var _tc=_t.getContext('2d');
+        _tc.filter='invert(1) hue-rotate(180deg) brightness(0.92) contrast(1.08)';
+        _tc.drawImage(canvas,0,0);
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        ctx.drawImage(_t,0,0);
+      }
       drawPOIs(ctx,st,z,mode,scale); // 把当前点位（图钉+标签）烧录进大图（按 scale 放大）
       if(clipPath) ctx.restore(); // 解除多边形裁剪，使后面的失败提示可全图显示
+      // 圆形边缘羽化：用径向渐变遮罩（destination-in）把圆周外 2~3px 渐隐，避免瓦片硬边发虚
+      if(circleClip){
+        var f=Math.min(3, Math.max(2, Math.round(scale))); // 羽化宽度：2~3px（随清晰度略增）
+        var g=ctx.createRadialGradient(circleClip.cx,circleClip.cy,Math.max(0,circleClip.r-f), circleClip.cx,circleClip.cy,circleClip.r);
+        g.addColorStop(0,'rgba(0,0,0,1)');
+        g.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.globalCompositeOperation='destination-in';
+        ctx.fillStyle=g;
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+        ctx.globalCompositeOperation='source-over';
+      }
     if(dlFailCount>tasks.length*0.5){
       ctx.save();
       ctx.fillStyle='rgba(231,76,60,0.92)'; ctx.font='bold '+(16*scale)+'px sans-serif';
@@ -2184,19 +3028,446 @@ function _runDownloadCore(mode,z,scale,dpi,st){
   for(var k=0;k<Math.min(CONC,tasks.length);k++) dlNext();
 }
 
+// ===================== 工程加密 / 打开 =====================
+function projectData(){
+  var data={shops:shops,categories:categories,platformTitle:platformTitle,labelCfg:labelCfg,mapMode:mapMode,showMapDesc:showMapDesc,descLabelPos:descLabelPos};
+  if(selArea&&selArea.pts&&selArea.pts.length){data.selArea={type:selArea.type,pts:selArea.pts};}
+  return data;
+}
+function applyProjectData(data){
+  shops=(data.shops||[]);
+  if(Array.isArray(data.categories)) categories=data.categories;
+  if(typeof data.platformTitle==='string'){platformTitle=data.platformTitle;renderTitle();}
+  if(data.labelCfg) labelCfg=data.labelCfg;
+  if(typeof data.mapMode==='string') mapMode=data.mapMode;
+  if(typeof data.showMapDesc==='boolean'){showMapDesc=data.showMapDesc;var cb=document.getElementById('showMapDesc');if(cb)cb.checked=showMapDesc;}
+  if(data.descLabelPos) descLabelPos=data.descLabelPos;
+  if(data.selArea&&data.selArea.pts&&data.selArea.pts.length){selArea={type:data.selArea.type,pts:data.selArea.pts,layer:null,handles:[]};buildAreaLayer();}
+  migrateData();
+  refreshDerived();
+}
+function bufToB64(buf){return btoa(String.fromCharCode.apply(null,new Uint8Array(buf)));}
+function b64ToBuf(b64){var s=atob(b64);var u=new Uint8Array(s.length);for(var i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u;}
+async function deriveKey(pw,salt){
+  var baseKey=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt:salt,iterations:100000,hash:'SHA-256'},baseKey,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+}
+async function saveEncrypted(){
+  if(!window.crypto||!crypto.subtle){alert('加密功能需在本地服务器(http://localhost)下使用，请用「启动地图服务器.bat」打开本页');return;}
+  var pw=prompt('设置工程口令（打开时需要输入，请牢记）：','');
+  if(pw===null) return;
+  if(!pw){showToast('已取消：口令不能为空');return;}
+  var proj=projectData();
+  var salt=crypto.getRandomValues(new Uint8Array(16));
+  var iv=crypto.getRandomValues(new Uint8Array(12));
+  try{
+    var key=await deriveKey(pw,salt);
+    var ct=await crypto.subtle.encrypt({name:'AES-GCM',iv:iv},key,new TextEncoder().encode(JSON.stringify(proj)));
+    var payload={fmt:'DITU-ENC',v:1,salt:bufToB64(salt),iv:bufToB64(iv),data:bufToB64(ct),title:platformTitle,t:Date.now()};
+    var blob=new Blob([JSON.stringify(payload)],{type:'application/json'});
+    saveAs(blob,'线下店地图_加密工程.ditu');
+    showToast('已加密保存（.ditu 文件）');
+  }catch(e){showToast('加密失败：'+e.message);}
+}
+function handleProjectFile(input){
+  var f=input.files&&input.files[0];
+  if(!f){return;}
+  var r=new FileReader();
+  r.onload=function(){
+    try{
+      var txt=r.result;
+      if(f.name.toLowerCase().endsWith('.ditu')||/"fmt"\s*:\s*"DITU-ENC"/.test(txt)){
+        openEncryptedProject(txt);
+      } else if(/\.html?$/.test(f.name.toLowerCase())||/var shops=\[/.test(txt)){
+        parseHtmlProject(txt);
+      } else { showToast('无法识别的文件类型'); }
+    }catch(e){ showToast('打开失败：'+e.message); }
+    input.value='';
+  };
+  r.readAsText(f);
+}
+async function openEncryptedProject(txt){
+  var pw=prompt('该工程已加密，请输入口令：','');
+  if(pw===null) return;
+  try{
+    var p=JSON.parse(txt);
+    if(!window.crypto||!crypto.subtle) throw new Error('需在 http://localhost 下解密');
+    var key=await deriveKey(pw,b64ToBuf(p.salt));
+    var pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64ToBuf(p.iv)},key,b64ToBuf(p.data));
+    var data=JSON.parse(new TextDecoder().decode(pt));
+    snapshot();
+    applyProjectData(data);
+    showToast('已打开加密工程');
+  }catch(e){ alert('解密失败：口令错误或文件损坏'); }
+}
+function parseHtmlProject(txt){
+  var sm=txt.match(/var shops=\[([\s\S]*?)\];/);
+  if(!sm){showToast('该文件内无点位数据');return;}
+  try{
+    var shopsArr=JSON.parse('['+sm[1]+']');
+    snapshot();
+    var catsArr=[];
+    var cm=txt.match(/var categories=([\s\S]*?);/);
+    if(cm){catsArr=JSON.parse(cm[1]);}
+    shops=shopsArr; categories=catsArr;
+    migrateData(); refreshDerived();
+    showToast('已打开工程（'+shops.length+' 个点位）');
+  }catch(e){ showToast('解析失败：'+e.message); }
+}
+
+// ===================== CSV 批量导入 =====================
+function makeShop(name,lng,lat,catKey,addr){
+  if(categories.length===0){categories.push({key:'uncat',label:'未分类',color:'#3498db'});renderFilterBar();renderLegend();}
+  return {name:name,street:'',type:(catKey||(categories[0]?categories[0].key:'uncat')),addr:(addr||''),lat:lat,lng:lng,desc:'',pinSize:labelCfg.pinSize,fontSize:labelCfg.fontSize,fontWeight:labelCfg.fontWeight,style:'shadow',pos:labelCfg.pos,offX:labelCfg.offX,offY:labelCfg.offY,lineType:labelCfg.lineType,lineColor:labelCfg.lineColor,descColor:labelCfg.descColor};
+}
+function openImportModal(){
+  var sel=document.getElementById('csvCat');
+  sel.innerHTML='<option value="">（默认分类）</option>'+categories.map(function(c){return '<option value="'+c.key+'">'+escapeHtml(c.label)+'</option>';}).join('');
+  document.getElementById('csvText').value='';
+  document.getElementById('csvPreview').textContent='';
+  document.getElementById('importModal').style.display='flex';
+}
+function closeImportModal(){document.getElementById('importModal').style.display='none';}
+function splitCsvLine(line){
+  if(line.indexOf('\t')>=0) return line.split('\t');
+  if(line.indexOf(';')>=0) return line.split(';');
+  return line.split(',');
+}
+function doImportCsv(){
+  var fileInput=document.getElementById('csvFile');
+  if(fileInput.files&&fileInput.files[0]){
+    var r=new FileReader();
+    r.onload=function(){document.getElementById('csvText').value=r.result;runImport();};
+    r.readAsText(fileInput.files[0]);
+  } else { runImport(); }
+}
+function runImport(){
+  var text=document.getElementById('csvText').value.trim();
+  if(!text){showToast('请粘贴或选择 CSV 文件');return;}
+  var catKey=document.getElementById('csvCat').value;
+  var hasHeader=document.getElementById('csvHasHeader').checked;
+  var lines=text.split(/\r?\n/).filter(function(l){return l.trim()!=='';});
+  if(!lines.length){showToast('没有数据行');return;}
+  var rows=lines.map(function(l){return splitCsvLine(l).map(function(c){return c.trim();});});
+  var header=null;
+  if(hasHeader){header=rows.shift();}
+  function findCol(names){
+    var arr=header?header:rows[0];
+    for(var i=0;i<arr.length;i++){
+      var h=(arr[i]||'').toString().toLowerCase().replace(/[\s"']/g,'');
+      for(var j=0;j<names.length;j++){if(h.indexOf(names[j])>=0)return i;}
+    }
+    return -1;
+  }
+  var ci_lng=findCol(['lng','lon','经度','x','longitude','jingdu']);
+  var ci_lat=findCol(['lat','纬度','y','latitude','weidu']);
+  var ci_name=findCol(['name','名称','店名','title','名字','店铺']);
+  var ci_addr=findCol(['addr','地址','address','dz']);
+  if(ci_lng<0||ci_lat<0){showToast('未找到经纬度列（需含 lng/lat 或 经度/纬度）');return;}
+  if(ci_name<0) ci_name=ci_lng;
+  snapshot();
+  var added=0;
+  rows.forEach(function(r){
+    var lng=parseFloat(r[ci_lng]),lat=parseFloat(r[ci_lat]);
+    if(isNaN(lng)||isNaN(lat))return;
+    var name=(ci_name>=0&&r[ci_name])?r[ci_name].trim():('点'+(shops.length+1));
+    var addr=(ci_addr>=0&&r[ci_addr])?r[ci_addr].trim():'';
+    shops.push(makeShop(name,lng,lat,catKey,addr)); added++;
+  });
+  if(added===0){showToast('没有有效坐标行');return;}
+  refreshDerived(); closeImportModal();
+  showToast('已导入 '+added+' 个点位');
+}
+
+// ===================== 导出 GIS 格式 =====================
+function openGisModal(){document.getElementById('gisModal').style.display='flex';}
+function closeGisModal(){document.getElementById('gisModal').style.display='none';}
+function gisPointName(s){
+  if(s.name&&s.name.trim()) return s.name;
+  if(s.addr&&s.addr.trim()) return s.addr;
+  return (s.lat!=null&&s.lng!=null)?(s.lat.toFixed(5)+','+s.lng.toFixed(5)):'点';
+}
+function gisColor(s){return getColor(s)||'#3498db';}
+function kmlColor(hex){
+  hex=(hex||'#3498db').replace('#','');
+  if(hex.length===3) hex=hex.split('').map(function(x){return x+x;}).join('');
+  var r=hex.substr(0,2),g=hex.substr(2,2),b=hex.substr(4,2);
+  return 'ff'+b+g+r;
+}
+function escapeXml(s){return String(s==null?'':s).replace(/[<>&'"]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;',"'":'&apos;','"':'&quot;'}[c];});}
+function buildKml(){
+  var pts=shops.map(function(s){
+    return '<Placemark><name>'+escapeXml(gisPointName(s))+'</name>'+
+      (s.desc?('<description>'+escapeXml(s.desc)+'</description>'):'')+
+      '<Style><IconStyle><color>'+kmlColor(gisColor(s))+'</color><scale>1</scale></IconStyle></Style>'+
+      '<Point><coordinates>'+s.lng+','+s.lat+',0</coordinates></Point></Placemark>';
+  }).join('\n');
+  return '<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2">\n<Document><name>'+escapeXml(platformTitle)+'</name>\n'+pts+'\n</Document></kml>';
+}
+function buildGeojson(){
+  var feats=shops.map(function(s){
+    return {type:'Feature',geometry:{type:'Point',coordinates:[s.lng,s.lat]},properties:{name:gisPointName(s),type:s.type,address:(s.addr||''),desc:(s.desc||''),color:gisColor(s)}};
+  });
+  return JSON.stringify({type:'FeatureCollection',features:feats},null,2);
+}
+function buildGpx(){
+  var wpts=shops.map(function(s){
+    return '<wpt lat="'+s.lat+'" lon="'+s.lng+'"><name>'+escapeXml(gisPointName(s))+'</name>'+(s.desc?('<desc>'+escapeXml(s.desc)+'</desc>'):'')+'</wpt>';
+  }).join('\n');
+  return '<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="ditu" xmlns="http://www.topografix.com/GPX/1/1">\n'+wpts+'\n</gpx>';
+}
+function doExportGis(){
+  if(!shops.length){showToast('没有点位可导出');return;}
+  var fmt=document.querySelector('input[name=gisFmt]:checked').value;
+  var content,ext;
+  if(fmt==='kml'){content=buildKml();ext='kml';}
+  else if(fmt==='geojson'){content=buildGeojson();ext='geojson';}
+  else {content=buildGpx();ext='gpx';}
+  var blob=new Blob([content],{type:'application/xml;charset=utf-8'});
+  saveAs(blob,platformTitle+'_点位.'+ext);
+  closeGisModal();
+  showToast('已导出 '+fmt.toUpperCase()+'（'+shops.length+' 个点位）');
+}
+
+// ===================== 测距 / 测面积 =====================
+var measureMode=false, measurePts=[], measureLayer=null, measureMarkers=[];
+function toggleMeasure(){
+  measureMode=!measureMode;
+  if(measureMode){
+    measurePts=[]; clearMeasure();
+    map.on('click', onMeasureClick);
+    showToast('测量模式：依次点击打点；至少 3 点可算面积，点「清除」退出');
+  } else {
+    map.off('click', onMeasureClick);
+  }
+}
+function onMeasureClick(e){
+  measurePts.push([e.latlng.lat, e.latlng.lng]);
+  drawMeasure();
+}
+function clearMeasure(){
+  if(measureLayer){map.removeLayer(measureLayer);measureLayer=null;}
+  measureMarkers.forEach(function(m){map.removeLayer(m);});
+  measureMarkers=[];
+}
+function drawMeasure(){
+  clearMeasure();
+  if(measurePts.length===0){var p=document.getElementById('measurePanel');if(p)p.style.display='none';return;}
+  var latlngs=measurePts.map(function(p){return [p[0],p[1]];});
+  measureLayer=L.polyline(latlngs,{color:'#e67e22',weight:3,dashArray:'6,4'}).addTo(map);
+  measurePts.forEach(function(p,i){
+    var m=L.circleMarker([p[0],p[1]],{radius:5,color:'#e67e22',fillColor:'#fff',fillOpacity:1,weight:2}).addTo(map);
+    m.bindTooltip((i+1)+'',{direction:'top'});
+    measureMarkers.push(m);
+  });
+  var dist=0;
+  for(var i=1;i<measurePts.length;i++){dist+=haversine(measurePts[i-1],measurePts[i]);}
+  var txt='总距离：'+fmtLen(dist);
+  if(measurePts.length>=3){ txt+='<br>闭合面积：'+fmtArea(sphericalPolygonArea(measurePts)); }
+  var panel=document.getElementById('measurePanel');
+  panel.style.display='block';
+  panel.innerHTML=txt+'<div style="margin-top:8px"><button class="btn" onclick="closeMeasure()">清除</button></div>';
+}
+function closeMeasure(){
+  measureMode=false; map.off('click', onMeasureClick); clearMeasure();
+  var panel=document.getElementById('measurePanel'); if(panel)panel.style.display='none';
+  showToast('已退出测量');
+}
+function haversine(a,b){
+  var R=6371000;
+  var dLat=(b[0]-a[0])*Math.PI/180, dLng=(b[1]-a[1])*Math.PI/180;
+  var la1=a[0]*Math.PI/180, la2=b[0]*Math.PI/180;
+  var h=Math.pow(Math.sin(dLat/2),2)+Math.cos(la1)*Math.cos(la2)*Math.pow(Math.sin(dLng/2),2);
+  return 2*R*Math.asin(Math.sqrt(h));
+}
+function sphericalPolygonArea(pts){
+  var R=6371000, n=pts.length; if(n<3)return 0;
+  var area=0;
+  for(var i=0;i<n;i++){
+    var p1=pts[i], p2=pts[(i+1)%n];
+    area += (p2[1]-p1[1])*Math.PI/180 * (2 + Math.sin(p1[0]*Math.PI/180) + Math.sin(p2[0]*Math.PI/180));
+  }
+  return Math.abs(area*R*R/2);
+}
+function fmtLen(m){ return m>=1000 ? (m/1000).toFixed(2)+' 公里' : m.toFixed(0)+' 米'; }
+function fmtArea(a){ return a>=1e6 ? (a/1e6).toFixed(2)+' 平方公里' : (a>=10000 ? (a/10000).toFixed(2)+' 公顷' : a.toFixed(0)+' 平方米'); }
+
+// ===================== 打印 / 导出清单 =====================
+function printReport(){
+  if(!shops.length){showToast('没有点位可打印');return;}
+  var w=window.open('', '_blank');
+  if(!w){showToast('打印窗口被拦截，请允许浏览器弹窗');return;}
+  var legend=categories.map(function(c){return '<span style="display:inline-block;margin-right:14px"><span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:'+c.color+';margin-right:5px"></span>'+escapeHtml(c.label)+'</span>';}).join('');
+  var catm=catMap();
+  var rows=shops.map(function(s,i){return '<tr><td>'+(i+1)+'</td><td>'+escapeHtml(s.name)+'</td><td>'+escapeHtml((catm[s.type]&&catm[s.type].label)||s.type)+'</td><td>'+escapeHtml(s.addr||'')+'</td><td>'+s.lat.toFixed(5)+', '+s.lng.toFixed(5)+'</td></tr>';}).join('');
+  var now=new Date().toLocaleString();
+  var html='<!DOCTYPE html><html><head><meta charset="utf-8"><title>'+escapeHtml(platformTitle)+' 点位清单</title><style>body{font-family:system-ui,"Microsoft YaHei",sans-serif;color:#222;padding:24px}h1{font-size:20px;margin:0 0 4px}.sub{color:#888;font-size:12px;margin-bottom:14px}.legend{margin-bottom:14px;font-size:13px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #ddd;padding:6px 8px;text-align:left}th{background:#f5f5f5}.ft{margin-top:16px;color:#888;font-size:11px}</style></head><body>'+
+    '<h1>'+escapeHtml(platformTitle)+'</h1>'+
+    '<div class="sub">生成时间：'+now+' · 共 '+shops.length+' 个点位</div>'+
+    '<div class="legend">图例：'+legend+'</div>'+
+    '<table><thead><tr><th>#</th><th>名称</th><th>类型</th><th>地址</th><th>坐标</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+    '<div class="ft">由「线下店地图」生成</div>'+
+    '<scr'+'ipt>window.onload=function(){window.print();};<\/scr'+'ipt></body></html>';
+  w.document.open();w.document.write(html);w.document.close();
+}
+
+// ===== 设置（高德 Key / 类型管理入口） =====
+function openSettingsModal(){
+  document.getElementById('setAmapKey').value=amapKey||'';
+  document.getElementById('setAmapSecret').value=amapSecret||'';
+  document.getElementById('setTdtKey').value=tdtKey||'';
+  document.getElementById('settingsModal').style.display='flex';
+}
+function closeSettingsModal(){document.getElementById('settingsModal').style.display='none';}
+function saveKeyConfig(){
+  amapKey=document.getElementById('setAmapKey').value.trim();
+  amapSecret=document.getElementById('setAmapSecret').value.trim();
+  tdtKey=document.getElementById('setTdtKey').value.trim();
+  // 若当前底图为天地图系列，立即刷新瓦片以应用新 Key
+  if(BASEMAPS[mapMode] && BASEMAPS[mapMode].needKey==='tdt'){
+    // 关键：layer URL 内含 tdtKey，更新后必须清空 tdt_* 缓存，否则仍是空 key 时的 URL
+    Object.keys(_tileLayerCache).forEach(function(k){ if(k.indexOf('tdt_')===0) delete _tileLayerCache[k]; });
+    setMapMode(mapMode);
+  }
+  closeSettingsModal();
+  showToast('已保存 Key（本机）');
+}
+
+// ===== 清空草稿强确认 =====
+function openClearConfirmModal(){
+  document.getElementById('clearCount').textContent=shops.length;
+  document.getElementById('clearCatCount').textContent=categories.length;
+  document.getElementById('clearConfirmModal').style.display='flex';
+}
+function closeClearConfirmModal(){document.getElementById('clearConfirmModal').style.display='none';}
+function doClearDraftAndReload(){
+  closeClearConfirmModal();
+  clearDraft();
+  location.reload();
+}
+function clearDraftAndReload(){ openClearConfirmModal(); }
+// ===== 地图自带 POI 搜索（高德，JSONP 免 CORS） =====
+var poiSearchLayer=null, _lastPois=[], _poiHover=null;
+function togglePoiSearch(){
+  var p=document.getElementById('poiSearchPanel');
+  if(p.style.display==='block'){ p.style.display='none'; clearPoiSearchMarkers(); }
+  else { p.style.display='block'; document.getElementById('poiKeyword').focus(); }
+}
+function clearPoiSearchMarkers(){
+  if(poiSearchLayer){ map.removeLayer(poiSearchLayer); poiSearchLayer=null; }
+}
+function runPoiSearch(){
+  if(!amapKey){ openSettingsModal(); showToast('请先填写高德 Web 服务 Key'); return; }
+  var kw=document.getElementById('poiKeyword').value.trim();
+  if(!kw){ showToast('请输入要搜索的地点'); return; }
+  var city=document.getElementById('poiCity').value.trim();
+  var cbName='_amapPoiCb'+(Date.now())+Math.floor(Math.random()*1000);
+  var script=document.createElement('script');
+  window[cbName]=function(d){
+    try{document.body.removeChild(script);}catch(e){}
+    delete window[cbName];
+    renderPoiResults(d);
+  };
+  var base='https://restapi.amap.com/v3/place/'+(city?'text':'around')+'?key='+encodeURIComponent(amapKey)+
+           (amapSecret?('&jscode='+encodeURIComponent(amapSecret)):'')+
+           '&keywords='+encodeURIComponent(kw)+'&offset=25&page=1&callback='+cbName;
+  if(city){ base+='&city='+encodeURIComponent(city); }
+  else {
+    var c=map.getCenter(), b=map.getBounds();
+    var radius=Math.round(c.distanceTo(b.getNorthEast())/1.4);
+    if(radius<300) radius=300; if(radius>50000) radius=50000;
+    base+='&location='+c.lng.toFixed(6)+','+c.lat.toFixed(6)+'&radius='+radius;
+  }
+  script.src=base;
+  script.onerror=function(){try{document.body.removeChild(script);}catch(e){}delete window[cbName];showToast('搜索请求失败（网络或 Key 无效）');};
+  document.body.appendChild(script);
+}
+function renderPoiResults(d){
+  var box=document.getElementById('poiResults');
+  if(!d||d.status!=='1'){ box.innerHTML='<div style="padding:10px;color:var(--text-muted);font-size:12px">搜索失败：'+((d&&d.info)?d.info:'未知错误（检查 Key 是否有效）')+'</div>'; return; }
+  var pois=d.pois||[];
+  if(!pois.length){ box.innerHTML='<div style="padding:10px;color:var(--text-muted);font-size:12px">附近没有找到相关地点，换个关键词或缩小地图试试</div>'; return; }
+  clearPoiSearchMarkers();
+  poiSearchLayer=L.layerGroup().addTo(map);
+  _lastPois=pois;
+  var addAllBar='<div style="padding:6px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border-color);background:var(--bg-card)">'+
+    '<span style="font-size:12px;color:var(--text-secondary)">找到 '+pois.length+' 个地点</span>'+
+    '<button class="btn btn-primary" onclick="addAllPoisAsShops()" style="padding:3px 10px;font-size:11px">全部加入 ↧</button></div>';
+  box.innerHTML=addAllBar+pois.map(function(p,i){
+    var dist=(p.distance&&p.distance!=='[]')?(' · '+Math.round(p.distance)+'m'):'';
+    return '<div class="poi-item" data-i="'+i+'" style="padding:8px 10px;border-bottom:1px solid var(--border-color);cursor:pointer" onmouseenter="hoverPoi('+i+')" onmouseleave="unhoverPoi()" onclick="locatePoi('+i+')">'+
+      '<div style="font-size:13px;color:var(--text-primary);font-weight:600">'+escapeHtml(p.name)+'</div>'+
+      '<div style="font-size:11px;color:var(--text-muted);margin-top:2px">'+escapeHtml(p.address||'')+dist+'</div>'+
+      '<div style="margin-top:5px"><button class="btn" onclick="event.stopPropagation();addPoiAsShopByIndex('+i+')" style="padding:3px 8px;font-size:11px">＋ 加入我的点位</button></div></div>';
+  }).join('');
+  pois.forEach(function(p,i){
+    var ll=(p.location||'').split(','); var lng=parseFloat(ll[0]), lat=parseFloat(ll[1]);
+    if(isNaN(lng)||isNaN(lat)) return;
+    var m=L.circleMarker([lat,lng],{radius:6,color:'#e74c3c',fillColor:'#e74c3c',fillOpacity:0.9,weight:2});
+    m.bindTooltip(p.name,{direction:'top'}); m.addTo(poiSearchLayer);
+    m.on('click',function(){ locatePoi(i); });
+  });
+}
+function hoverPoi(i){
+  var p=_lastPois[i]; if(!p) return;
+  var ll=(p.location||'').split(','); var lng=parseFloat(ll[0]), lat=parseFloat(ll[1]);
+  if(isNaN(lng)) return;
+  if(!_poiHover) _poiHover=L.circleMarker([lat,lng],{radius:11,color:'#c0392b',fillColor:'#c0392b',fillOpacity:0.45,weight:2}).addTo(map);
+  else _poiHover.setLatLng([lat,lng]);
+}
+function unhoverPoi(){ if(_poiHover){ map.removeLayer(_poiHover); _poiHover=null; } }
+function locatePoi(i){
+  var p=_lastPois[i]; if(!p) return;
+  var ll=(p.location||'').split(','); var lng=parseFloat(ll[0]), lat=parseFloat(ll[1]);
+  if(isNaN(lng)) return;
+  map.setView([lat,lng], Math.max(map.getZoom(),16)); unhoverPoi();
+}
+function addPoiAsShopByIndex(i){ var p=_lastPois[i]; if(p) addPoiAsShop(p); }
+function addPoiAsShop(p){
+  if(!p||!p.location) return;
+  var ll=(p.location||'').split(','); var lng=parseFloat(ll[0]), lat=parseFloat(ll[1]);
+  if(isNaN(lng)||isNaN(lat)){ showToast('该地点无有效坐标'); return; }
+  if(categories.length===0){ categories.push({key:'uncat',label:'未分类',color:'#3498db'}); renderFilterBar(); renderLegend(); }
+  snapshot();
+  var ns={name:p.name||'地点',street:'',type:(categories[0]?categories[0].key:'uncat'),addr:(p.address||''),lat:lat,lng:lng,desc:'',pinSize:labelCfg.pinSize,fontSize:labelCfg.fontSize,fontWeight:labelCfg.fontWeight,style:'shadow',pos:labelCfg.pos,offX:labelCfg.offX,offY:labelCfg.offY,lineType:labelCfg.lineType,lineColor:labelCfg.lineColor,descColor:labelCfg.descColor};
+  shops.push(ns);
+  refreshMarkers(); updateStats(); renderList(); autosave();
+  showToast('已加入：'+ns.name);
+  map.setView([lat,lng], Math.max(map.getZoom(),16));
+}
+function addAllPoisAsShops(){
+  if(!_lastPois||!_lastPois.length){ showToast('没有可加入的搜索结果'); return; }
+  if(categories.length===0){ categories.push({key:'uncat',label:'未分类',color:'#3498db'}); renderFilterBar(); renderLegend(); }
+  var ctype=(categories[0]?categories[0].key:'uncat');
+  var added=0;
+  snapshot();
+  _lastPois.forEach(function(p){
+    if(!p||!p.location) return;
+    var ll=(p.location||'').split(','); var lng=parseFloat(ll[0]), lat=parseFloat(ll[1]);
+    if(isNaN(lng)||isNaN(lat)) return;
+    var ns={name:p.name||'地点',street:'',type:ctype,addr:(p.address||''),lat:lat,lng:lng,desc:'',pinSize:labelCfg.pinSize,fontSize:labelCfg.fontSize,fontWeight:labelCfg.fontWeight,style:'shadow',pos:labelCfg.pos,offX:labelCfg.offX,offY:labelCfg.offY,lineType:labelCfg.lineType,lineColor:labelCfg.lineColor,descColor:labelCfg.descColor};
+    shops.push(ns); added++;
+  });
+  refreshMarkers(); updateStats(); renderList(); autosave();
+  showToast('已批量加入 '+added+' 个地点（可在右侧列表编辑样式、参与导出/测距）');
+}
+
 // 初始化
 if(locked){
   document.body.classList.add('locked'); // 隐藏标题编辑提示与✎
-  var bt=document.getElementById('btnTypes');
-  if(bt)bt.style.display='none';         // 锁定后隐藏「⚙ 类型」按钮
+  var st=document.querySelector('.footer-actions .btn[onclick*="openSettingsModal"]');
+  if(st)st.style.display='none';         // 锁定后隐藏「设置」按钮（内含类型管理）
 }
-document.getElementById('dlZoom').addEventListener('change',updateDlInfo);
-document.getElementById('dlScale').addEventListener('change',updateDlInfo);
-document.getElementById('dlDpi').addEventListener('change',updateDlInfo);
-document.querySelectorAll('input[name=dlMode]').forEach(function(r){r.addEventListener('change',updateDlInfo);});
+var _dz=document.getElementById('dlZoom'); if(_dz)_dz.addEventListener('change',updateDlInfo);
+var _ds=document.getElementById('dlScale'); if(_ds)_ds.addEventListener('change',updateDlInfo);
+var _dd=document.getElementById('dlDpi'); if(_dd)_dd.addEventListener('change',updateDlInfo);
+var _dlModeEl=document.getElementById('dlMode'); if(_dlModeEl)_dlModeEl.addEventListener('change',updateDlInfo);
 if(loadAutosave()){ showToast('已恢复上次未保存的临时点位（'+shops.length+' 个），如需丢弃请看「🗑 清空调试草稿」'); }
 migrateData(); // 兼容旧数据：bold(boolean) -> fontWeight(100~900)
+populateBasemapSelect();
 setMapMode(mapMode); // 应用当前底图模式（含从保存草稿/保存文件读回的卫星/城市）
+initBoundaryCascade(); // 加载省/市/区 级联下拉
+syncBoundaryQuickVisibility(); // 按 boundaryEnabled 恢复快捷边界浮层显隐
 renderFilterBar();renderLegend();updateStats();renderList();refreshMarkers();
 </script>
 </body>
