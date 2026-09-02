@@ -1,0 +1,14 @@
+{
+  "name": "济宁佳印图文 地图标注软件",
+  "short_name": "地图标注",
+  "description": "内部地图标注与出图工具",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0a1426",
+  "theme_color": "#0a1426",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
