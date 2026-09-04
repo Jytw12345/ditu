@@ -2990,7 +2990,7 @@ var BASEMAPS={
   dark:{label:'🌑 暗色大屏', crs:'gcj02', sat:false, dark:true, layers:['amap_road']},
   tdt_img:{label:'🛰 天地图影像', crs:'wgs84', sat:true, layers:['tdt_img','tdt_cia'], needKey:'tdt'},
   tdt_vec:{label:'🗺 天地图矢量', crs:'wgs84', sat:false, layers:['tdt_vec','tdt_cva'], needKey:'tdt'},
-  esri_img:{label:'🌍 Esri 影像(境外)', crs:'wgs84', sat:true, layers:['esri_img','esri_road','esri_anno'], foreign:true}
+  esri_img:{label:'🌍 Esri 影像(备用·境外慢)', crs:'wgs84', sat:true, layers:['esri_img','esri_road','esri_anno'], foreign:true, backup:true}
 };
 var _tileLayerCache={};
 function getTileLayer(key){
@@ -3017,7 +3017,9 @@ function getTileLayer(key){
     }catch(_){}
     _errCount++;
     try{ console.error('[tileerror]', key, e.url||(e.tile&&e.tile.src)); }catch(_){}
-    if(_errCount===3 && !_errToastShown){
+    // 阈值改为 5：境外源（Esri）单张 800-1400ms，首屏 3 张在客户端默认 5s 超时内可能来不及回包，
+    // 触发 tileerror 但瓦片实际随后会到达 —— 把阈值从 3 放宽到 5 避免误报"加载失败"。
+    if(_errCount>=5 && !_errToastShown){
       _errToastShown=true;
       showToast('瓦片加载失败（连续 '+_errCount+' 次）— 请确认本地服务已启动：'+location.origin);
     }
@@ -3060,6 +3062,11 @@ function setMapMode(mode){
   }
   if(def.needKey==='tdt' && !tdtKey){
     showToast('当前底图需要天地图 Key，请在「设置 → 天地图 Key」中填写');
+  }
+  // Esri 为境外影像源（server.arcgisonline.com），单张 800-1400ms，首屏需数十秒填满；
+  // 切到它时主动提示，避免用户把"缓慢加载"误判为"加载失败"而反复切/刷新。
+  if(def.backup){
+    showToast('🌐 Esri 为境外影像源，单张瓦片约 1-1.5s，请稍候（首屏约数十秒填满）；日常用高德卫星即可');
   }
   if(boundaryEnabled) loadBoundary(); // 坐标系变化后重新对齐边界
 }
@@ -3293,6 +3300,7 @@ var currentFilter='all';
 var currentSearch='';
 var currentViewportOnly=false;
 var currentEditIdx=null;
+var LOCAL_INDEX = location.origin + '/index.html'; // 本地服务器入口：端口随启动配置/自动探测变化，用动态 origin 避免提示写死 8000 误导用户
 var mapMode='sat'; // 默认与源文件一致：卫星影像图；'city'=城市路网图
 
 function catMap(){var m={};categories.forEach(function(c){m[c.key]=c});return m;}
@@ -8770,11 +8778,11 @@ function openDlModal(bounds){
     if(location.protocol==='file:'){
       fw.style.display='block';
       fw.style.background='rgba(243,156,18,0.15)'; fw.style.borderColor='rgba(243,156,18,0.5)'; fw.style.color='#f39c12';
-      fw.innerHTML='⚠ 检测到你是用 <b>file://</b> 直接双击打开本文件。此方式下载极易失败/黑图，请双击「启动地图服务器.bat」再访问 <b>http://localhost:8000/index.html</b> 下载（本地代理已规避 CORS）。';
+      fw.innerHTML='⚠ 检测到你是用 <b>file://</b> 直接双击打开本文件。此方式下载极易失败/黑图，请双击「启动地图服务器.bat」再访问 <b>'+LOCAL_INDEX+'</b> 下载（本地代理已规避 CORS）。';
     } else if(location.hostname.indexOf('github.io')>=0 || location.hostname.indexOf('githubusercontent')>=0){
       fw.style.display='block';
       fw.style.background='rgba(231,76,60,0.15)'; fw.style.borderColor='rgba(231,76,60,0.5)'; fw.style.color='#c0392b';
-      fw.innerHTML='❌ 当前为 <b>GitHub Pages 静态托管</b>，没有本地瓦片代理，<b>高清下载功能不可用</b>（瓦片跨域会使 canvas 被污染，且服务端拼图 /stitch 不存在）。请在本机双击「启动地图服务器.bat」后访问 <b>http://localhost:8000/index.html</b> 使用该功能。地图浏览不受影响。';
+      fw.innerHTML='❌ 当前为 <b>GitHub Pages 静态托管</b>，没有本地瓦片代理，<b>高清下载功能不可用</b>（瓦片跨域会使 canvas 被污染，且服务端拼图 /stitch 不存在）。请在本机双击「启动地图服务器.bat」后访问 <b>'+LOCAL_INDEX+'</b> 使用该功能。地图浏览不受影响。';
     } else {
       fw.style.display='none';
     }
@@ -10603,7 +10611,7 @@ function runDownload(){
   if(dlRunning||!dlBounds)return;
   // 静态托管/file:// 无本地代理：下载不可用，直接提示并返回，避免 canvas 污染等一堆报错
   if(localServerOK===false){
-    showToast('高清下载需本地服务器：请双击「启动地图服务器.bat」后访问 http://localhost:8000/index.html');
+    showToast('高清下载需本地服务器：请双击「启动地图服务器.bat」后访问 '+LOCAL_INDEX+'');
     return;
   }
   dlFailCount=0;
@@ -10655,7 +10663,7 @@ function runDownload(){
 function runPreview(fast){
   if(dlRunning||!dlBounds)return;
   if(localServerOK===false){
-    showToast('预览需本地服务器：请双击「启动地图服务器.bat」后访问 http://localhost:8000/index.html');
+    showToast('预览需本地服务器：请双击「启动地图服务器.bat」后访问 '+LOCAL_INDEX+'');
     return;
   }
   var mode=document.getElementById('dlMode').value;
@@ -10734,7 +10742,7 @@ function showPreview(canvas, st, z, scale, dpi){
 function runQuickPreview(){
   if(!map||!dlBounds){ showToast('请先设置下载范围'); return; }
   if(localServerOK===false){
-    showToast('预览需本地服务器：请双击「启动地图服务器.bat」后访问 http://localhost:8000/index.html');
+    showToast('预览需本地服务器：请双击「启动地图服务器.bat」后访问 '+LOCAL_INDEX+'');
     return;
   }
   var mode=document.getElementById('dlMode').value;
@@ -10906,7 +10914,7 @@ function startServerStitch(bounds, mode, z, scale, dpi, paper, batchTag, onDone)
   }).catch(function(err){
     var msg=(err&&err.message)?err.message:String(err);
     if(msg.indexOf('fetch')>=0 || msg.indexOf('Failed to fetch')>=0 || msg.indexOf('NetworkError')>=0){
-      msg='未检测到本地服务器。请先双击「启动地图服务器.bat」并访问 http://localhost:8000/index.html 后再试';
+      msg='未检测到本地服务器。请先双击「启动地图服务器.bat」并访问 '+LOCAL_INDEX+' 后再试';
     }
     finishErr(msg);
   });
