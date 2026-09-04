@@ -482,7 +482,37 @@ body.sb-collapsed .sidebar-collapse-btn{left:6px}
 .desc-style-border .map-desc-text{color:#222222}
 /* stroke：描边字（无背景），靠文字描边在任意底图上可读 */
 .desc-style-stroke{background:transparent!important;box-shadow:none!important;padding:5px 10px!important}
-.desc-style-stroke .map-desc-text{color:#222222;text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 2px #fff,1px 1px 3px rgba(0,0,0,0.5)}
+.desc-style-stroke .map-desc-text{color:#222222;text-shadow:-1px -1px 0 #fff,-1px 0 0 #fff,-1px 1px 0 #fff,0 -1px 0 #fff,0 1px 0 #fff,1px -1px 0 #fff,1px 0 0 #fff,1px 1px 0 #fff,0 1px 3px rgba(0,0,0,0.5)}
+/* colorfill：背景=类型色，白字（按分类一键上色） */
+.desc-style-colorfill{box-shadow:0 4px 12px rgba(0,0,0,0.18)!important}
+.desc-style-colorfill .map-desc-text{color:#ffffff}
+/* darkbg：深色底白字（浅色/卫星底图高对比） */
+.desc-style-darkbg{background:#222222!important;box-shadow:0 4px 12px rgba(0,0,0,0.4)!important}
+.desc-style-darkbg .map-desc-text{color:#ffffff}
+/* accent：白底 + 左侧类型色条（醒目分类标记） */
+.desc-style-accent{background:#ffffff!important;box-shadow:0 4px 12px rgba(0,0,0,0.15)!important;border-left:5px solid #3498db!important}
+.desc-style-accent .map-desc-text{color:#222222}
+/* callout：白底气泡 + 指向小三角（tail-* 决定开口方向，JS 按图钉相对位置设置） */
+.desc-style-callout{background:#ffffff!important;box-shadow:0 4px 12px rgba(0,0,0,0.2)!important;border-radius:10px!important}
+.desc-style-callout .map-desc-text{color:#222222}
+.desc-style-callout.tail-top::after{content:'';position:absolute;left:50%;top:-8px;transform:translateX(-50%);border:8px solid transparent;border-bottom-color:#ffffff}
+.desc-style-callout.tail-bottom::after{content:'';position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);border:8px solid transparent;border-top-color:#ffffff}
+.desc-style-callout.tail-left::after{content:'';position:absolute;top:50%;left:-8px;transform:translateY(-50%);border:8px solid transparent;border-right-color:#ffffff}
+.desc-style-callout.tail-right::after{content:'';position:absolute;top:50%;right:-8px;transform:translateY(-50%);border:8px solid transparent;border-left-color:#ffffff}
+/* gradient：渐变彩底（类型色 + 高光，按分类上色且有质感） */
+.desc-style-gradient{box-shadow:0 4px 12px rgba(0,0,0,0.18)!important;background:var(--c,#3498db)!important;position:relative;overflow:hidden}
+.desc-style-gradient::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.4),rgba(255,255,255,0) 62%);pointer-events:none}
+.desc-style-gradient .map-desc-text{color:#ffffff!important;position:relative;z-index:1}
+/* frost：半透明磨砂（模糊透出底图，密集区不挡细节） */
+.desc-style-frost{background:rgba(255,255,255,0.6)!important;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);box-shadow:0 4px 12px rgba(0,0,0,0.12)!important}
+.desc-style-frost .map-desc-text{color:#222222}
+/* neon：荧光发光字（无背景，暗底图上按类型色发光，辨识度高） */
+.desc-style-neon{background:transparent!important;box-shadow:none!important;padding:5px 10px!important}
+.desc-style-neon .map-desc-text{color:var(--neon,#39ff14)!important;text-shadow:0 0 4px var(--neon,#39ff14),0 0 9px var(--neon,#39ff14)!important}
+/* badge：编号徽章（前置圆形序号，像地图 POI 编号 A/B/C…） */
+.desc-style-badge{background:#ffffff!important;box-shadow:0 4px 12px rgba(0,0,0,0.15)!important;border-radius:10px!important;display:inline-flex!important;align-items:center;gap:6px;padding:4px 12px 4px 4px!important}
+.desc-style-badge .desc-badge{width:22px;height:22px;border-radius:50%;background:var(--c,#3498db);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-family:var(--font-sans)}
+.desc-style-badge .map-desc-text{color:#222222}
 /* 可拖拽描述标签层（放入 Leaflet 自定义 pane「descLabels」，z-index 由 JS 设定为 650） */
 #descLineLayer{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;overflow:visible}
 #descLabelLayer{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;overflow:visible}
@@ -654,6 +684,9 @@ body.sb-collapsed #drawPanel{left:28px}
 .draw-layerbar .btn .lyr-ic{width:18px;height:18px;display:flex;align-items:center;justify-content:center}
 .draw-layerbar .btn .lyr-ic svg{width:16px;height:16px;display:block;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;fill:none}
 .draw-layerbar .btn .lyr-lbl{display:none}
+.mb-btn{padding:4px 9px;height:28px;border-radius:5px;border:1px solid var(--border-color);background:var(--bg-card);color:var(--text-primary);cursor:pointer;white-space:nowrap;font-size:12px;line-height:1}
+.mb-btn:hover{background:rgba(52,152,219,.22);border-color:rgba(52,152,219,.5);color:#fff}
+#btnMarquee.active,#btnAngleLock.active,#btnGrid.active{background:var(--accent-blue);color:#fff!important}
 /* 点要素：emoji 图标徽标（f.icon）与标签组合容器 */
 .draw-poi{display:flex;flex-direction:column;align-items:center;line-height:1}
 .draw-point-icon{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;background:rgba(255,255,255,0.92)}
@@ -817,10 +850,9 @@ body.sb-collapsed #drawPanel{left:28px}
 @keyframes wingFlapR{ from{transform:rotate(-20deg) scaleY(1)} to{transform:rotate(24deg) scaleY(.65)} }
 @keyframes enterFly{
   0%   {transform:translate(0,0) scale(1);                                          opacity:1}
-  47%  {transform:translate(var(--tx), var(--ty)) scale(.95);                       opacity:1}  /* 飞抵济宁上空（地球中心=中国·山东，≈3000ms）保持全亮 */
-  88%  {transform:translate(var(--tx), var(--ty)) scale(.92);                       opacity:1}  /* 俯冲全程（3200–6500ms）保持可见，跟随进入 */
-  100% {transform:translate(var(--tx), var(--ty)) scale(.82);                       opacity:0}  /* 俯冲快结束（≈6300ms，早于 6350ms 清理）再渐隐，溶入目的地 */
-}
+  47%  {transform:translate(var(--tx), var(--ty)) scale(.95);                       opacity:1}  /* 第一段：直线飞抵地球中心（目的地=中国·山东上空，≈3000ms）保持全亮 */
+  53%  {transform:translate(var(--tx), var(--ty)) scale(.92); animation-timing-function:cubic-bezier(.5,0,.85,.3); opacity:1}  /* 蓄势：白光吞没前在目的地短暂停驻；下一段改用「起步慢、加速下扎」缓动 */
+  100% {transform:translate(var(--tx2), var(--ty2)) scale(.82);                     opacity:0}  /* 第二段：俯冲落地过程中逐渐向地图中心点靠拢，溶入目的地 */
 }
 /* 命中地球：冲击环（向外扩散） */
 .pulse-impact{
@@ -980,7 +1012,7 @@ body.sb-collapsed #drawPanel{left:28px}
 .login-div .port-sweep.s1{
   background:conic-gradient(from 0deg,
     rgba(150,225,255,0) 0deg, rgba(150,225,255,0) 300deg,
-    rgba(150,225,255,.35) 338deg, rgba(200,246,255,.85) 360deg);
+    rgba(150,225,255,.25) 338deg, rgba(200,246,255,.55) 360deg);  /* P2：雷达扫臂峰值略降，弱化「控制台」观感 */
   -webkit-mask:radial-gradient(ellipse at 50% 50%, transparent 13%, #000 15%, #000 72%, transparent 76%);
           mask:radial-gradient(ellipse at 50% 50%, transparent 13%, #000 15%, #000 72%, transparent 76%);
   animation:portSweep 2.8s linear infinite;
@@ -1236,7 +1268,7 @@ body.sb-collapsed #drawPanel{left:28px}
 .rssi i:nth-child(3){height:12px}
 .rssi i:nth-child(4){height:15px}
 .rssi i:nth-child(5){height:19px}
-.rssi i.on{background:#7fcaff;box-shadow:0 0 6px 1px rgba(92,187,255,.85)}
+.rssi i.on{background:#7fcaff;box-shadow:0 0 3px 0 rgba(92,187,255,.5)}  /* P2：信号条辉光收敛，读作环境指示而非焦点 HUD */
 /* RSSI 移到前面板（文字仪表平放顶面看不清）：贴前面板顶部两侧，像设备面板上的天线指示条 */
 .rssi.left{position:absolute;left:11px;top:9px;z-index:3}
 .rssi.right{position:absolute;right:11px;top:9px;z-index:3}
@@ -1246,6 +1278,7 @@ body.sb-collapsed #drawPanel{left:28px}
   margin:4px 0 9px;
   font-family:'Consolas','SFMono-Regular','Courier New',monospace;
   font-size:10px;letter-spacing:1px;
+  opacity:.4;   /* P2：收敛「控制台遥测」观感，信号/速率读数降为弱背景细节 */
 }
 .pwd-status .st-mode{color:rgba(150,225,255,.92);min-width:28px;text-align:right}
 .pwd-status .st-rate{
@@ -1290,7 +1323,7 @@ body.sb-collapsed #drawPanel{left:28px}
   color:rgba(150,200,255,.82);text-transform:uppercase;
   font-family:'Consolas','SFMono-Regular','Courier New',monospace;
 }
-.pwd-label::after{content:'SECURE ACCESS';margin-left:auto;color:rgba(120,180,240,.42);letter-spacing:2px}
+.pwd-label::after{content:'安全接入';margin-left:auto;color:rgba(120,180,240,.42);letter-spacing:2px}  /* P2：英文控制台 microcopy 中文化，贴合品牌调性 */
 .pwd-label .dot{
   width:7px;height:7px;border-radius:50%;flex:0 0 auto;
   background:#5cbbff;box-shadow:0 0 7px #5cbbff;
@@ -1578,6 +1611,9 @@ body.sb-collapsed #drawPanel{left:28px}
     <button onclick="togglePoiSearch()" title="搜索地图自带地点（高德 POI）" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--accent-special);cursor:pointer;font-weight:600">🔍 搜地点</button>
     <button id="btnRoadNet" onclick="toggleRoadNet()" title="开/关道路线条（路网）" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--text-secondary);cursor:pointer;font-weight:600">🛣 路网</button>
     <button id="btnTextLabels" onclick="toggleTextLabels()" title="开/关地图文字（路名·地名·POI 名称）" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--text-secondary);cursor:pointer;font-weight:600">🏷 文字</button>
+    <button id="btnAngleLock" onclick="toggleAngleLock()" title="角度约束：绘制线/面/曲线时锁定 0/45/90°（也可按住 Shift）" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--text-secondary);cursor:pointer;font-weight:600">∠ 约束</button>
+    <button id="btnGrid" onclick="toggleSnapGrid()" title="参考网格：开启后在绘制时吸附到网格交点（默认 500m）" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--text-secondary);cursor:pointer;font-weight:600">▦ 网格</button>
+    <button id="btnMarquee" onclick="toggleMarquee()" title="框选：开启后在地图上拖拽框选多个要素（再次点击退出，开启时禁用地图拖拽）" style="padding:7px 12px;font-size:12px;border:none;border-left:1px solid var(--border-color);background:transparent;color:var(--text-secondary);cursor:pointer;font-weight:600">⊞ 框选</button>
   </div>
 </div>
 <div id="settingsModal" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.55);align-items:center;justify-content:center;">
@@ -1720,6 +1756,7 @@ body.sb-collapsed #drawPanel{left:28px}
       <span class="dt" data-mode="point" onclick="setDrawMode('point')"><span class="dt-icon">📍</span><span class="dt-label">点</span></span>
       <span class="dt" data-mode="polyline" onclick="setDrawMode('polyline')"><span class="dt-icon">📏</span><span class="dt-label">线</span></span>
       <span class="dt" data-mode="arrow" onclick="setDrawMode('arrow')"><span class="dt-icon">➤</span><span class="dt-label">箭头</span></span>
+      <span class="dt" data-mode="curve" onclick="setDrawMode('curve')"><span class="dt-icon">〰</span><span class="dt-label">曲线</span></span>
       <span class="dt" data-mode="polygon" onclick="setDrawMode('polygon')"><span class="dt-icon">⬡</span><span class="dt-label">面</span></span>
       <span class="dt" data-mode="rectangle" onclick="setDrawMode('rectangle')"><span class="dt-icon">▭</span><span class="dt-label">矩形</span></span>
       <span class="dt" data-mode="circle" onclick="setDrawMode('circle')"><span class="dt-icon">◯</span><span class="dt-label">圆</span></span>
@@ -1735,6 +1772,27 @@ body.sb-collapsed #drawPanel{left:28px}
       <div class="btn" id="drawUndoBtn" onclick="undoDrawPoint()" title="撤销最近一个顶点">撤销点</div>
     </div>
     <div class="draw-measure" id="drawMeasure" style="display:none"></div>
+    <div id="multiBar" style="display:none;position:fixed;left:50%;bottom:46px;transform:translateX(-50%);z-index:1600;background:var(--bg-panel);border:1px solid var(--border-active);border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.45);padding:7px 10px;display:none;align-items:center;gap:6px;font-size:12px;color:var(--text-primary);backdrop-filter:blur(12px);flex-wrap:wrap;max-width:94vw">
+      <span style="font-weight:600;white-space:nowrap">多选 <b id="mbCount" style="color:var(--accent-blue)">0</b></span>
+      <span style="width:1px;height:18px;background:var(--border-color);margin:0 2px"></span>
+      <span style="opacity:.7;white-space:nowrap">对齐</span>
+      <button class="mb-btn" onclick="alignSelected('h','left')" title="左对齐">⬅</button>
+      <button class="mb-btn" onclick="alignSelected('h','center')" title="水平居中">↔</button>
+      <button class="mb-btn" onclick="alignSelected('h','right')" title="右对齐">➡</button>
+      <button class="mb-btn" onclick="alignSelected('v','top')" title="顶部对齐">⬆</button>
+      <button class="mb-btn" onclick="alignSelected('v','center')" title="垂直居中">↕</button>
+      <button class="mb-btn" onclick="alignSelected('v','bottom')" title="底部对齐">⬇</button>
+      <span style="width:1px;height:18px;background:var(--border-color);margin:0 2px"></span>
+      <span style="opacity:.7;white-space:nowrap">分布</span>
+      <button class="mb-btn" onclick="distributeSelected('h')" title="水平等距分布">⇿</button>
+      <button class="mb-btn" onclick="distributeSelected('v')" title="垂直等距分布">⇳</button>
+      <span style="width:1px;height:18px;background:var(--border-color);margin:0 2px"></span>
+      <button class="mb-btn" onclick="groupSelected()" title="将选中要素编为一组">⛓ 编组</button>
+      <button class="mb-btn" onclick="ungroupSelected()" title="解散选中要素的编组">⛓⃠ 解组</button>
+      <span style="width:1px;height:18px;background:var(--border-color);margin:0 2px"></span>
+      <button class="mb-btn" onclick="deleteSelectedAll()" title="删除全部选中要素">🗑 删除</button>
+      <button class="mb-btn" onclick="clearSelection()" title="取消选择">✕ 取消</button>
+    </div>
     <div class="draw-style">
       <div class="draw-style-title" id="drawBaseTitle">基础样式</div>
       <div class="row compact" id="drawBaseRow1">
@@ -2065,6 +2123,14 @@ body.sb-collapsed #drawPanel{left:28px}
             <option value="border">白底彩边</option>
             <option value="stroke">描边字</option>
             <option value="shadow">白底投影</option>
+            <option value="colorfill">彩底白字</option>
+            <option value="darkbg">黑底白字</option>
+            <option value="accent">色条标签</option>
+            <option value="callout">气泡引线</option>
+            <option value="gradient">渐变彩底</option>
+            <option value="frost">半透明磨砂</option>
+            <option value="neon">荧光发光字</option>
+            <option value="badge">编号徽章</option>
           </select>
         </div>
       </div>
@@ -2222,6 +2288,14 @@ body.sb-collapsed #drawPanel{left:28px}
           <option value="dark">白底方框</option>
           <option value="border">白底彩边</option>
           <option value="stroke">描边字</option>
+          <option value="colorfill">彩底白字</option>
+          <option value="darkbg">黑底白字</option>
+          <option value="accent">色条标签</option>
+          <option value="callout">气泡引线</option>
+          <option value="gradient">渐变彩底</option>
+          <option value="frost">半透明磨砂</option>
+          <option value="neon">荧光发光字</option>
+          <option value="badge">编号徽章</option>
         </select>
       </div>
       <div style="font-size:11px;color:var(--text-muted);margin-top:6px">字号/粗细/位置在「编辑」弹窗按点位单独设置；服务端导出修改后需重启「启动地图服务器.bat」。</div>
@@ -2502,7 +2576,7 @@ var locked=false;
 
 // ===== 下载标签（兴趣点文字描述）全局默认样式 =====
 // 每个点位可在「编辑」弹窗里单独覆盖这些设置；未单独设置时沿用以下全局默认。
-// style 可选：white(白底黑字) / dark(白底方框) / border(白底+类型色边框) / stroke(描边字) / shadow(白底投影)
+// style 可选：white(白底黑字) / dark(白底方框) / border(白底+类型色边框) / stroke(描边字) / shadow(白底投影) / colorfill(彩底白字) / darkbg(黑底白字) / accent(色条标签) / callout(气泡引线)
 var labelCfg={
   showLabel:true,      // 是否在下载图中显示文字标签
   useDesc:false,       // true=使用「描述」字段作为标签内容；false=使用店名
@@ -3588,7 +3662,7 @@ function renderDescLabels(){
     if(pin.x<bounds.x-OUT||pin.x>bounds.x+bounds.w+OUT||pin.y<bounds.y-OUT||pin.y>bounds.y+bounds.h+OUT) return;
     var size=s.pinSize||26;
     if(!descLabelPos[key]) descLabelPos[key]={dx:0, dy:size*1.38+8};
-    visible.push({key:key, s:s, txt:txt, pin:pin, lp:{x:pin.x+descLabelPos[key].dx, y:pin.y+descLabelPos[key].dy}, size:size, marker:m});
+    visible.push({key:key, s:s, txt:txt, pin:pin, lp:{x:pin.x+descLabelPos[key].dx, y:pin.y+descLabelPos[key].dy}, size:size, marker:m, idx:shops.indexOf(s)});
   });
   // 第一遍：创建 DOM 并测量实际宽高
   visible.forEach(function(v){
@@ -3596,12 +3670,21 @@ function renderDescLabels(){
     var el=document.createElement('div');
     el.className='map-desc-label desc-label desc-style-'+st;
     el.dataset.idx=v.key;   // 仍以 data-idx 存储，值改为 uid
-    el.innerHTML='<span class="map-desc-text">'+escapeHtml(v.txt)+'</span>';
+    var bnum=v.idx+1;
+    var blabel=(bnum>=1&&bnum<=26)?String.fromCharCode(64+bnum):String(bnum);
+    var badgeHtml=(st==='badge')?'<span class="desc-badge">'+blabel+'</span>':'';
+    el.innerHTML=badgeHtml+'<span class="map-desc-text">'+escapeHtml(v.txt)+'</span>';
     var textEl=el.querySelector('.map-desc-text');
     if(textEl && v.s.descColor){ textEl.style.setProperty('color', v.s.descColor, 'important'); }
     if(textEl){ var fw=(v.s.fontWeight!==undefined?v.s.fontWeight:(v.s.bold===false?400:500)); textEl.style.setProperty('font-weight', fw, 'important'); }
     if(textEl && v.s.fontSize){ textEl.style.setProperty('font-size', (v.s.fontSize||14)+'px', 'important'); }
     if(st==='border'){ el.style.setProperty('borderColor', getColor(v.s), 'important'); }
+    if(st==='colorfill'){ el.style.setProperty('background', getColor(v.s), 'important'); }
+    if(st==='accent'){ el.style.setProperty('borderLeftColor', getColor(v.s), 'important'); }
+    if(st==='gradient' || st==='badge'){ el.style.setProperty('--c', getColor(v.s), 'important'); }
+    if(st==='neon'){ el.style.setProperty('--neon', getColor(v.s), 'important'); }
+    // 彩底/黑底/渐变：强制白字保证对比度（覆盖可能存在的 descColor）
+    if(textEl && (st==='colorfill' || st==='darkbg' || st==='gradient')){ textEl.style.setProperty('color', '#ffffff', 'important'); }
     el.style.left=v.lp.x+'px'; el.style.top=v.lp.y+'px';
     labelLayer.appendChild(el);
     v.el=el; v.w=el.offsetWidth; v.h=el.offsetHeight;
@@ -3642,6 +3725,13 @@ function renderDescLabels(){
   // 第三遍：更新最终位置、绑定交互、绘制引线
   visible.forEach(function(v){
     var el=v.el;
+    var st=v.s.style||'shadow';
+    if(st==='callout'){
+      // 气泡小三角朝向图钉：根据标签相对图钉的几何位置选开口方向
+      var dxp=v.pin.x-v.lp.x, dyp=v.pin.y-v.lp.y;
+      var ts=(Math.abs(dyp)>=Math.abs(dxp))?(dyp<0?'tail-top':'tail-bottom'):(dxp<0?'tail-left':'tail-right');
+      el.classList.add('desc-style-callout', ts);
+    }
     el.style.left=v.lp.x+'px'; el.style.top=v.lp.y+'px';
     descLabels.push({key:v.key, el:el});
     setupDescLabelDrag(el, v.key, v.marker);
@@ -3956,7 +4046,7 @@ function openEditPopup(idx, fillRegeo){
     '<div class="section-title">标签与样式（下载图中显示）</div>'+
     '<label>描述文字（留空用店名）</label><input type="text" id="editDesc" value="'+escapeHtml(s.desc||'')+'">'+
     '<div class="edit-row"><div class="edit-col" style="flex:0 0 80px"><label>图钉大小</label><input type="number" id="editPin" value="'+(s.pinSize||26)+'" min="14" max="60"></div><div class="edit-col"><label>图钉形状</label><select id="editShape"><option value="">跟随类型</option>'+PIN_SHAPES.map(function(o){return '<option value="'+o.id+'"'+(s.shape===o.id?' selected':'')+'>'+o.label+'</option>';}).join('')+'</select></div><div class="edit-col" style="flex:1;min-width:90px"><label>自定义图标</label><input type="hidden" id="editIconVal" value="'+escapeHtml(s.icon||'')+'"><span id="editIconWrap">'+(s.icon?'<img src="'+s.icon+'" style="height:22px;width:22px;object-fit:contain;border:1px solid var(--border-color);border-radius:4px;vertical-align:middle"><button type="button" class="btn" style="padding:2px 6px;font-size:12px;margin-left:4px" onclick="editIconClear()">清除</button>':'<label class="btn" style="display:inline-block;padding:4px 8px;font-size:12px;cursor:pointer">选择图片<input type="file" id="editIconFile" accept="image/png,image/svg+xml,image/jpeg,image/webp" style="display:none" onchange="editIconPick(this)"></label>')+'</span></div></div>'+
-    '<div class="edit-row"><div class="edit-col" style="flex:0 0 70px"><label>文字大小</label><input type="number" id="editFs" value="'+(s.fontSize||14)+'" min="8" max="40"></div><div class="edit-col" style="flex:0 0 50px"><label>颜色</label><input type="color" id="editDescColor" value="'+(s.descColor||'#222222')+'"></div><div class="edit-col" style="flex:0 0 60px"><label>粗细</label><select id="editFontWeight" style="width:100%;padding:4px 2px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);font-size:12px">'+[100,200,300,400,500,600,700,800,900].map(function(w){return '<option value="'+w+'"'+(fontWeight==w?' selected':'')+'>'+w+'</option>';}).join('')+'</select></div><div class="edit-col"><label>样式</label><select id="editStyle"><option value="white"'+(s.style==='white'?' selected':'')+'>白底黑字</option><option value="dark"'+(s.style==='dark'?' selected':'')+'>白底方框</option><option value="border"'+(s.style==='border'?' selected':'')+'>白底彩边</option><option value="stroke"'+(s.style==='stroke'?' selected':'')+'>描边字</option><option value="shadow"'+(s.style==='shadow'?' selected':'')+'>白底投影</option></select></div></div>'+
+    '<div class="edit-row"><div class="edit-col" style="flex:0 0 70px"><label>文字大小</label><input type="number" id="editFs" value="'+(s.fontSize||14)+'" min="8" max="40"></div><div class="edit-col" style="flex:0 0 50px"><label>颜色</label><input type="color" id="editDescColor" value="'+(s.descColor||'#222222')+'"></div><div class="edit-col" style="flex:0 0 60px"><label>粗细</label><select id="editFontWeight" style="width:100%;padding:4px 2px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);font-size:12px">'+[100,200,300,400,500,600,700,800,900].map(function(w){return '<option value="'+w+'"'+(fontWeight==w?' selected':'')+'>'+w+'</option>';}).join('')+'</select></div><div class="edit-col"><label>样式</label><select id="editStyle"><option value="white"'+(s.style==='white'?' selected':'')+'>白底黑字</option><option value="dark"'+(s.style==='dark'?' selected':'')+'>白底方框</option><option value="border"'+(s.style==='border'?' selected':'')+'>白底彩边</option><option value="stroke"'+(s.style==='stroke'?' selected':'')+'>描边字</option><option value="shadow"'+(s.style==='shadow'?' selected':'')+'>白底投影</option><option value="colorfill"'+(s.style==='colorfill'?' selected':'')+'>彩底白字</option><option value="darkbg"'+(s.style==='darkbg'?' selected':'')+'>黑底白字</option><option value="accent"'+(s.style==='accent'?' selected':'')+'>色条标签</option><option value="callout"'+(s.style==='callout'?' selected':'')+'>气泡引线</option><option value="gradient"'+(s.style==='gradient'?' selected':'')+'>渐变彩底</option><option value="frost"'+(s.style==='frost'?' selected':'')+'>半透明磨砂</option><option value="neon"'+(s.style==='neon'?' selected':'')+'>荧光发光字</option><option value="badge"'+(s.style==='badge'?' selected':'')+'>编号徽章</option></select></div></div>'+
     '<div class="edit-row"><div class="edit-col" style="flex:0 0 70px"><label>位置</label><select id="editPos"><option value="bottom"'+(s.pos==='bottom'?' selected':'')+'>下方</option><option value="top"'+(s.pos==='top'?' selected':'')+'>上方</option><option value="left"'+(s.pos==='left'?' selected':'')+'>左侧</option><option value="right"'+(s.pos==='right'?' selected':'')+'>右侧</option></select></div><div class="edit-col" style="flex:0 0 110px"><label>连线类型</label><select id="editLineType"><option value="none"'+(s.lineType==='none'?' selected':'')+'>不连线</option><option value="solid"'+(s.lineType==='solid'?' selected':'')+'>实线</option><option value="dashed"'+(s.lineType==='dashed'?' selected':'')+'>虚线</option><option value="dotted"'+(s.lineType==='dotted'?' selected':'')+'>点线</option><option value="poly"'+(s.lineType==='poly'?' selected':'')+'>自动折线</option></select></div><div class="edit-col" style="flex:0 0 70px"><label>连线颜色</label><input type="color" id="editLineColor" value="'+(s.lineColor||labelCfg.lineColor||'#999999')+'"></div></div>'+
     '<div class="hint">提示：可直接拖拽标记移动位置；标签重叠可在地图拖开，或开启自动折线引线。</div>'+
     '</div>';
@@ -4638,9 +4728,17 @@ function updateBatchStylePreview(){
   el.style.fontSize=fs+'px';
   el.style.fontWeight=fw;
   if(bg==='border') wrap.style.borderColor='#3498db';
-  if(bg==='stroke'){ el.style.textShadow='0 0 2px #fff,0 0 2px #fff,0 0 2px #fff,1px 1px 3px rgba(0,0,0,0.5)'; wrap.style.background='transparent'; }
+  if(bg==='stroke'){ el.style.textShadow='-1px -1px 0 #fff,-1px 0 0 #fff,-1px 1px 0 #fff,0 -1px 0 #fff,0 1px 0 #fff,1px -1px 0 #fff,1px 0 0 #fff,1px 1px 0 #fff,0 1px 3px rgba(0,0,0,0.5)'; wrap.style.background='transparent'; }
+  if(bg==='colorfill'){ wrap.style.background='#3498db'; el.style.color='#fff'; }
+  if(bg==='darkbg'){ wrap.style.background='#222222'; el.style.color='#fff'; }
+  if(bg==='accent'){ wrap.style.borderLeftColor='#3498db'; }
+  if(bg==='callout'){ wrap.classList.add('tail-bottom'); }
+  if(bg==='gradient'){ wrap.style.background='linear-gradient(135deg,#3498db,#5dade2)'; el.style.color='#fff'; }
+  if(bg==='frost'){ wrap.style.background='rgba(255,255,255,0.6)'; wrap.style.backdropFilter='blur(4px)'; wrap.style.webkitBackdropFilter='blur(4px)'; el.style.color=color; }
+  if(bg==='neon'){ wrap.style.background='transparent'; el.style.color='#39ff14'; el.style.textShadow='0 0 4px #39ff14,0 0 9px #39ff14'; }
+  if(bg==='badge'){ wrap.style.background='#fff'; el.style.color=color; var _ob=wrap.querySelector('.desc-badge'); if(_ob)_ob.remove(); var _b=document.createElement('span'); _b.className='desc-badge'; _b.style.background='#3498db'; _b.textContent='A'; wrap.insertBefore(_b, el); }
   var lineTxt={none:'不连线',solid:'实线',dashed:'虚线',dotted:'点线',poly:'自动折线'}[lt]||'自动折线';
-  var styleTxt={white:'白底黑字',dark:'白底方框',border:'白底彩边',stroke:'描边字',shadow:'白底投影'}[bg]||bg;
+  var styleTxt={white:'白底黑字',dark:'白底方框',border:'白底彩边',stroke:'描边字',shadow:'白底投影',colorfill:'彩底白字',darkbg:'黑底白字',accent:'色条标签',callout:'气泡引线',gradient:'渐变彩底',frost:'半透明磨砂',neon:'荧光发光字',badge:'编号徽章'}[bg]||bg;
   document.getElementById('batchStyleSummary').textContent='图钉 '+pin+'px / 字号 '+fs+'px / 粗细 '+fw+' / '+styleTxt+' / 连线 '+lineTxt+' / 线色 '+lc;
 }
 function applyBatchStyle(){
@@ -5639,6 +5737,8 @@ var drawMode=null;      // null | 'select' | 'polyline' | 'polygon' | 'rectangle
 var drawPts=[];         // 绘制中顶点 [{lat,lng}]
 var drawPreview=null;
 var selectedId=null;
+var selectedIds=[];        // 多选：当前选中的要素 id 列表（selectedId 为其中"主"要素，用于样式面板）
+var marqueeMode=false, _marqRect=null, _marqStart=null;
 var drawDefStyle=null;  // 新建绘制要素时沿用的「当前样式」（切换工具不再被重置）
 var continueDrawingId=null; // 续绘模式：正在继续编辑的要素 id
 var _pendingClick=null;  // 线/面落点防抖：双击结束前取消最后一次重复落点
@@ -5721,6 +5821,8 @@ function setDrawStyleControls(st){
 function serializeDrawings(){
   return drawings.map(function(f){
     var o={id:f.id,type:f.type,name:f.name,visible:(f.visible!==false),locked:(f.locked===true),style:cloneStyle(f.style)};
+    if(f.smooth) o.smooth=true;
+    if(f.group!==undefined) o.group=f.group;
     if(f.icon!==undefined) o.icon=f.icon;
     if(f.tags!==undefined) o.tags=f.tags;
     if(f.addr!==undefined) o.addr=f.addr;
@@ -5734,6 +5836,8 @@ function serializeDrawings(){
 function deserializeDrawings(arr){
   return (arr||[]).map(function(o){
     var f={id:(o.id||uidDraw()),type:o.type,name:(o.name||'未命名'),visible:(o.visible!==false),locked:(o.locked===true),style:o.style?cloneStyle(o.style):drawDefaultStyle(o.type),layer:null,handles:[]};
+    if(o.smooth) f.smooth=true;
+    if(o.group!==undefined) f.group=o.group;
     if(o.icon!==undefined) f.icon=o.icon;
     if(o.tags!==undefined) f.tags=o.tags;
     if(o.addr!==undefined) f.addr=o.addr;
@@ -5815,7 +5919,12 @@ function textStyleCss(st){
   var halo=_safeColor(st.textHalo,'#ffffff');
   var hw=(st.textHaloW||0);
   var shadow='';
-  if(hw>0){ for(var dx=-hw;dx<=hw;dx++){ for(var dy=-hw;dy<=hw;dy++){ if(dx||dy) shadow+=dx+'px '+dy+'px 0 '+halo+','; } } shadow+='0 1px 3px rgba(0,0,0,.45)'; }
+  if(hw>0){
+    // 多方向实心描边：按半径取点（dx²+dy²<=hw²*2）让边角更圆润，形成清晰轮廓而非方块锯齿
+    var offs=[];
+    for(var dx=-hw;dx<=hw;dx++){ for(var dy=-hw;dy<=hw;dy++){ if((dx||dy) && dx*dx+dy*dy<=hw*hw*2) offs.push(dx+'px '+dy+'px 0 '+halo); } }
+    shadow=offs.join(',')+',0 1px 3px rgba(0,0,0,.45)';
+  }
   else { shadow='0 1px 3px rgba(0,0,0,.45)'; }
   return {fam: fam, color: tc, shadow: shadow};
 }
@@ -5871,7 +5980,7 @@ function buildTextIcon(f){
   var tfs=st.textSize||18;
   var text=st.text||'';
   var bg=st.textBg||'none';
-  var tshadow=(bg==='none')?css.shadow:'';   // 有背景框时不加文字描边（框本身提供对比）
+  var tshadow=css.shadow;   // 描边（文字轮廓）始终生效，与是否带背景框无关；背景框由 boxInner 单独提供
   var bcolor=_safeColor(st.textBgColor||'#ffffff','#ffffff');
   var bop=(st.textBgOp==null?0.92:st.textBgOp);
   var bborder=_safeColor(st.textBgBorder||'#333333','#333333');
@@ -5915,7 +6024,7 @@ function buildTextIcon(f){
   var bh=fixed?Math.max(20, st.textH||(th+pad*2)):(th+pad*2);
   var align=st.textAlign||'center';
   var justify=(align==='left')?'flex-start':((align==='right')?'flex-end':'center');
-  var boxInner='box-sizing:border-box;background:'+hexToRgba(bcolor,bop)+';'+(bwpx>0?('border:'+bwpx+'px solid '+bborder+';'):'')+'border-radius:'+radius+'px;padding:'+pad+'px;color:'+css.color+';font-size:'+tfs+'px;font-weight:'+(st.textWeight||600)+';font-family:'+css.fam+';white-space:'+(fixed?'normal':'nowrap')+';'+(fixed?('word-break:break-word;overflow:hidden;line-height:1.25;text-align:'+align+';display:flex;align-items:center;justify-content:'+justify+';'):'line-height:1.15;text-align:center;')+';user-select:none;cursor:pointer;';
+  var boxInner='box-sizing:border-box;background:'+hexToRgba(bcolor,bop)+';'+(bwpx>0?('border:'+bwpx+'px solid '+bborder+';'):'')+'border-radius:'+radius+'px;padding:'+pad+'px;color:'+css.color+';font-size:'+tfs+'px;font-weight:'+(st.textWeight||600)+';font-family:'+css.fam+';white-space:'+(fixed?'normal':'nowrap')+';'+(fixed?('word-break:break-word;overflow:hidden;line-height:1.25;text-align:'+align+';display:flex;align-items:center;justify-content:'+justify+';'):'line-height:1.15;text-align:center;')+';text-shadow:'+tshadow+';user-select:none;cursor:pointer;';
   var tail='', totalH=bh, anchorY=bh/2;
   if(bg==='callout'){
     var tH=Math.max(12,Math.round(tfs*0.9)), half=Math.max(7,Math.round(tfs*0.5));
@@ -6164,7 +6273,7 @@ function buildDrawLayer(f){
     }
   }
   var layer;
-  if(f.type==='polyline') layer=L.polyline(f.latlngs.map(projArr),opts);
+  if(f.type==='polyline'){ var _arr=f.latlngs.map(projArr); if(f.smooth) _arr=smoothLatLngs(f.latlngs,false,12).map(projArr); layer=L.polyline(_arr,opts); }
   else if(f.type==='arrow'){
     // 箭头 = 折线 + 朝向最后线段的实心三角头（featureGroup 包裹，事件正常冒泡）
     var _arr=f.latlngs.map(projArr);
@@ -6196,7 +6305,7 @@ function buildDrawLayer(f){
     _grp._drawLine=_poly; _grp._drawLabel=_lab;
     layer=_grp;
   }
-  else if(f.type==='polygon') layer=L.polygon(f.latlngs.map(projArr),opts);
+  else if(f.type==='polygon'){ var _arr=f.latlngs.map(projArr); if(f.smooth) _arr=smoothLatLngs(f.latlngs,true,12).map(projArr); layer=L.polygon(_arr,opts); }
   else if(f.type==='rectangle') layer=L.polygon(f.latlngs.map(projArr),opts);  // 4 角点多边形：旋转后仍为正确四边形（L.rectangle 只能轴对齐，会把旋转吃掉）
   else if(f.type==='circle'){ var _cc=projToBasemap(f.center[0],f.center[1]); layer=L.circle([_cc.lat,_cc.lng],Object.assign({radius:f.radius},opts)); }
   else if(f.type==='point'){
@@ -6215,7 +6324,7 @@ function buildDrawLayer(f){
   }
   layer._drawId=f.id;
   // 注意：颜色已硬编码进 <pattern> 内（getOrCreatePattern），不需要再操作 path.style.color
-  layer.on('click', function(e){ if(drawMode==='select'){ selectDrawing(f.id); } L.DomEvent.stopPropagation(e); });
+  layer.on('click', function(e){ if(drawMode==='select'){ var add=(e.originalEvent&&e.originalEvent.shiftKey); selectDrawing(f.id, add); } L.DomEvent.stopPropagation(e); });
   layer.on('dblclick', function(e){ if(drawMode==='select' && f.type==='text' && !f.locked){ startTextEdit(f); } L.DomEvent.stopPropagation(e); });
   layer.on('mousedown', onDrawLayerMouseDown);
   bindDrawCtx(f, layer);   // 要素右键改用原生 DOM 监听（Leaflet 不转发 marker/path 的 contextmenu 到图层事件）
@@ -6358,6 +6467,10 @@ function scheduleRenderRoadLabels(){
 // 顶点手柄（拖拽改点 / 双击删点）
 function startDrawVertexEdit(f){
   clearDrawHandles();
+  attachVertexHandles(f);
+}
+// 仅为单个要素附加顶点/旋转/缩放手柄（不清空其它手柄，供多选时批量附加）
+function attachVertexHandles(f){
   if(f.locked) return; // 锁定要素不显示顶点手柄，禁止几何编辑
   // 测距/测面是只读的度量结果：layer 为 featureGroup（无 setLatLngs），加手柄后拖拽会抛异常
   if(f.type==='measure-distance'||f.type==='measure-area') return;
@@ -6826,6 +6939,7 @@ function onDrawLayerContext(e, id){
     items.push({icon:'↳',label:'继续绘制',fn:function(){ continueDrawing(true); }});
     items.push({icon:'➕',label:'线上插入顶点',fn:function(){ enterInsertVertexMode(f); }});
     items.push({icon:'〰',label:'平滑曲线',fn:function(){ smoothDrawing(f); }});
+    if(f.type==='polyline' && f.smooth) items.push({icon:'✎',label:'转为可编辑顶点折线',fn:function(){ convertCurveToPolyline(f); }});
     items.push({icon:'🔻',label:'顶点抽稀',fn:function(){ simplifyDrawing(f); }});
     if(f.type==='polyline'||f.type==='arrow') items.push({icon:'🛣',label:'贴合道路',fn:function(){ snapDrawingToRoad(f); }});
     items.push({icon:'⇉',label:'平行偏移',fn:function(){ offsetDrawing(f); }});
@@ -6953,7 +7067,7 @@ function openShopStylePopup(idx){
     )+
     row2(
       col('粗细','<select id="ssp_fw" style="width:100%;padding:5px;border-radius:6px;border:1px solid var(--border-color);background:var(--bg-card);color:var(--text-primary)">'+[100,200,300,400,500,600,700,800,900].map(function(w){return '<option value="'+w+'"'+(fontWeight==w?' selected':'')+'>'+w+'</option>';}).join('')+'</select>','flex:0 0 70px'),
-      col('标签样式','<select id="ssp_style" style="width:100%;padding:5px;border-radius:6px;border:1px solid var(--border-color);background:var(--bg-card);color:var(--text-primary)"><option value="white"'+(s.style==='white'?' selected':'')+'>白底黑字</option><option value="dark"'+(s.style==='dark'?' selected':'')+'>白底方框</option><option value="border"'+(s.style==='border'?' selected':'')+'>白底彩边</option><option value="stroke"'+(s.style==='stroke'?' selected':'')+'>描边字</option><option value="shadow"'+(s.style==='shadow'?' selected':'')+'>白底投影</option></select>')
+      col('标签样式','<select id="ssp_style" style="width:100%;padding:5px;border-radius:6px;border:1px solid var(--border-color);background:var(--bg-card);color:var(--text-primary)"><option value="white"'+(s.style==='white'?' selected':'')+'>白底黑字</option><option value="dark"'+(s.style==='dark'?' selected':'')+'>白底方框</option><option value="border"'+(s.style==='border'?' selected':'')+'>白底彩边</option><option value="stroke"'+(s.style==='stroke'?' selected':'')+'>描边字</option><option value="shadow"'+(s.style==='shadow'?' selected':'')+'>白底投影</option><option value="colorfill"'+(s.style==='colorfill'?' selected':'')+'>彩底白字</option><option value="darkbg"'+(s.style==='darkbg'?' selected':'')+'>黑底白字</option><option value="accent"'+(s.style==='accent'?' selected':'')+'>色条标签</option><option value="callout"'+(s.style==='callout'?' selected':'')+'>气泡引线</option><option value="gradient"'+(s.style==='gradient'?' selected':'')+'>渐变彩底</option><option value="frost"'+(s.style==='frost'?' selected':'')+'>半透明磨砂</option><option value="neon"'+(s.style==='neon'?' selected':'')+'>荧光发光字</option><option value="badge"'+(s.style==='badge'?' selected':'')+'>编号徽章</option></select>')
     )+
     row2(
       col('位置','<select id="ssp_pos" style="width:100%;padding:5px;border-radius:6px;border:1px solid var(--border-color);background:var(--bg-card);color:var(--text-primary)"><option value="bottom"'+(s.pos==='bottom'?' selected':'')+'>下方</option><option value="top"'+(s.pos==='top'?' selected':'')+'>上方</option><option value="left"'+(s.pos==='left'?' selected':'')+'>左侧</option><option value="right"'+(s.pos==='right'?' selected':'')+'>右侧</option></select>','flex:0 0 90px'),
@@ -6998,8 +7112,24 @@ function openShopStylePopup(idx){
     var el=document.getElementById('ssp_preview'); if(!el) return;
     var txt=v.desc||s.name;
     el.className='map-desc-label desc-style-'+v.style;
+    el.style.cssText='display:inline-block;position:relative;transform:none;left:auto;top:auto';
     el.style.borderColor=(v.style==='border'?getColor(s):'');
-    el.innerHTML='<span class="map-desc-text" style="font-size:'+v.fontSize+'px!important;font-weight:'+v.fontWeight+'!important;color:'+(v.style==='stroke'?'#222222':v.descColor)+'!important">'+escapeHtml(txt)+'</span>';
+    el.style.borderLeftColor=(v.style==='accent'?getColor(s):'');
+    var _gc=getColor(s);
+    var txtColor=v.descColor;
+    if(v.style==='colorfill'||v.style==='darkbg'||v.style==='gradient') txtColor='#ffffff';
+    if(v.style==='stroke') txtColor='#222222';
+    if(v.style==='neon') txtColor=_gc;
+    if(v.style==='colorfill'){ el.style.background=_gc; }
+    else if(v.style==='gradient'){ el.style.background='linear-gradient(135deg,'+_gc+', rgba(255,255,255,.45))'; }
+    else if(v.style==='frost'){ el.style.background='rgba(255,255,255,0.6)'; }
+    else if(v.style==='neon'){ el.style.background='transparent'; el.style.textShadow='0 0 4px '+_gc+',0 0 9px '+_gc; }
+    else if(v.style==='callout'){ el.classList.add('tail-bottom'); }
+    else { el.style.background=''; }
+    var _bn=shops.indexOf(s)+1;
+    var _bl=(_bn>=1&&_bn<=26)?String.fromCharCode(64+_bn):String(_bn);
+    var badgeHtml=(v.style==='badge')?'<span class="desc-badge" style="background:'+_gc+'">'+_bl+'</span>':'';
+    el.innerHTML=badgeHtml+'<span class="map-desc-text" style="font-size:'+v.fontSize+'px!important;font-weight:'+v.fontWeight+'!important;color:'+txtColor+'!important">'+escapeHtml(txt)+'</span>';
   }
   ['ssp_desc','ssp_fs','ssp_color','ssp_fw','ssp_style','ssp_pos','ssp_lt','ssp_lc'].forEach(function(id){
     var el=document.getElementById(id); if(el) el.addEventListener('input', sspUpdatePreview);
@@ -7221,7 +7351,7 @@ function closeDrawPanel(){
     var prev=getDrawing(selectedId);
     if(prev && prev.type==='text' && prev.editing){ finishTextEdit(prev); }
   }
-  cancelDraw(); clearDrawHandles(); selectedId=null; renderDrawList(); document.getElementById('drawPanel').style.display='none'; document.getElementById('drawLauncher').style.display='flex';
+  cancelDraw(); clearDrawHandles(); selectedId=null; selectedIds=[]; updateMultiBar(); renderDrawList(); document.getElementById('drawPanel').style.display='none'; document.getElementById('drawLauncher').style.display='flex';
 }
 
 // ===== 绘制面板：可拖拽浮动 + 位置记忆 =====
@@ -7276,12 +7406,12 @@ function setDrawMode(m){
     var prev=getDrawing(selectedId);
     if(prev && prev.type==='text' && prev.editing){ finishTextEdit(prev); }
   }
-  cancelDraw(); clearDrawHandles();
+  cancelDraw(); clearDrawHandles(); selectedIds=[]; updateMultiBar();
   drawMode=m;
   updateDrawToolUI();
   if(m==='select'){ document.getElementById('mapContainer').classList.remove('map-drawing'); return; }
   document.getElementById('mapContainer').classList.add('map-drawing');
-  if(m==='polyline'||m==='polygon'||m==='arrow'||m==='measure-distance'||m==='measure-area'){ map.doubleClickZoom.disable(); map.on('dblclick', drawFinishByDblClick); }
+  if(m==='polyline'||m==='polygon'||m==='arrow'||m==='curve'||m==='measure-distance'||m==='measure-area'){ map.doubleClickZoom.disable(); map.on('dblclick', drawFinishByDblClick); }
   if(m==='freehand'){
     // 画笔：按住拖拽连续采集顶点，画弯路更顺手；双击缩放关闭避免误触
     map.doubleClickZoom.disable();
@@ -7347,11 +7477,14 @@ function onDrawMapClick(e){
   if(!drawMode||drawMode==='select') return;
   if(drawMode==='image'){ openImagePickForMap(e.latlng.lat, e.latlng.lng); return; }
   // 线/面/箭头/测距/测面：落点防抖，避免双击结束时被当成连加两个重复顶点
-  if(drawMode==='polyline'||drawMode==='polygon'||drawMode==='arrow'||drawMode==='measure-distance'||drawMode==='measure-area'){
+  if(drawMode==='polyline'||drawMode==='polygon'||drawMode==='arrow'||drawMode==='curve'||drawMode==='measure-distance'||drawMode==='measure-area'){
     // 吸附：靠近已有顶点或本线起点时，落点贴到该顶点
     var snap=drawSnapTarget(e.latlng);
     var latlng=snap?{lat:snap.lat,lng:snap.lng}:e.latlng;
     var snapStart=(snap&&snap.isStart);
+    // 角度约束：开启约束或按住 Shift 时，把落点锁到相对上一点的 0/45/90/135… 方向
+    var angleOn=(angleLock||(e.originalEvent&&e.originalEvent.shiftKey)) && drawPts.length && (drawMode==='polyline'||drawMode==='polygon'||drawMode==='arrow'||drawMode==='curve'||drawMode==='measure-distance'||drawMode==='measure-area');
+    if(angleOn) latlng=applyAngleConstraint(drawPts[drawPts.length-1], latlng);
     if(_pendingClick){
       // 上一个落点还在防抖窗口内：只有本次点击与它几乎重合（即双击的第二下）才丢弃它；
       // 否则说明用户是在别处继续落点，必须立即结算上一个点——过去无条件 clearTimeout
@@ -7427,9 +7560,166 @@ function drawSnapTarget(latlng){
       if(d<=thr && d<bestD){ bestD=d; best=[c.lat,c.lng]; isStart=false; }
     });
   });
+  // 边吸附：未命中顶点时，吸附到附近要素线段最近点
+  if(!best){
+    var es=drawEdgeSnap(latlng);
+    if(es){ best=es; isStart=false; }
+  }
+  // 网格吸附：未命中顶点/边且已开启网格时，吸附到最近网格交点
+  if(!best && sgEnabled){
+    var g=snapToGrid(latlng);
+    if(g){ best=[g.lat,g.lng]; }
+  }
   if(!best) return null;
   return {lat:best[0],lng:best[1],isStart:isStart};
 }
+
+// ===== 参考网格 + 吸附升级（边/网格/角度约束）+ 曲线平滑 =====
+var sgEnabled=false;
+var sgMeters=(function(){ try{ var v=localStorage.getItem('ditu_grid_m'); return v?parseFloat(v):500; }catch(_){ return 500; } })();
+var sgLat0=0, sgLng0=0, sgRefLat=35, sgLayer=null, angleLock=false;
+
+function nearestOnSeg(px,py,ax,ay,bx,by){
+  var dx=bx-ax, dy=by-ay, l2=dx*dx+dy*dy;
+  if(l2===0) return [ax,ay];
+  var t=((px-ax)*dx+(py-ay)*dy)/l2; if(t<0)t=0; if(t>1)t=1;
+  return [ax+t*dx, ay+t*dy];
+}
+function drawEdgeSnap(latlng){
+  if(!latlng) return null;
+  var pt=map.latLngToContainerPoint(latlng), thr=12, best=null, bestD=thr+1;
+  function test(a,b){
+    if(!a||!b) return;
+    // 兼容对象 {lat,lng}（projToBasemap 返回类型）与数组 [lat,lng]（drawings/续绘传参）两种形态，
+    // 同时跳过坐标缺失/非数字的坏顶点，避免单个坏顶点拖垮整次绘制落点
+    var a0=(a.lat!==undefined)?a.lat:a[0], a1=(a.lng!==undefined)?a.lng:a[1];
+    var b0=(b.lat!==undefined)?b.lat:b[0], b1=(b.lng!==undefined)?b.lng:b[1];
+    if(a0===undefined||a1===undefined||b0===undefined||b1===undefined||isNaN(a0)||isNaN(a1)||isNaN(b0)||isNaN(b1)) return;
+    var aa=map.latLngToContainerPoint([a0,a1]), bb=map.latLngToContainerPoint([b0,b1]);
+    var r=nearestOnSeg(pt.x,pt.y,aa.x,aa.y,bb.x,bb.y);
+    var d=Math.hypot(r[0]-pt.x,r[1]-pt.y);
+    if(d<=thr && d<bestD){ bestD=d; var ll=map.containerPointToLatLng([r[0],r[1]]); best=[ll.lat,ll.lng]; }
+  }
+  for(var i=0;i<drawPts.length-1;i++) test([drawPts[i].lat,drawPts[i].lng],[drawPts[i+1].lat,drawPts[i+1].lng]);
+  if(continueDrawingId){ var cf=getDrawing(continueDrawingId); if(cf&&cf.latlngs){ for(var i2=0;i2<cf.latlngs.length-1;i2++) test(cf.latlngs[i2],cf.latlngs[i2+1]); } }
+  drawings.forEach(function(f){
+    if(!f.latlngs || (f.type!=='polyline'&&f.type!=='polygon'&&f.type!=='rectangle'&&f.type!=='arrow')) return;
+    var L0=f.latlngs.length + ((f.type==='polygon'||f.type==='rectangle')?1:0);
+    for(var i3=0;i3<L0-1;i3++){
+      var p1=f.latlngs[i3], p2=f.latlngs[(i3+1)%f.latlngs.length];
+      var c1=projToBasemap(p1[0],p1[1]), c2=projToBasemap(p2[0],p2[1]);
+      test(c1,c2);
+    }
+  });
+  return best;
+}
+function snapToGrid(ll){
+  if(!sgEnabled||!sgMeters) return null;
+  var dLat=sgMeters/111320, dLng=sgMeters/(111320*Math.cos(sgRefLat*Math.PI/180));
+  var lat=sgLat0+Math.round((ll.lat-sgLat0)/dLat)*dLat;
+  var lng=sgLng0+Math.round((ll.lng-sgLng0)/dLng)*dLng;
+  return {lat:lat,lng:lng};
+}
+function applyAngleConstraint(prev, ll){
+  var p=map.latLngToContainerPoint([prev.lat,prev.lng]);
+  var c=map.latLngToContainerPoint([ll.lat,ll.lng]);
+  var dist=Math.hypot(c.x-p.x, c.y-p.y);
+  if(dist<1) return {lat:ll.lat,lng:ll.lng};
+  var ang=Math.atan2(c.y-p.y, c.x-p.x);
+  var step=Math.PI/4;
+  var snapped=Math.round(ang/step)*step;
+  var nx=p.x+Math.cos(snapped)*dist, ny=p.y+Math.sin(snapped)*dist;
+  var nll=map.containerPointToLatLng([nx,ny]);
+  return {lat:nll.lat,lng:nll.lng};
+}
+function toggleAngleLock(){
+  angleLock=!angleLock;
+  var b=document.getElementById('btnAngleLock');
+  if(b) b.classList.toggle('active', angleLock);
+  showToast(angleLock?'已开启角度约束（0/45/90°，也可按住 Shift）':'已关闭角度约束');
+}
+function toggleSnapGrid(){
+  sgEnabled=!sgEnabled;
+  var b=document.getElementById('btnGrid');
+  if(sgEnabled){
+    var m=parseFloat(prompt('网格间距（米，建议 100 / 200 / 500）',''+sgMeters));
+    if(isNaN(m)||m<=0){ sgEnabled=false; if(b) b.classList.remove('active'); return; }
+    sgMeters=m;
+    try{ localStorage.setItem('ditu_grid_m', sgMeters); }catch(_){}
+    sgRefLat=map.getCenter().lat;
+    var dLat=sgMeters/111320, dLng=sgMeters/(111320*Math.cos(sgRefLat*Math.PI/180));
+    sgLat0=Math.floor(map.getCenter().lat/dLat)*dLat;
+    sgLng0=Math.floor(map.getCenter().lng/dLng)*dLng;
+    if(!sgLayer) sgLayer=new GridOverlay();
+    if(!map.hasLayer(sgLayer)) sgLayer.addTo(map);
+    if(b) b.classList.add('active');
+    showToast('已开启参考网格 '+sgMeters+'m（绘制时自动吸附交点）');
+  } else {
+    if(sgLayer && map.hasLayer(sgLayer)) map.removeLayer(sgLayer);
+    if(b) b.classList.remove('active');
+    showToast('已关闭参考网格');
+  }
+}
+var GridOverlay = L.Layer.extend({
+  onAdd:function(map){
+    this._map=map;
+    var c=this._canvas=L.DomUtil.create('canvas','grid-overlay-canvas');
+    c.style.position='absolute'; c.style.pointerEvents='none';
+    var pane=map.getPanes().overlayPane;
+    if(pane.firstChild) pane.insertBefore(c, pane.firstChild); else pane.appendChild(c);
+    map.on('move zoom viewreset zoomend moveend resize', this._reset, this);
+    this._reset();
+  },
+  onRemove:function(map){
+    map.off('move zoom viewreset zoomend moveend resize', this._reset, this);
+    if(this._canvas&&this._canvas.parentNode) this._canvas.parentNode.removeChild(this._canvas);
+    this._canvas=null;
+  },
+  _reset:function(){
+    var map=this._map; if(!map||!this._canvas) return;
+    var size=map.getSize(), c=this._canvas;
+    if(c.width!==size.x) c.width=size.x;
+    if(c.height!==size.y) c.height=size.y;
+    c.style.width=size.x+'px'; c.style.height=size.y+'px';
+    var topLeft=map.containerPointToLayerPoint([0,0]);
+    L.DomUtil.setPosition(c, topLeft);
+    this._draw();
+  },
+  _draw:function(){
+    var map=this._map, c=this._canvas; if(!c) return;
+    var ctx=c.getContext('2d'); ctx.clearRect(0,0,c.width,c.height);
+    if(!sgEnabled||!sgMeters) return;
+    var dLat=sgMeters/111320, dLng=sgMeters/(111320*Math.cos(sgRefLat*Math.PI/180));
+    var b=map.getBounds();
+    var kLatS=Math.floor((b.getSouth()-sgLat0)/dLat)-1, kLatE=Math.floor((b.getNorth()-sgLat0)/dLat)+1;
+    var kLngS=Math.floor((b.getWest()-sgLng0)/dLng)-1, kLngE=Math.floor((b.getEast()-sgLng0)/dLng)+1;
+    if((kLatE-kLatS)>400||(kLngE-kLngS)>400) return;
+    ctx.strokeStyle='rgba(120,160,210,0.35)'; ctx.lineWidth=1;
+    var n=b.getNorth(), s=b.getSouth();
+    for(var i=kLngS;i<=kLngE;i++){ var lon=sgLng0+i*dLng; var p1=map.latLngToLayerPoint([n,lon]), p2=map.latLngToLayerPoint([s,lon]); ctx.beginPath(); ctx.moveTo(p1.x,p1.y); ctx.lineTo(p2.x,p2.y); ctx.stroke(); }
+    var w=b.getWest(), e=b.getEast();
+    for(var j=kLatS;j<=kLatE;j++){ var lat=sgLat0+j*dLat; var p3=map.latLngToLayerPoint([lat,w]), p4=map.latLngToLayerPoint([lat,e]); ctx.beginPath(); ctx.moveTo(p3.x,p3.y); ctx.lineTo(p4.x,p4.y); ctx.stroke(); }
+  }
+});
+function smoothLatLngs(pts, closed, samples){
+  samples=samples||12;
+  if(!pts||pts.length<3) return (pts||[]).slice();
+  var P=pts.slice(); if(closed) P.push(P[0]);
+  var n=P.length, out=[];
+  for(var i=0;i<n-1;i++){
+    var p0=P[i-1>=0?i-1:0], p1=P[i], p2=P[i+1], p3=P[i+2<n?i+2:n-1];
+    for(var j=0;j<samples;j++){
+      var t=j/samples, t2=t*t, t3=t2*t;
+      var lat=0.5*((2*p1[0])+(-p0[0]+p2[0])*t+(2*p0[0]-5*p1[0]+4*p2[0]-p3[0])*t2+(-p0[0]+3*p1[0]-3*p2[0]+p3[0])*t3);
+      var lng=0.5*((2*p1[1])+(-p0[1]+p2[1])*t+(2*p0[1]-5*p1[1]+4*p2[1]-p3[1])*t2+(-p0[1]+3*p1[1]-3*p2[1]+p3[1])*t3);
+      out.push([lat,lng]);
+    }
+  }
+  out.push(P[n-1]);
+  if(closed) out.push(out[0].slice());
+  return out;
+}
+
 function setDrawSnapMarker(t){
   if(!t){ if(drawSnapMarker){ map.removeLayer(drawSnapMarker); drawSnapMarker=null; } return; }
   if(!drawSnapMarker){
@@ -7443,11 +7733,16 @@ function drawPreviewMove(e){
   if(drawPreview){ map.removeLayer(drawPreview); drawPreview=null; }
   if(!drawPts.length){ setDrawSnapMarker(null); return; }
   // 吸附：光标靠近已有顶点或本线起点时，预览端点贴到该顶点
-  var cur=(e&&e.latlng)?(drawSnapTarget(e.latlng)||e.latlng):null;
-  setDrawSnapMarker(cur&&cur!==e.latlng?cur:null);
+  var snap=(e&&e.latlng)?drawSnapTarget(e.latlng):null;
+  var cur=snap?{lat:snap.lat,lng:snap.lng}:(e&&e.latlng?e.latlng:null);
+  if(cur && angleLock && drawPts.length && (drawMode==='polyline'||drawMode==='polygon'||drawMode==='arrow'||drawMode==='curve'||drawMode==='measure-distance'||drawMode==='measure-area')){
+    cur=applyAngleConstraint(drawPts[drawPts.length-1], cur);
+  }
+  setDrawSnapMarker(snap?cur:null);
   var st=currentDrawStyle();
-  if(drawMode==='polyline'){
+  if(drawMode==='polyline'||drawMode==='curve'){
     var pl=drawPts.map(function(p){return [p.lat,p.lng];}); if(cur) pl.push([cur.lat,cur.lng]);
+    if(drawMode==='curve') pl=smoothLatLngs(pl,false,12);
     drawPreview=L.polyline(pl,{color:st.color,weight:st.weight,opacity:.7,dashArray:st.dashArray||null,interactive:false}).addTo(map);
   } else if(drawMode==='arrow'){
     var al=drawPts.map(function(p){return [p.lat,p.lng];}); if(cur) al.push([cur.lat,cur.lng]);
@@ -7502,7 +7797,7 @@ function drawPreviewMove(e){
   }
   setMeasureText('绘制预览', lines);
 }
-function drawFinishByDblClick(){ if(_pendingClick){ clearTimeout(_pendingClick); _pendingClick=null; } if(drawMode==='polyline'||drawMode==='polygon'||drawMode==='arrow'||drawMode==='measure-distance'||drawMode==='measure-area') drawFinish(); }
+function drawFinishByDblClick(){ if(_pendingClick){ clearTimeout(_pendingClick); _pendingClick=null; } if(drawMode==='polyline'||drawMode==='polygon'||drawMode==='arrow'||drawMode==='curve'||drawMode==='measure-distance'||drawMode==='measure-area') drawFinish(); }
 // ===== 画笔（自由曲线）模式：按住拖拽连续采集顶点，适合弯弯路 =====
 var freehandActive=false, _fhLastCp=null, _fhDocUp=null;
 var FREEHAND_MIN_PX=3; // 相邻采样点最小屏幕间距，避免顶点过密
@@ -7574,6 +7869,7 @@ function drawFinish(){
   }
   var type=(drawMode==='freehand')?'polyline':drawMode, feat=null, ok=false;
   if(type==='point' && drawPts.length>=1){ feat=makeFeature('point'); ok=true; }
+  else if(type==='curve' && drawPts.length>=2){ feat=makeFeature('polyline'); feat.smooth=true; feat.name='曲线'+(drawings.filter(function(d){return d.smooth;}).length+1); ok=true; }
   else if(type==='polyline' && drawPts.length>=2){ feat=makeFeature('polyline'); ok=true; }
   else if(type==='arrow' && drawPts.length>=2){ feat=makeFeature('arrow'); ok=true; }
   else if(type==='polygon' && drawPts.length>=3){ feat=makeFeature('polygon'); ok=true; }
@@ -7605,7 +7901,23 @@ function drawFinish(){
     if(feat.layer){ feat.layer.setIcon(buildTextIcon(feat)); setTimeout(function(){ bindTextInput(feat); focusTextInput(feat); },0); }
   }
   snapshot(); autosave(); renderDrawList();
-  showToast('已添加'+({point:'点位',polyline:'道路',arrow:'箭头',polygon:'区域',rectangle:'矩形',circle:'圆','measure-distance':'测距','measure-area':'测面'}[feat.type]||'要素')+'，可拖动顶点编辑');
+  showToast('已添加'+((feat.smooth&&feat.type==='polyline')?'曲线':({point:'点位',polyline:'道路',arrow:'箭头',polygon:'区域',rectangle:'矩形',circle:'圆','measure-distance':'测距','measure-area':'测面'}[feat.type]||'要素'))+'，可拖动顶点编辑');
+}
+// 曲线二次编辑入口：把平滑曲线「烘焙」成一条真实可编辑顶点的折线。
+// 渲染时曲线本就是用 smoothLatLngs 重采样后展示，这里把那些采样点直接落为 f.latlngs 并关掉 smooth，
+// 形状完全保留，但每个采样点都变成可拖拽/插入/删除的独立顶点，方便后续精细调整。
+function convertCurveToPolyline(f){
+  if(!f || f.type!=='polyline' || !f.smooth){ showToast('仅「曲线」要素可转为可编辑顶点折线'); return; }
+  if(f.locked){ showToast('该要素已锁定，无法转换'); return; }
+  f.latlngs=smoothLatLngs(f.latlngs,false,12);
+  f.smooth=false;
+  if(f.layer){ if(map.hasLayer(f.layer)) map.removeLayer(f.layer); f.layer=null; }
+  f.layer=buildDrawLayer(f);
+  if(f.visible!==false) f.layer.addTo(map);
+  bindDrawCtx(f,f.layer);
+  selectDrawing(f.id);
+  snapshot(); autosave(); renderDrawList();
+  showToast('已转为可编辑顶点折线（'+f.latlngs.length+' 个顶点），可拖动/插入/删除顶点');
 }
 function ccw(a,b,c){ return (b[0]-a[0])*(c[1]-a[1]) - (b[1]-a[1])*(c[0]-a[0]); }
 function segCross(p1,p2,p3,p4){
@@ -7915,7 +8227,7 @@ function updateDrawToolUI(){
   document.querySelectorAll('.draw-tools .dt').forEach(function(b){ b.classList.toggle('active', b.dataset.mode===drawMode); });
   var sa=document.getElementById('drawStateActions');
   if(sa) sa.style.display=(drawMode && drawMode!=='select')?'flex':'none';
-  var fb=document.getElementById('drawFinishBtn'); if(fb) fb.style.display=(drawMode==='polyline'||drawMode==='polygon'||drawMode==='arrow'||drawMode==='measure-distance'||drawMode==='measure-area')?'block':'none';
+  var fb=document.getElementById('drawFinishBtn'); if(fb) fb.style.display=(drawMode==='polyline'||drawMode==='polygon'||drawMode==='arrow'||drawMode==='curve'||drawMode==='measure-distance'||drawMode==='measure-area')?'block':'none';
   var ub=document.getElementById('drawUndoBtn'); if(ub) ub.classList.toggle('show', !!(drawMode&&drawMode!=='select'&&drawMode!=='point'&&drawPts.length>0));
   syncDrawStyleUI();
 }
@@ -8019,7 +8331,7 @@ function applyDrawStyleToLayer(f){
         inp.style.fontWeight=(st.textWeight||600);
         inp.style.color=css.color;
         inp.style.fontFamily=css.fam;
-        inp.style.textShadow=(st.textBg&&st.textBg!=='none')?'':css.shadow;
+        inp.style.textShadow=css.shadow;
         inp.style.borderColor=css.color;
         if(inp.value!==text) inp.value=text;
         var tw=Math.max(60, text.length*(tfs*0.62)+24);
@@ -8079,21 +8391,158 @@ function applyDrawStyleToLayer(f){
   }
   f.layer.setStyle(fillOpts);
 }
-function selectDrawing(id){
-  // 切换前先把「当前」要素的样式修改落盘，避免改动「跟着」新要素走
+// ===== 多选 / 编组 / 对齐 / 分布 =====
+// 计算要素外接包围盒（当前底图坐标系）：{s:最小lat, n:最大lat, w:最小lng, e:最大lng}
+function featureBounds(f){
+  if(f.type==='circle'){
+    var rl=f.radius/111320, rn=f.radius/(111320*Math.cos(f.center[0]*Math.PI/180));
+    return {s:f.center[0]-rl, n:f.center[0]+rl, w:f.center[1]-rn, e:f.center[1]+rn};
+  }
+  if(f.type==='point'||f.type==='text'||f.type==='image'){
+    var p=f.latlngs[0]; return {s:p[0],n:p[0],w:p[1],e:p[1]};
+  }
+  var s=90,n=-90,w=180,e=-180;
+  f.latlngs.forEach(function(p){ if(p[0]<s)s=p[0]; if(p[0]>n)n=p[0]; if(p[1]<w)w=p[1]; if(p[1]>e)e=p[1]; });
+  return {s:s,n:n,w:w,e:e};
+}
+// 平移要素几何（dLat/dLng，单位度）。线/面类重建图层以保证正确；点/圆/文字/图片用 setLatLng 轻量更新。
+function translateFeature(f, dLat, dLng){
+  if(f.type==='circle'){
+    f.center=[f.center[0]+dLat, f.center[1]+dLng];
+    if(f.layer){ var c=projToBasemap(f.center[0],f.center[1]); f.layer.setLatLng([c.lat,c.lng]); }
+  } else if(f.type==='point'||f.type==='text'||f.type==='image'){
+    var p=storeLatLng(f.latlngs[0][0]+dLat, f.latlngs[0][1]+dLng); f.latlngs[0]=p;
+    if(f.layer){ var c=projToBasemap(p[0],p[1]); f.layer.setLatLng([c.lat,c.lng]); }
+  } else {
+    f.latlngs=f.latlngs.map(function(p){ return storeLatLng(p[0]+dLat, p[1]+dLng); });
+    if(f.layer){ var nl=buildDrawLayer(f); map.removeLayer(f.layer); f.layer=nl; if(f.visible!==false) f.layer.addTo(map); bindDrawCtx(f,f.layer); }
+  }
+}
+function afterBulkEdit(){
+  autosave();
+  if(selectedIds.length) refreshMultiSelection(); else clearSelection();
+  renderDrawList(); renderRoadLabels();
+}
+function alignSelected(axis, mode){
+  if(selectedIds.length<2){ showToast('请先多选至少 2 个要素（Shift 点选或「⊞ 框选」）'); return; }
+  var fs=selectedIds.map(getDrawing).filter(Boolean);
+  if(fs.length<2) return;
+  var bs=fs.map(featureBounds);
+  function val(b){ if(axis==='h'){ if(mode==='left')return b.w; if(mode==='right')return b.e; return (b.w+b.e)/2; } else { if(mode==='top')return b.n; if(mode==='bottom')return b.s; return (b.s+b.n)/2; } }
+  var vals=bs.map(val), target;
+  if(mode==='center'){ var s=0; vals.forEach(function(v){s+=v;}); target=s/vals.length; }
+  else if(mode==='left'||mode==='top') target=Math.min.apply(null,vals);
+  else target=Math.max.apply(null,vals);
+  fs.forEach(function(f,i){ var d=target-vals[i]; if(axis==='h') translateFeature(f,0,d); else translateFeature(f,d,0); });
+  afterBulkEdit();
+  showToast('已'+({left:'左',center:'水平居中',right:'右',top:'顶',bottom:'底'}[mode]||'')+'对齐');
+}
+function distributeSelected(axis){
+  if(selectedIds.length<3){ showToast('分布需至少 3 个要素'); return; }
+  var fs=selectedIds.map(getDrawing).filter(Boolean);
+  if(fs.length<3) return;
+  var bs=fs.map(featureBounds);
+  function c(b){ return axis==='h' ? (b.w+b.e)/2 : (b.s+b.n)/2; }
+  var idx=fs.map(function(_,i){return i;});
+  idx.sort(function(a,b){ return c(bs[a])-c(bs[b]); });
+  var first=c(bs[idx[0]]), last=c(bs[idx[idx.length-1]]);
+  if(last===first){ showToast('要素已重叠，无法分布'); return; }
+  var step=(last-first)/(fs.length-1);
+  idx.forEach(function(i,k){ if(k===0||k===idx.length-1) return; var tgt=first+step*k; var d=tgt-c(bs[i]); if(axis==='h') translateFeature(fs[i],0,d); else translateFeature(fs[i],d,0); });
+  afterBulkEdit();
+  showToast('已'+(axis==='h'?'水平':'垂直')+'等距分布');
+}
+function groupSelected(){
+  if(!selectedIds.length){ showToast('请先选择要素'); return; }
+  var g='g'+uidDraw();
+  selectedIds.forEach(function(id){ var f=getDrawing(id); if(f) f.group=g; });
+  afterBulkEdit(); showToast('已编组（'+selectedIds.length+' 个）');
+}
+function ungroupSelected(){
+  if(!selectedIds.length) return;
+  selectedIds.forEach(function(id){ var f=getDrawing(id); if(f) f.group=undefined; });
+  afterBulkEdit(); showToast('已解散编组');
+}
+function deleteSelectedAll(){
+  if(!selectedIds.length){ showToast('请先选择要素'); return; }
+  showConfirm('确定删除选中的 '+selectedIds.length+' 个要素？','删除','取消',function(){
+    selectedIds.slice().forEach(function(id){ var f=getDrawing(id); if(f){ if(f.layer) map.removeLayer(f.layer); drawings=drawings.filter(function(x){return x.id!==id;}); } });
+    selectedIds=[]; selectedId=null; clearDrawHandles();
+    snapshot(); autosave(); renderDrawList(); renderRoadLabels(); showToast('已删除选中要素');
+  });
+}
+function clearSelection(){
+  selectedIds=[]; selectedId=null;
+  clearDrawHandles(); updateMultiBar(); renderDrawList(); refreshSelectedMeasure();
+}
+function refreshMultiSelection(){
+  clearDrawHandles();
+  selectedIds.forEach(function(id){ var f=getDrawing(id); if(f) attachVertexHandles(f); });
+  updateMultiBar(); syncDrawStyleUI(); renderDrawList(); refreshSelectedMeasure();
+}
+function updateMultiBar(){
+  var bar=document.getElementById('multiBar'); if(!bar) return;
+  var n=selectedIds.length;
+  bar.style.display=(n>1)?'flex':'none';
+  var c=document.getElementById('mbCount'); if(c) c.textContent=n;
+}
+// 点击空白处（选择态、非 Shift）取消选择
+function onBlankClickDeselect(e){
+  if(drawMode && drawMode!=='select') return;   // 正在绘制（线/面/曲线等）时不取消选择
+  if(e.originalEvent && (e.originalEvent.shiftKey||e.originalEvent.ctrlKey||e.originalEvent.metaKey)) return;
+  if(manualLocating) return;
+  if(selectedIds.length) clearSelection();
+}
+// 框选：拖拽矩形选相交要素
+function onMarqueeDown(e){ if(!marqueeMode) return; _marqStart=e.latlng; }
+function onMarqueeMove(e){ if(!marqueeMode||!_marqStart) return; if(_marqRect) map.removeLayer(_marqRect); _marqRect=L.rectangle([_marqStart,e.latlng],{color:'#3498db',weight:2,dashArray:'5,5',fillColor:'#3498db',fillOpacity:0.08,interactive:false}).addTo(map); }
+function onMarqueeUp(e){
+  if(!marqueeMode||!_marqStart) return;
+  var b=L.latLngBounds([_marqStart,e.latlng]);
+  var sel=[];
+  drawings.forEach(function(f){ var fb=featureBounds(f); if(b.intersects(L.latLngBounds([fb.s,fb.w],[fb.n,fb.e]))) sel.push(f.id); });
+  if(_marqRect){ map.removeLayer(_marqRect); _marqRect=null; } _marqStart=null;
+  if(sel.length){ selectedIds=sel.slice(); selectedId=sel[sel.length-1]; refreshMultiSelection(); }
+  else showToast('框选范围内没有要素');
+}
+function toggleMarquee(){
+  marqueeMode=!marqueeMode;
+  var b=document.getElementById('btnMarquee'); if(b) b.classList.toggle('active',marqueeMode);
+  if(marqueeMode){ map.dragging.disable(); showToast('框选模式：在地图上拖拽框选要素（再次点击退出）'); }
+  else { map.dragging.enable(); if(_marqRect){ map.removeLayer(_marqRect); _marqRect=null; } _marqStart=null; showToast('已退出框选'); }
+}
+map.on('click', onBlankClickDeselect);
+map.on('mousedown', onMarqueeDown);
+map.on('mousemove', onMarqueeMove);
+map.on('mouseup', onMarqueeUp);
+
+function selectDrawing(id, additive){
+  // 切换前先把「当前主要素」的样式修改落盘，避免改动「跟着」新要素走
   if(selectedId && selectedId!==id){
     var prev=getDrawing(selectedId);
     if(prev){
       if(prev.type==='text' && prev.editing){ finishTextEdit(prev); }
-      else { var st=currentDrawStyle(); prev.style=st; autosave(); }
+      else { var st=currentDrawStyle(); if(st) prev.style=st; autosave(); }
     }
   }
+  // Shift 叠加：在选区中切换该要素
+  if(additive){
+    var idx=selectedIds.indexOf(id);
+    if(idx>=0) selectedIds.splice(idx,1); else selectedIds.push(id);
+    selectedId=id;
+    if(!selectedIds.length){ selectedId=null; refreshMultiSelection(); return; }
+    refreshMultiSelection(); return;
+  }
+  var f=getDrawing(id);
+  if(!f){ selectedId=null; selectedIds=[]; refreshMultiSelection(); return; }
+  // 编组要素：单选即整组选中（编组作为整体移动/编辑）
+  if(f.group!==undefined && f.group!==null && f.group!==''){
+    selectedIds=drawings.filter(function(x){ return x.group===f.group; }).map(function(x){ return x.id; });
+  } else {
+    selectedIds=[id];
+  }
   selectedId=id;
-  var f=getDrawing(id); if(!f){ clearDrawHandles(); renderDrawList(); refreshSelectedMeasure(); return; }
-  startDrawVertexEdit(f);
-  syncDrawStyleUI();
-  renderDrawList();
-  refreshSelectedMeasure();
+  refreshMultiSelection();
   // 滚到面板顶部：确保图标/标注等「类型专属」控件可见
   var _db=document.querySelector('#drawPanel .dp-body'); if(_db) _db.scrollTop=0;
 }
@@ -8115,7 +8564,7 @@ function deleteDrawing(id){
   showConfirm('确定删除该要素？','删除','取消',function(){
     if(f.layer) map.removeLayer(f.layer); clearDrawHandles();
     drawings=drawings.filter(function(x){ return x.id!==id; });
-    if(selectedId===id) selectedId=null;
+    if(selectedId===id){ selectedId=null; selectedIds=[]; updateMultiBar(); }
     snapshot(); autosave(); renderDrawList(); renderRoadLabels(); showToast('已删除');
   });
 }
@@ -8156,7 +8605,7 @@ function renderDrawList(){
     loc.onclick=function(e){ e.stopPropagation(); zoomToDrawing(f.id); };
     var del=document.createElement('button'); del.className='ib'; del.title='删除'; del.textContent='🗑';
     del.onclick=function(e){ e.stopPropagation(); deleteDrawing(f.id); };
-    row.onclick=function(){ selectDrawing(f.id); };
+    row.onclick=function(e){ selectDrawing(f.id, e.shiftKey); };
     var info=[]; if(f.tags) info.push('分类：'+f.tags); if(f.addr) info.push('地址：'+f.addr); if(f.phone) info.push('电话：'+f.phone); if(f.desc) info.push('描述：'+f.desc);
     if(info.length) row.title=f.name+'\n'+info.join('\n');
     row.appendChild(lk); row.appendChild(vis); row.appendChild(nm); row.appendChild(loc); row.appendChild(del);
@@ -10433,14 +10882,14 @@ function startServerStitch(bounds, mode, z, scale, dpi, paper, batchTag, onDone)
     pollTimer=setInterval(function(){
       // 取消或全局中止：立即停轮询（aborted 为局部、dlAbort 为 cancelDownload 设置的全局粘性标记）
       if(aborted||dlAbort){ cleanup(); return; }
-      fetch('/stitch/progress?job='+encodeURIComponent(jobId)).then(function(r){ return r.json(); }).then(function(p){
+      fetch('/stitch/progress?job='+encodeURIComponent(jobId)+'&_t='+Date.now()).then(function(r){ return r.json(); }).then(function(p){
         _pollFails=0;
         if(!p||p.status==='notfound'){ finishErr('任务不存在或已过期'); return; }
         if(p.status==='error'){ finishErr(p.error||'服务端拼接出错'); return; }
         showDlProgress(p.done||0, p.total||1);
         if(p.status==='done'){
           cleanup();
-          fetch('/stitch/result?job='+encodeURIComponent(jobId)).then(function(r){
+          fetch('/stitch/result?job='+encodeURIComponent(jobId)+'&_t='+Date.now()).then(function(r){
             if(!r.ok){ return r.text().then(function(t){ throw new Error(t||('HTTP '+r.status)); }); }
             return r.blob();
           }).then(finishOk).catch(function(e){ finishErr(e&&e.message?e.message:String(e)); });
@@ -11541,7 +11990,18 @@ function applyDrawingRotation(f, deg, opts){
       var _cc=projToBasemap(f.center[0],f.center[1]); f.layer.setLatLng([_cc.lat,_cc.lng]); 
     }
   } else { f.latlngs=f.latlngs.map(function(p){ var q=tfPoint(p[0],p[1],c,'rot',deg); return [q[0],q[1]]; });
-    if(silent && f.layer){ f.layer.setLatLngs(f.latlngs.map(projArr)); }
+    if(silent && f.layer){
+      if(f.type==='arrow' && f.layer._drawLine){
+        // 箭头：layer 是 featureGroup，不能直接 setLatLngs → 更新折线并重算三角头，使旋转时箭头方向跟随线尾
+        var arr=f.latlngs.map(projArr);
+        f.layer._drawLine.setLatLngs(arr);
+        var newHd=buildArrowHead(arr, f.style.color, f.style.weight);
+        if(f.layer._drawHead){ try{ f.layer.removeLayer(f.layer._drawHead); }catch(e){} f.layer._drawHead=null; }
+        if(newHd){ f.layer._drawHead=newHd; f.layer.addLayer(newHd); }
+      } else {
+        f.layer.setLatLngs(f.latlngs.map(projArr));
+      }
+    }
   }
   if(silent){
     // 静默模式：仅更新 layer，不重建（避免手柄被清空）
@@ -12257,6 +12717,10 @@ function stopStarAnim(){
   _starMeteors=[];
   _starSats=[];
   if(_moonFront){ _moonFront.style.display='none'; try{ _moonFront.getContext('2d').clearRect(0,0,_moonFront.width,_moonFront.height); }catch(e){} }  // 停画时收掉前景月球层
+  // P1：释放三张星空离屏画布位图（约 8MB）。animateStars 已不再运行，安全收缩；勿置 null 之外的引用风险——此处仅收缩画布，引用保留无害
+  if(_starFieldLayer){ try{ _starFieldLayer.width=1; _starFieldLayer.height=1; }catch(e){} }
+  if(_starNearLayer){ try{ _starNearLayer.width=1; _starNearLayer.height=1; }catch(e){} }
+  if(_moonCanvas){ try{ _moonCanvas.width=1; _moonCanvas.height=1; }catch(e){} }
 }
 function animateStars(){
   _starRAF=null;
@@ -12596,6 +13060,7 @@ function drawMoonSprite(cx,cy,r,L,ecl){
    原理：目标圆内每个像素反算球面法线 → 经纬度 → 采样等距圆柱纹理；
    地球纹理、云层纹理、光照、边缘大气、城市灯光全部预计算成查找表。 */
 var _globeRAF=null;
+var _globeDisposables=null;   // P1：地球渲染资源释放句柄（initGlobeCanvas 内部闭包赋值），stopGlobeCanvas 调用后回收 ~17MB 排版数组 + 1.2MB 画布位图
 // 地球旋转状态：_globeRot 为持续累计的经度偏移（归一化前），支持「自由自转」与「俯冲入场时快速旋转到目标经度」两种模式
 var _globeRot=0;
 // 地球分辨率降档机制已移除：build() 始终以全分辨率 N=w*dpr 渲染，旋转/放大多段不再切换、不重建画布，彻底消除切换卡帧
@@ -12632,6 +13097,7 @@ function globePitchTo(target, dur){
 function stopGlobeCanvas(){
   if(_globeRAF){ try{ cancelAnimationFrame(_globeRAF); }catch(e){} _globeRAF=null; }
   stopStarAnim();
+  if(_globeDisposables){ try{ _globeDisposables.release(); }catch(e){} _globeDisposables=null; }   // P1：揭屏即释放地球渲染资源（与 flyTo 错帧，避免同一次长任务里 GC 17MB 触发卡顿）
 }
 function initGlobeCanvas(){
   var cv=document.getElementById('globeCanvas'); if(!cv) return;
@@ -12722,7 +13188,7 @@ function initGlobeCanvas(){
     function frame(ts){
       if(!t0) t0=ts;
       _globeRAF=requestAnimationFrame(frame);
-      if(ts-last<16) return;
+      if(ts-last<33) return;   // P1：地球渲染节流到 ~30fps，首屏重负载时与星空/光束错峰，减少掉帧（旋转仍按 ts 增量推进，时长不受影响）
       last=ts;
       // 分辨率降档已移除：地球恒定全分辨率，不再因 _globeResScale 变化触发画布重建（消除旋转/放大时的切换卡顿）
       if(!out || out.width!==cv.width) build();
@@ -12869,6 +13335,18 @@ if(lt<0.55){ var _nf=(0.55-lt)/0.55; r+=_nf*15; g+=_nf*33; b+=_nf*70; }
   earthImg.src='earth_1024.jpg';
   cloudImg.src='clouds_1024.jpg';
   nightImg.src='night_lights_1024.jpg';
+  // P1：资源释放句柄——首屏隐藏后（进入地图、无恢复入口）调用，彻底回收地球渲染占用的显存/内存：
+  // 9 个排版数组（N×N，N≈630 → 约 17MB）+ ImageData(out) + 三张纹理 + 三张 Image；
+  // 关键：canvas 位图由 DOM 持有，仅置 null 不回收，必须 cv.width=cv.height=1 才能真正释放（约 1.2MB）。
+  // 闭包捕获本函数作用域内的全部大数据引用，release 时一并置空 + 收缩画布。
+  _globeDisposables={
+    release:function(){
+      out=null; uArr=null; vArr=null; cRow=null; lArr=null; rArr=null; nrm=null; vxArr=null; vyArr=null; vzArr=null;
+      earthTex=null; cloudTex=null; nightTex=null; cityTex=null;
+      earthImg=null; cloudImg=null; nightImg=null;
+      if(cv){ try{ cv.width=1; cv.height=1; }catch(e){} }   // 收缩画布 → 浏览器真正回收其 GPU/CPU 位图
+    }
+  };
 }
 
 function showLoginInfo(title, html){
@@ -12909,8 +13387,16 @@ function firePulseBeam(fail, ghostLabel, flyGhost){
     ghost.style.left=br.left+'px'; ghost.style.top=br.top+'px';
     ghost.style.setProperty('--tx', (gx-(br.left+br.width/2))+'px');   // 水平对齐地球中心
     ghost.style.setProperty('--ty', (gy-(br.top+br.height/2))+'px');   // 垂直飞抵地球中心（大气层）= 真正飞到山东上空，配合 globeSpinTo(116.65°E) 旋转对准中国
+    // 第二段位移：俯冲落地时收敛到的「地图中心点」——取地图容器在屏幕上的可视中心（flyTo 全程把 [35.42,116.65] 钉在容器中心，故地图中心点=容器中心）
+    var _mc=document.getElementById('mapContainer');
+    var _mrect=_mc?_mc.getBoundingClientRect():{left:0,top:0,width:window.innerWidth,height:window.innerHeight};
+    var _mcx=_mrect.left+_mrect.width/2, _mcy=_mrect.top+_mrect.height/2;
+    ghost.style.setProperty('--tx2', (_mcx-(br.left+br.width/2))+'px');  // 水平收敛到地图中心点
+    ghost.style.setProperty('--ty2', (_mcy-(br.top+br.height/2))+'px');  // 垂直收敛到地图中心点（地球在首屏偏上，下扎时自然向下归位到视口中心）
     ghost.innerHTML='<span class="wing left"></span><span class="wing right"></span><span class="label">'+(ghostLabel||'开启旅途')+'</span>';
     fx.appendChild(ghost);
+    _ghostEl=ghost;
+    try{ window.addEventListener('resize', _introGhostResize); }catch(e){}   // P1：入场期间监听缩放，实时校正幻影落点
   }
   if(eb && flyGhost) eb.style.visibility='hidden';   // 仅成功飞幻影时隐藏原按钮，避免与幻影重叠；失败不飞则不隐藏（按钮保持可见）
   // 3) 彗星击中大气层瞬间（≈0.42s）：冲击环 + 核心爆闪，呼应「被激活」
@@ -12925,6 +13411,17 @@ function firePulseBeam(fail, ghostLabel, flyGhost){
 // 抵达地球边缘（中心略偏下）的瞬间炸开成一圈四散火花（烟花），呼应「被点亮后能量涌向地球」。进入系统后由 stopBeamLoop 停掉。
 var _beamTimer=null;
 var _loginActive=true;                            // 守卫：点击「开启旅途」后置 false，阻止握手循环里已排队的 setTimeout 在地图上继续撒光点
+var _ghostEl=null;                                // P1：入场幻影按钮引用，resize 时实时刷新落点（对齐地图容器中心）
+function _introGhostResize(){
+  if(!_ghostEl) return;
+  var eb=document.getElementById('enterBtn'); if(!eb) return;
+  var br=eb.getBoundingClientRect();
+  var mc=document.getElementById('mapContainer');
+  var mr=mc?mc.getBoundingClientRect():{left:0,top:0,width:window.innerWidth,height:window.innerHeight};
+  var cx=mr.left+mr.width/2, cy=mr.top+mr.height/2;   // 地图容器中心（flyTo 全程把目的地钉在容器中心）
+  _ghostEl.style.setProperty('--tx2',(cx-(br.left+br.width/2))+'px');   // 第二段落点实时对齐地图中心，窗口缩放也不偏
+  _ghostEl.style.setProperty('--ty2',(cy-(br.top+br.height/2))+'px');
+}
 function stopBeamLoop(){ if(_beamTimer){ clearInterval(_beamTimer); _beamTimer=null; } }
 function launchBeamToGlobe(){
   var fx=document.getElementById('fxLayer'); if(!fx) return;
@@ -13095,15 +13592,26 @@ function warmDiveTiles(center, zMin, zMax){
           }
     }
     if(!urls.length) return;
-    // 节流预取：每批 8 张、批间 25ms，避免瞬间打满连接或触发上游限流；失败则飞行时再加载（优雅降级）
-    var idx=0;
-    (function pump(){
-      if(idx>=urls.length) return;
-      var n=Math.min(8, urls.length-idx);
-      for(var k=0;k<n;k++){ var im=new Image(); im.src=urls[idx+k]; }
-      idx+=n;
-      setTimeout(pump, 25);
-    })();
+    // P0a：用 requestIdleCallback 在「浏览器空闲、不阻塞动画帧」时逐张解码，避免 560 张瓦片在首屏地球旋转期集中解码引发卡顿；
+    // 每张 new Image() 触发一次 JPEG 软解，idle 回调天然插在地球 RAF 帧之间，绝不抢占渲染帧。
+    // 带 setTimeout 兜底（Safari 旧版无 ric），兜底每次限 6 张并间隔 24ms，同样平缓。
+    var _ric = window.requestIdleCallback ? window.requestIdleCallback.bind(window) : null;
+    var idx=0, _warmJob=null;
+    function pump(deadline){
+      if(idx>=urls.length){ _warmJob=null; return; }
+      var guard=0;
+      while(idx<urls.length){
+        var budget = deadline ? deadline.timeRemaining() : 0;
+        if(deadline && budget<3) break;          // 本次空闲额度用尽，交还主线程去渲染下一帧
+        var im=new Image(); im.src=urls[idx++];
+        guard++;
+        if(!deadline && guard>=6) break;          // 兜底路径：每轮最多 6 张
+        if(guard>=80) break;                      // 安全上限，防止极端情况下单轮过久
+      }
+      if(idx<urls.length){ _warmJob=_ric?_ric(pump):setTimeout(function(){pump(null);},24); }
+      else _warmJob=null;
+    }
+    _warmJob=_ric?_ric(pump):setTimeout(function(){pump(null);},24);
   }catch(e){}
 }
 // 俯冲期间临时调高底图瓦片层的 keepBuffer，让相邻整数缩放级别的瓦片都常驻 DOM，
@@ -13146,7 +13654,7 @@ function initLoginScreen(){
   }catch(e){}
   // 俯冲前预热：真实地图式 flyTo(z5→12) 会逐整数层满屏渲染并换层，把路径上 z5-12 各层瓦片提前请求进缓存（浏览器 + 服务端双重缓存），
   // 俯冲时换层直接命中缓存秒出清晰层、不临时回源、不灰块。延迟 200ms 触发，先保证地球首屏流畅渲染。
-  setTimeout(function(){ try{ warmDiveTiles([35.42,116.65], 5, 12); }catch(e){} },200);
+  // P1：瓦片预热改到「点开启」之后触发（见 tryUnlock 成功分支）——避免首屏地球刚起渲染时就被 560 块瓦片请求抢占主线程/网络，前 1~2 秒更顺；点击即预热，到揭屏前仍有约 3s 命中缓存
   var wrap=document.getElementById('loginPwdWrap');
   var foot=document.getElementById('loginFoot');
   if(wrap) wrap.className='login-pwd show';
@@ -13275,6 +13783,8 @@ function tryUnlock(){
     }
   },420);
   if(!ok) return;                                  // 失败分支已在上方命中回调里处理完毕，不再安排入场时序
+  // P1：瓦片预热改到点击后触发——首屏地球刚起渲染时不再被 560 块瓦片请求抢占，前 1~2 秒更顺；点击即预热，到 3200ms 揭屏前仍有约 3s 命中缓存
+  setTimeout(function(){ try{ warmDiveTiles([35.42,116.65], 5, 12); }catch(e){} }, 120);
   // ===== 成功：旋转 → 缓缓放大 → 白光吞没 → 揭屏俯冲落地 =====
   setTimeout(function(){                           // 旋转进入明显减速、快到中国上空（easeInOutCubic 已转过约 72%、且已放慢）就顺势启动缓缓放大俯冲，让「减速」与「放大」叠在一起，不出现停下挺住才放大的停顿感
     ov.classList.add('enter');
@@ -13287,12 +13797,17 @@ function tryUnlock(){
     try{ map.setView([35.42,116.65], 5, {animate:false}); }catch(e){}   // 起点 z5 满屏（半个中国尺度），与地球放大末态对齐，无黑边
     ov.classList.add('hide'); ov.style.display='none';                  // 揭开首屏：星空/地球淡出，亮出下方正在俯冲的地图
     var sc=document.getElementById('starCanvas'); if(sc) sc.style.display='none';
-    stopStarAnim();                                  // 停掉星空 RAF（含移除 resize 监听），避免对隐藏 canvas 持续重绘空烧 CPU/GPU
-    stopGlobeCanvas();
-    try{ map.flyTo([35.42,116.65], 12, {duration:3.3, easeLinearity:0.5}); }catch(e){}  // 真实地图式俯冲：每层满屏渲染无黑边；fadeAnimation:true+fadeDuration:120→跨整数层级新瓦片利落交叉淡入；z5-12 已预热命中缓存→淡入即清晰无灰块；时长3.3s更舒展、easeLinearity:0.5略带回坠弧线
+    stopStarAnim();                                  // 停掉星空 RAF（含移除 resize 监听 + 释放离屏层），避免对隐藏 canvas 持续重绘空烧 CPU/GPU
+    stopGlobeCanvas();                               // P1：释放地球画布资源（含 ~17MB 排版数组 GC）；放在 flyTo 之前，使「GC 大对象」与「flyTo 初始化」分属两个任务
+    // P0b：把 flyTo 推到下一帧（双 rAF 确保先 paint 一次），让 setView 的瓦片实例化/布局与「GC 17MB + flyTo 首帧」错开成两次 macrotask，
+    // 消除揭屏瞬间「setView+GC+flyTo 全挤在同一个长任务里」导致的 ~1s 单帧卡顿（卡顿表现为俯冲开头一顿）。
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){
+      try{ map.flyTo([35.42,116.65], 12, {duration:3.3, easeLinearity:0.5}); }catch(e){}  // 真实地图式俯冲：每层满屏渲染无黑边；fadeAnimation:true+fadeDuration:120→跨整数层级新瓦片利落交叉淡入；z5-12 已预热命中缓存→淡入即清晰无灰块；时长3.3s更舒展、easeLinearity:0.5略带回坠弧线
+    }); });
   },3200);
   setTimeout(function(){                           // 俯冲落地（flyTo 3.0s，3200+3000≈6200）后再清理特效层、还原进入按钮
     var fx=document.getElementById('fxLayer'); if(fx){ fx.innerHTML=''; fx.classList.remove('show'); }   // 只靠 .show 类控制显隐，不再写 inline display:none（避免压制下次 .show 激活）
+    try{ window.removeEventListener('resize', _introGhostResize); }catch(e){} _ghostEl=null;   // P1：解除 resize 监听，释放幻影引用
     if(eb){ eb.disabled=false; eb.style.visibility=''; }              // 还原原按钮可见性（已不可见，留待导出/下次无影响）
   },6350);
   setTimeout(function(){                           // 大气层白光淡出结束后再移除该层（动画本身已归零，仅做清理）
@@ -13359,7 +13874,7 @@ try{
 <script>
 // 注册 Service Worker 实现离线壳（仅 http(s) 环境；file:// 导出版不注册，避免误缓存）
 if('serviceWorker' in navigator && location.protocol!=='file:'){
-  window.addEventListener('load', function(){ navigator.serviceWorker.register('./sw.js').catch(function(){}); });
+  window.addEventListener('load', function(){ navigator.serviceWorker.register('./sw.js?v=3').catch(function(){}); });
 }
 </script>
 </body>
