@@ -562,6 +562,7 @@ body.sb-collapsed .sidebar-collapse-btn{left:6px}
 /* 测量按钮：右下角比例尺上方，深色卡片风格 */
 #measureBtn{position:fixed;bottom:56px;right:12px;z-index:1500;width:38px;height:38px;border-radius:8px;background:var(--bg-panel);border:1px solid var(--border-color);color:var(--accent-orange,#e67e22);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;backdrop-filter:blur(12px);box-shadow:0 4px 18px rgba(0,0,0,.35);transition:transform .15s,background .15s,box-shadow .15s}
 #measureBtn:hover{transform:scale(1.06);background:var(--bg-hover);box-shadow:0 6px 22px rgba(0,0,0,.45)}
+
 #measureBtn:active{transform:scale(0.96)}
 #measureBtn.active{color:#fff;background:rgba(230,126,34,.92);border-color:rgba(230,126,34,.7);box-shadow:0 4px 18px rgba(230,126,34,.35)}
 #measurePanel{position:fixed;bottom:100px;right:12px;left:auto;top:auto;z-index:1500;background:var(--bg-panel);border:1px solid var(--border-color);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--text-primary);backdrop-filter:blur(12px);max-width:250px;line-height:1.6;box-shadow:0 4px 18px rgba(0,0,0,.35)}
@@ -1672,6 +1673,17 @@ body.sb-collapsed #drawPanel{left:28px}
         <button class="btn" onclick="openClearConfirmModal()" style="width:100%;color:#e74c3c;border-color:rgba(231,76,60,.45);background:rgba(231,76,60,.08)">🗑 清空当前草稿</button>
       </div>
       <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:8px;padding:12px;margin-bottom:14px">
+        <h4 style="margin:0 0 6px;font-size:14px;color:var(--text-primary)">ℹ️ 关于本软件</h4>
+        <div style="font-size:12px;color:var(--text-secondary);line-height:1.6">
+          <b style="color:var(--text-primary)">济宁佳印图文 · 地图标注软件</b><br>
+          地图标注与出图工具。底图数据版权归各自提供方所有，商用请遵守其许可条款：<br>
+          · 高德地图 © 高德软件（GS 号）<br>
+          · 天地图 © 国家地理空间信息中心（自然资源部）<br>
+          · Esri 影像 © Esri, Maxar, Earthstar Geographics<br>
+          前端基于 <a href="https://leafletjs.com/" target="_blank" style="color:var(--accent-blue)">Leaflet</a>（BSD-2-Clause）。
+        </div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:8px;padding:12px;margin-bottom:14px">
         <h4 style="margin:0 0 6px;font-size:14px;color:var(--text-primary)">↶ 撤销 / 重做说明</h4>
         <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;line-height:1.6">
           <b style="color:var(--text-primary)">快捷键</b><br>
@@ -2171,7 +2183,7 @@ body.sb-collapsed #drawPanel{left:28px}
   <button class="btn btn-sm" onclick="openDlHistory()" title="查看导出历史" style="white-space:nowrap">🕘 历史</button>
   <button class="dl-close" onclick="closeDlModal()" title="关闭 / 取消下载" aria-label="关闭">✕</button>
 </div>
-    <div id="dlFileWarn" style="display:none;background:rgba(243,156,18,0.15);border:1px solid rgba(243,156,18,0.5);color:#f39c12;font-size:12px;padding:8px 10px;border-radius:6px;margin-bottom:10px">⚠ 检测到你是用 <b>file://</b> 直接打开本文件，浏览器安全策略会禁止把高德底图导出（结果会是纯黑图）。请改用「本地服务器」或部署后打开本页面再下载。已为你准备好了启动方式（见下一条消息）。</div>
+    <div id="dlFileWarn" style="display:none;background:rgba(243,156,18,0.15);border:1px solid rgba(243,156,18,0.5);color:#f39c12;font-size:12px;padding:8px 10px;border-radius:6px;margin-bottom:10px">⚠ 检测到你是用 <b>file://</b> 直接打开本文件，浏览器安全策略会禁止把在线底图（高德 / 天地图 / Esri）导出（结果会是空白或纯黑图）。请改用「本地服务器」或部署后打开本页面再下载。已为你准备好了启动方式（见下一条消息）。</div>
     <div id="dlSourceHint" style="display:none;background:rgba(52,152,219,0.12);border:1px solid rgba(52,152,219,0.3);color:#3498db;font-size:12px;padding:6px 10px;border-radius:6px;margin-bottom:10px">加载中…</div>
     <div class="dl-row dl-tpl-row">
       <label>出图模板</label>
@@ -2595,7 +2607,8 @@ var _dlScale=1;        // 当前下载清晰度倍数，供标签辅助函数使
 
 var shops=[]; // 空白模板：点「+ 新增店铺」添加点位，名称/类型/街道/地址/坐标均可自定义
 
-var map=L.map('mapContainer',{zoomControl:false,attributionControl:false,zoomAnimationThreshold:16,fadeAnimation:true,maxZoom:19}).setView([35.42,116.65],12);
+var map=L.map('mapContainer',{zoomControl:false,attributionControl:true,zoomAnimationThreshold:16,fadeAnimation:true,maxZoom:19}).setView([35.42,116.65],12);
+
 // 自定义 pane 承载地图常显标签层：z-index 650（介于 markerPane 600 与 popupPane 700 之间），
 // 使编辑弹窗(popup)自然显示在标签上方，同时标签仍盖在底图/标记之上。
 map.createPane('descLabels');
@@ -2931,18 +2944,8 @@ function tdtTpl(t){ return '/amap?layer='+(_tdtLayerMap[t]||'tdt_vec')+'&sub=0&x
 function esriTpl(layer){ return '/amap?layer='+layer+'&sub=0&x={x}&y={y}&z={z}'; }
 function amapUrl(t,x,y,z,sub){ return amapTpl(t).replace('{s}',sub).replace('{x}',x).replace('{y}',y).replace('{z}',z); }
 function tdtUrl(t,x,y,z,sub){ return tdtTpl(t).replace('{s}',sub).replace('{x}',x).replace('{y}',y).replace('{z}',z); }
-// 必应卫星图层（由本地代理 /amap?layer=bing_sat 转发，quadkey 换算在服务端完成；避免浏览器直连 virtualearth.net 被 CORS/网络策略拦截）
-// url 加 &v=2 是为了让浏览器硬盘 tile cache 里旧的直连 URL（被 CORS 拒）彻底失效
-// 注意：Leaflet 内部把 subdomains 当数组处理，这里直接用整数轮换 (x+y)%4 作为子域，避免 .charAt 在非字符串上报错
-var BingLayer=L.TileLayer.extend({
-  getTileUrl:function(c){
-    var sd=(c.x+c.y)%4;
-    return '/amap?layer=bing_sat&sub='+sd+'&x='+c.x+'&y='+c.y+'&z='+c.z+'&v=2';
-  }
-});
-
 // 瓦片回退：从失败瓦片 URL（/amap?...&x=&y=&z=）解析坐标，换父级 z-1 瓦片放大填充。
-// 用于解决 Bing/Esri 在 z19 部分地区无影像（404 空白）导致的空白洞；不依赖 e.coords 内部字段，所有底图均经 /amap 代理、URL 格式统一。
+// 用于解决 Esri 在 z19 部分地区无影像（404 空白）导致的空白洞；不依赖 e.coords 内部字段，所有底图均经 /amap 代理、URL 格式统一。
 function buildTileFallbackUrl(url){
   if(!url) return null;
   var xm=/[?&]x=(-?\d+)/.exec(url), ym=/[?&]y=(-?\d+)/.exec(url), zm=/[?&]z=(\d+)/.exec(url);
@@ -2963,13 +2966,14 @@ var TILE_SPECS={
   tdt_cia:{f:'tdt',t:'cia_w',op:0.9, cls:'bl-anno'},
   tdt_cta:{f:'tdt',t:'cta_w',op:0.9, cls:'bl-anno'},
   tdt_cva:{f:'tdt',t:'cva_w',op:0.9, cls:'bl-anno'},
-  bing_sat:{f:'bing',t:'sat'},
   esri_img:{f:'esri',t:'img'},
   esri_road:{f:'esri',t:'road',op:0.85},    // Esri World_Transportation 参考叠加：路网（道路/铁路/机场线），白线透明底，叠在卫星上
   esri_anno:{f:'esri',t:'anno',op:0.92}     // Esri World_Boundaries_and_Places 参考叠加：文字注记（国界·城市点·地名/POI 名）
 };
-// 各瓦片源原生最大级别（amap/tdt 封顶 18，bing/esri 支持 19）；改这一处即可统一调整所有上限
-var SRC_MAX_Z = {amap:18, tdt:18, bing:19, esri:19};
+// 各瓦片源原生最大级别（amap/tdt 封顶 18，esri 支持 19）；改这一处即可统一调整所有上限
+var SRC_MAX_Z = {amap:18, tdt:18, esri:19};
+// 各底图版权署名（满足高德/天地图/Esri 商用强制署名要求）
+var ATTRIB={amap:'© 高德地图', tdt:'© 天地图', esri:'© Esri, Maxar, Earthstar Geographics'};
 // 浏览器下载（canvas）端使用的滤镜，与 CSS .bl-roadnet/.bl-anno 完全一致，保证导出图与屏幕观感一致
 var LAYER_FILTER={
   amap_roadnet:'brightness(1.12) contrast(1.18) saturate(1.35)',
@@ -2986,32 +2990,24 @@ var BASEMAPS={
   dark:{label:'🌑 暗色大屏', crs:'gcj02', sat:false, dark:true, layers:['amap_road']},
   tdt_img:{label:'🛰 天地图影像', crs:'wgs84', sat:true, layers:['tdt_img','tdt_cia'], needKey:'tdt'},
   tdt_vec:{label:'🗺 天地图矢量', crs:'wgs84', sat:false, layers:['tdt_vec','tdt_cva'], needKey:'tdt'},
-  bing:{label:'🛰 必应卫星', crs:'wgs84', sat:true, layers:['bing_sat']},
   esri_img:{label:'🌍 Esri 影像(境外)', crs:'wgs84', sat:true, layers:['esri_img','esri_road','esri_anno'], foreign:true}
 };
 var _tileLayerCache={};
 function getTileLayer(key){
   if(_tileLayerCache[key]) return _tileLayerCache[key];
   var sp=TILE_SPECS[key];
-  var l;
-  if(sp.f==='bing'){
-    // 必应卫星：quadkey 路径模板，需自定义 Layer；sub 由 getTileUrl 内 (x+y)%4 轮换，无需传 subdomains。
-    // 必应官方支持到 SRC_MAX_Z.bing（部分地区无影像），由下方 tileerror 回退父级填充空白洞。
-    l=new BingLayer('',{maxZoom:19, maxNativeZoom:SRC_MAX_Z.bing, opacity:(sp.op||1), fadeDuration:120, errorTileUrl:''});
-  } else {
-    var url= sp.f==='amap' ? amapTpl(sp.t) : (sp.f==='esri' ? esriTpl(key) : tdtTpl(sp.t));
-    // 各源原生上限见 SRC_MAX_Z：amap/tdt 封顶 18，设 maxNativeZoom=18（地图仍可放到 19，用 z18 放大显示不空白）；
-    // esri 上游有 z19，maxZoom 保持 19 真高清。地图实例 maxZoom:19 为全局天花板，此处不动。
-    var _srcNative = SRC_MAX_Z[sp.f] || 19;
-    var opts={subdomains: sp.f==='amap'?'1234':'0123', maxZoom:19, opacity:(sp.op||1), fadeDuration:120, errorTileUrl:''};
-    if(_srcNative < 19) opts.maxNativeZoom=_srcNative;
-    if(sp.cls) opts.className=sp.cls;
-    l=L.tileLayer(url, opts);
-  }
+  var url= sp.f==='amap' ? amapTpl(sp.t) : (sp.f==='esri' ? esriTpl(key) : tdtTpl(sp.t));
+  // 各源原生上限见 SRC_MAX_Z：amap/tdt 封顶 18，设 maxNativeZoom=18（地图仍可放到 19，用 z18 放大显示不空白）；
+  // esri 上游有 z19，maxZoom 保持 19 真高清。地图实例 maxZoom:19 为全局天花板，此处不动。
+  var _srcNative = SRC_MAX_Z[sp.f] || 19;
+  var opts={subdomains: sp.f==='amap'?'1234':'0123', maxZoom:19, opacity:(sp.op||1), fadeDuration:120, errorTileUrl:'', attribution:ATTRIB[sp.f]||''};
+  if(_srcNative < 19) opts.maxNativeZoom=_srcNative;
+  if(sp.cls) opts.className=sp.cls;
+  var l=L.tileLayer(url, opts);
   // 累计瓦片失败次数；连续失败给出明确错误提示（替代原静默失败）
   var _errCount=0; var _errToastShown=false;
   l.on('tileerror', function(e){
-    // 瓦片回退：先尝试换父级 z-1 瓦片放大填充（解决 Bing/Esri z19 局部无影像的空白洞），回退成功不计入连续失败
+    // 瓦片回退：先尝试换父级 z-1 瓦片放大填充（解决 Esri z19 局部无影像的空白洞），回退成功不计入连续失败
     try{
       var img=e.tile;
       if(img && !img._fb){
@@ -5172,12 +5168,19 @@ function openExportPerms(){
   if(mapMode && mapMode.indexOf('amap')===0 && amapKey===BUILTIN_AMAP_KEY){
     amapWarn='<div style="font-size:11px;color:#e8a33d;background:rgba(232,163,61,.12);border:1px solid rgba(232,163,61,.4);border-radius:8px;padding:8px 10px;margin-bottom:12px;line-height:1.5">'
       +'⚠️ 当前底图为高德（amap），其内置 Key 不会随导出文件带走，导出的 HTML 打开时该底图瓦片将为空白。'
-      +'建议：导出前在「设置」填写你自己的高德 Key，或改用天地图 / 必应底图再导出。</div>';
+      +'建议：导出前在「设置」填写你自己的高德 Key，或改用天地图底图再导出。</div>';
+  }
+  // Esri 影像依赖本地服务代理（/amap），file:// 直开导出文件时瓦片会空白
+  var esriWarn='';
+  if(mapMode && mapMode.indexOf('esri')===0){
+    esriWarn='<div style="font-size:11px;color:#e8a33d;background:rgba(232,163,61,.12);border:1px solid rgba(232,163,61,.4);border-radius:8px;padding:8px 10px;margin-bottom:12px;line-height:1.5">'
+      +'⚠️ 当前底图为 Esri 影像，其瓦片经本地服务代理（/amap）加载。若导出后用 file:// 直接打开 HTML，瓦片将为空白；'
+      +'请用「本地服务器」或部署后打开本页面再导出，或改用高德 / 天地图底图。</div>';
   }
   modal.innerHTML='<div style="width:420px;max-width:92vw;max-height:86vh;overflow:auto;background:var(--bg-panel);border:1px solid var(--border-active);border-radius:12px;padding:18px">'
     +'<h3 style="margin:0 0 6px;font-size:16px;color:var(--text-primary)">导出 HTML · 权限设置</h3>'
     +'<div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;line-height:1.5">勾选本文件允许的能力，未勾选的功能将不会出现在导出文件中。</div>'
-    +amapWarn
+    +amapWarn+esriWarn
     +rows
     +'<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">'
     +'<button class="btn" onclick="closeExportPerms()">取消</button>'
